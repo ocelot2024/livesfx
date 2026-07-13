@@ -1,0 +1,84 @@
+:root {
+    /* Large Title */
+    --font-size-large-title: 26pt;
+    --line-height-large-title: 32pt;
+
+    /* Title 1 */
+    --font-size-title-1: 22pt;
+    --line-height-title-1: 26pt;
+
+    /* Title 2 */
+    --font-size-title-2: 17pt;
+    --line-height-title-2: 22pt;
+
+    /* Title 3 */
+    --font-size-title-3: 15pt;
+    --line-height-title-3: 20pt;
+
+    /* Heading */
+    --font-size-heading: 13pt;
+    --line-height-heading: 16pt;
+
+    /* Body */
+    --font-size-body: 13pt;
+    --line-height-body: 16pt;
+
+    /* Callout */
+    --font-size-callout: 12pt;
+    --line-height-callout: 15pt;
+
+    /* Subheading */
+    --font-size-subheading: 11pt;
+    --line-height-subheading: 14pt;
+
+    /* Footnote */
+    --font-size-footnote: 10pt;
+    --line-height-footnote: 13pt;
+
+    /* Caption 1 */
+    --font-size-caption-1: 10pt;
+    --line-height-caption-1: 13pt;
+
+    /* Caption 2 */
+    --font-size-caption-2: 10pt;
+    --line-height-caption-2: 13pt;
+}
+
+h1 {
+    font-size: var(--font-size-title-1);
+    line-height: var(--line-height-title-1);
+    padding: 0.75rem 0;
+}
+
+h2 {
+    font-size: var(--font-size-title-2);
+    padding: 0.75rem 0;
+    line-height: var(--line-height-title-2);
+}
+
+h3 {
+    font-size: var(--font-size-title-3);
+    line-height: var(--line-height-title-3);
+    padding: 0.75rem 0;
+}
+
+h4 {
+    font-size: var(--font-size-heading);
+    line-height: var(--line-height-heading);
+    padding: 0.75rem 0;
+}
+
+p {
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+}
+
+div {
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+}
+
+small {
+    font-size: var(--font-size-footnote);
+    line-height: var(--line-height-footnote);
+}
