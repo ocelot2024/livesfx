@@ -11,3 +11,6 @@ body {
 body {
     background-color: var(--gray-6);
 }
+button {
+    background-color: var(--gray-6);
+}

@@ -2,6 +2,12 @@ export enum EngineEvent {
     ChangedLibrary = "changed_library",
     SavedLibrary = "saved_library",
     NewSound = "new_sound",
+    Initialised = "initialised",
+}
+
+export interface SoundInfo {
+    id: string;
+    filename: string;
 }
 
 class Channel {
@@ -64,11 +70,24 @@ class SoundLibrary {
         this.sounds[id] = sound;
         return id;
     }
-    getsound(id: string) {
+    get_sound(id: string) {
         if (id in this.sounds)
             return new AudioBufferSourceNode(this.ctx, {
                 buffer: this.sounds[id]?.getbuffer(),
             });
+    }
+    get_library() {
+        let frag: Record<string, SoundInfo> = {};
+        for (const i in this.sounds) {
+            if (!this.sounds[i]) continue;
+            const id = i;
+            const filename = this.sounds[i].filename;
+            frag[i] = {
+                id: id,
+                filename,
+            };
+        }
+        return { ...frag };
     }
 }
 
@@ -76,7 +95,9 @@ class Engine {
     private mixer: AudioMixer;
     private library: SoundLibrary;
     private ctx = new window.AudioContext();
+    private playing: Record<string, AudioBufferSourceNode>;
     constructor() {
+        this.playing = {};
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
 
@@ -91,19 +112,29 @@ class Engine {
         const audiobuffer = await this.ctx.decodeAudioData(file);
         this.library.add(name, id, audiobuffer);
         this.mixer.create_channel(id);
-        dispatchEvent(
-            new CustomEvent(EngineEvent.NewSound, {
-                detail: { filename: name, id: id },
-            }),
-        );
         return id;
     }
     play(id: string) {
-        const sound = this.library.getsound(id);
-        if (sound) {
-            this.mixer.send(id, sound);
-            sound.start();
-        }
+        const source_id = crypto.randomUUID();
+        const sound = this.library.get_sound(id);
+        if (!sound) return;
+        this.playing[source_id] = sound;
+        this.mixer.send(id, sound);
+        sound.onended = () => {
+            delete this.playing[source_id];
+        };
+        sound.start();
+        return { soundID: id, sourceID: source_id };
+    }
+    stop(source_id: string) {
+        if (!(source_id in this.playing)) return;
+        this.playing[source_id]?.stop();
+    }
+    dispose() {
+        this.ctx.close();
+    }
+    get_library() {
+        return this.library.get_library();
     }
 }
 
@@ -133,13 +164,27 @@ export const openFilePicker = ({
     });
 };
 
-export class ProjectManager extends EventTarget {
+class ProjectManager extends EventTarget {
     private AudioEngine: Engine;
+    private dirty: boolean;
     constructor() {
         super();
+        this.dirty = false;
         this.AudioEngine = new Engine();
     }
-    start_with_blank() {}
+    start_with_blank() {
+        if (this.dirty) {
+            const will = confirm(
+                "未保存の変更があります。終了してもよろしいですか？",
+            );
+            if (!will) return;
+        }
+        this.AudioEngine.dispose();
+        this.AudioEngine = new Engine();
+        console.log("restart...");
+        this.dirty = false;
+        this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
+    }
     start_from_file() {}
     async add_sound() {
         const audios = await openFilePicker();
@@ -147,9 +192,19 @@ export class ProjectManager extends EventTarget {
             const bin: ArrayBuffer = await audiofile.arrayBuffer();
             await this.AudioEngine.add(audiofile.name, bin);
         }
+        this.dirty = true;
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     play(id: string) {
-        this.AudioEngine.play(id);
+        const result = this.AudioEngine.play(id);
+        return result;
+    }
+    stop(source_id: string) {
+        this.AudioEngine.stop(source_id);
+    }
+    get_library() {
+        return this.AudioEngine.get_library();
     }
 }
+
+export const ProjectEngine = new ProjectManager();
