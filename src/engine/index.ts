@@ -139,7 +139,7 @@ class Engine {
 }
 
 export const openFilePicker = ({
-    multiple = false,
+    multiple = true,
     accept = "audio/*",
 }: {
     multiple?: boolean;

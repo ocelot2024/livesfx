@@ -17,9 +17,28 @@ const menu: MenuList[] = [
                     ProjectEngine.start_with_blank()
                 }
             }, {
+                label: "サウンドの追加",
+                id: "add",
+                handle: () => {
+                    ProjectEngine.add_sound();
+                }
+            }, {
                 label: "環境設定",
                 id: "pref",
                 handle: () => { }
+            }
+        ]
+    },
+    {
+        label: "編集",
+        id: "edit",
+        children: [
+            {
+                "label": "サウンドの追加",
+                id: "add",
+                handle: () => {
+                    ProjectEngine.add_sound();
+                }
             }
         ]
     }
@@ -29,10 +48,45 @@ const menu: MenuList[] = [
 
 <template>
     <AppBar v-bind:items="menu" />
-    <button @click="ProjectEngine.add_sound">追加</button>
-    <button v-for="value in store.library" @click="ProjectEngine.play(value.id)">
-        {{ value.filename }}
-    </button>
+    <div class="grid">
+        <button v-for="sound in store.library" @click="ProjectEngine.play(sound.id)">
+            <div class="card">
+                <h3>{{ sound.filename }}</h3>
+            </div>
+        </button>
+    </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+button {
+    background-color: transparent;
+    border: none;
+}
+
+.grid {
+    display: grid;
+    gap: 32px;
+    padding: 32px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.card {
+    cursor: pointer;
+    background-color: var(--gray-5);
+    border-radius: 12px;
+    padding: 12px;
+    aspect-ratio: 1/1;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+button:active {
+    .card {
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04),
+            inset 0 4px 12px rgba(0, 0, 0, 0.08),
+            inset 0 12px 32px rgba(0, 0, 0, 0.06);
+    }
+}
+</style>
