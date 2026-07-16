@@ -1,95 +1,8 @@
-export enum EngineEvent {
-    ChangedLibrary = "changed_library",
-    SavedLibrary = "saved_library",
-    NewSound = "new_sound",
-    Initialised = "initialised",
-}
-
-export interface SoundInfo {
-    id: string;
-    filename: string;
-}
-
-class Channel {
-    readonly inputGain: GainNode;
-    readonly output: GainNode;
-    constructor(ctx: AudioContext) {
-        this.inputGain = ctx.createGain();
-        this.output = ctx.createGain();
-        // Leave room for future effects.
-        this.inputGain.connect(this.output);
-    }
-}
-
-class Sound {
-    readonly filename: string;
-    readonly id: string;
-    private readonly buffer: AudioBuffer;
-    constructor(name: string, id: string, buffer: AudioBuffer) {
-        this.filename = name;
-        this.id = id;
-        this.buffer = buffer;
-    }
-    getbuffer() {
-        return this.buffer;
-    }
-}
-
-class AudioMixer {
-    private ctx: AudioContext;
-    private channels: Record<string, Channel>;
-    private master: Channel;
-    constructor(ctx: AudioContext) {
-        this.ctx = ctx;
-        this.channels = {};
-        this.master = new Channel(ctx);
-        this.master.output.connect(ctx.destination);
-    }
-    create_channel(id: string) {
-        const channnel = new Channel(this.ctx);
-        this.channels[id] = channnel;
-        this.channels[id].output.connect(this.master.inputGain);
-    }
-    send(id: string, source: AudioBufferSourceNode) {
-        const channel = this.channels[id];
-        if (channel) {
-            source.connect(channel.inputGain);
-        }
-    }
-}
-
-class SoundLibrary {
-    private sounds: Record<string, Sound>;
-    private ctx: AudioContext;
-    constructor(ctx: AudioContext) {
-        this.sounds = {};
-        this.ctx = ctx;
-    }
-    add(name: string, id: string, audiobuffer: AudioBuffer) {
-        const sound = new Sound(name, id, audiobuffer);
-        this.sounds[id] = sound;
-        return id;
-    }
-    get_sound(id: string) {
-        if (id in this.sounds)
-            return new AudioBufferSourceNode(this.ctx, {
-                buffer: this.sounds[id]?.getbuffer(),
-            });
-    }
-    get_library() {
-        let frag: Record<string, SoundInfo> = {};
-        for (const i in this.sounds) {
-            if (!this.sounds[i]) continue;
-            const id = i;
-            const filename = this.sounds[i].filename;
-            frag[i] = {
-                id: id,
-                filename,
-            };
-        }
-        return { ...frag };
-    }
-}
+import { EngineEvent } from "./types";
+import { type SoundInfo } from "./types";
+import { AudioMixer } from "./mixer";
+import { openFilePicker } from "./filemanager";
+import { SoundLibrary } from "./sounds";
 
 class Engine {
     private mixer: AudioMixer;
@@ -138,32 +51,6 @@ class Engine {
     }
 }
 
-export const openFilePicker = ({
-    multiple = true,
-    accept = "audio/*",
-}: {
-    multiple?: boolean;
-    accept?: string;
-} = {}): Promise<File[]> => {
-    return new Promise((resolve) => {
-        const input = document.createElement("input");
-
-        input.type = "file";
-        input.multiple = multiple;
-        input.accept = accept;
-
-        input.addEventListener(
-            "change",
-            () => resolve([...(input.files ?? [])]),
-            {
-                once: true,
-            },
-        );
-
-        input.click();
-    });
-};
-
 class ProjectManager extends EventTarget {
     private AudioEngine: Engine;
     private dirty: boolean;
@@ -208,3 +95,5 @@ class ProjectManager extends EventTarget {
 }
 
 export const ProjectEngine = new ProjectManager();
+export { EngineEvent };
+export type { SoundInfo };

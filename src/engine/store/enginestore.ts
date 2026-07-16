@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
-import { ref, type Ref } from "vue";
-import { EngineEvent, ProjectEngine } from "..";
+import { ref } from "vue";
+import { ProjectEngine } from "..";
 import { type SoundInfo } from "..";
+import { EngineEvent } from "../types";
 
 export const useEngineState = defineStore("engine", () => {
     const library = ref<SoundInfo[]>([]);
