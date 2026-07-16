@@ -104,8 +104,8 @@ onBeforeUnmount(() => {
 }
 
 .menu-button {
-    border: none;
     background: transparent;
+    border: none;
     color: inherit;
     font: inherit;
     padding: 0.4rem 0.8rem;
@@ -151,9 +151,10 @@ onBeforeUnmount(() => {
     transform: translateY(-4px) scale(0.98);
 }
 
+
 .menu-item {
+    background-color: var(--gray-5);
     border: none;
-    background: transparent;
     color: inherit;
     font: inherit;
 
@@ -164,6 +165,6 @@ onBeforeUnmount(() => {
 }
 
 .menu-item:hover {
-    background: var(--gray-4);
+    background-color: var(--gray-4);
 }
 </style>
