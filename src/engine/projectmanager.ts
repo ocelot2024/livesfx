@@ -2,7 +2,7 @@ import { Engine } from "./audioengine";
 import { EngineEvent, type SoundInfo } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
 
-const PROJECT_FILE_EX = "LVSF";
+const PROJECT_FILE_EX = "lvsf";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
@@ -16,6 +16,10 @@ export class ProjectManager extends EventTarget {
         this.projectname = "名称未設定";
         this.dirty = false;
         this.AudioEngine = new Engine();
+    }
+    async init() {
+        await this.db_init();
+        this.projectname = "名称未設定";
     }
     async db_init() {
         if (this.db) {
@@ -55,7 +59,7 @@ export class ProjectManager extends EventTarget {
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         console.log("restart...");
-        await this.db_init();
+        await this.init();
         this.dirty = false;
         this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
@@ -69,7 +73,8 @@ export class ProjectManager extends EventTarget {
         if (!filelist) return;
         if (!filelist[0]) return;
         const file = filelist[0];
-
+        this.projectname = file.name.replace("." + PROJECT_FILE_EX, "");
+        document.title = this.projectname;
         //lsvfファイルならヘッダーの先頭4バイトがLVSFなはず
         const header = await file.slice(0, 4).arrayBuffer();
         const decodedheader = decoder.decode(header);

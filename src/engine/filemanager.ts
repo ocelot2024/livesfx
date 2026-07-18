@@ -69,7 +69,7 @@ export class LVSFFile {
         const header = new Uint8Array(headerBuffer);
         const headerView = new DataView(headerBuffer);
 
-        const magic = new TextEncoder().encode("LVSF");
+        const magic = new TextEncoder().encode("lvsf");
         const formatVer = 0;
 
         header.set(magic, 0);
@@ -81,7 +81,7 @@ export class LVSFFile {
 }
 /**
  * Header
- * 0-3 LVSF
+ * 0-3 lvsf
  * 4-5 Format ver
  * 6-7 Reserved
  * 8-15 JSON size
