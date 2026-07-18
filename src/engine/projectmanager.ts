@@ -17,8 +17,14 @@ export class ProjectManager extends EventTarget {
         this.dirty = false;
         this.AudioEngine = new Engine();
     }
-    async init() {
-        this.db = await new Promise<IDBDatabase>((resolve, reject) => {
+    async db_init() {
+        this.db = await new Promise<IDBDatabase>(async (resolve, reject) => {
+            const delete_request = indexedDB.deleteDatabase("fileCache");
+            await new Promise((resolve, reject) => {
+                delete_request.onsuccess = () => resolve(undefined);
+                delete_request.onerror = () => reject(delete_request.error);
+            });
+
             const request = indexedDB.open("fileCache", 1);
             request.onerror = () => {
                 reject(request.error);
@@ -45,6 +51,7 @@ export class ProjectManager extends EventTarget {
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         console.log("restart...");
+        await this.db_init();
         this.dirty = false;
         this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
@@ -79,15 +86,20 @@ export class ProjectManager extends EventTarget {
         };
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
+        await this.db_init();
         let frag = [];
         for (const sound_info of body.sounds) {
             const id = sound_info.id;
 
             const soundfile_info = body.files.filter((v) => v.id == id)[0];
             if (!soundfile_info) return;
+            //それぞれヘッダーとｊjson部の長さを足しておく
             const soundfile_pos = [
-                soundfile_info.offset,
-                soundfile_info.offset + soundfile_info.size,
+                soundfile_info.offset + 16 + decodedjsonsize,
+                soundfile_info.offset +
+                    16 +
+                    decodedjsonsize +
+                    soundfile_info.size,
             ];
 
             const audio = await file.slice(...soundfile_pos).arrayBuffer();
@@ -173,7 +185,7 @@ export class ProjectManager extends EventTarget {
                     }),
             ),
         )) as { id: string; file: ArrayBuffer }[];
-
+        console.log(files);
         const fileMap = Object.fromEntries(
             files.map(({ id, file }) => [id, file]),
         );

@@ -22,7 +22,7 @@ export class Engine {
         const audiobuffer = await this.ctx.decodeAudioData(file);
         this.library.add(name, sound_id, audiobuffer);
         this.mixer.create_channel(sound_id);
-        return id;
+        return sound_id;
     }
     play(id: string) {
         const source_id = crypto.randomUUID();

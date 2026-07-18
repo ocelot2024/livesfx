@@ -26,7 +26,7 @@ export const openFilePicker = ({
     });
 };
 
-interface SoundFile {
+export interface SoundFile {
     offset: number;
     size: number;
     id: string;
