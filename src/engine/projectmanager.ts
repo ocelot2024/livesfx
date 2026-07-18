@@ -18,6 +18,10 @@ export class ProjectManager extends EventTarget {
         this.AudioEngine = new Engine();
     }
     async db_init() {
+        if (this.db) {
+            this.db.close();
+            this.db = undefined;
+        }
         this.db = await new Promise<IDBDatabase>(async (resolve, reject) => {
             const delete_request = indexedDB.deleteDatabase("fileCache");
             await new Promise((resolve, reject) => {
@@ -107,6 +111,7 @@ export class ProjectManager extends EventTarget {
             frag.push({ id, file: audio, name: sound_info.filename });
         }
         await this.add_sound(frag);
+        this.dirty = false;
     }
     async add_sound(
         sounds?: { id: string; file: ArrayBuffer; name: string }[],
@@ -201,5 +206,6 @@ export class ProjectManager extends EventTarget {
         a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
         a.href = url;
         a.click();
+        this.dirty = false;
     }
 }
