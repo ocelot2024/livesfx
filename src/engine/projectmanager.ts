@@ -1,14 +1,19 @@
 import { Engine } from "./audioengine";
-import { EngineEvent } from "./types";
-import { openFilePicker, LVSFFile } from "./filemanager";
+import { EngineEvent, type SoundInfo } from "./types";
+import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
+
+const PROJECT_FILE_EX = "LVSF";
 
 export class ProjectManager extends EventTarget {
+    private projectname: string;
+
     private AudioEngine: Engine;
     private dirty: boolean;
 
     private db?: IDBDatabase;
     constructor() {
         super();
+        this.projectname = "名称未設定";
         this.dirty = false;
         this.AudioEngine = new Engine();
     }
@@ -43,19 +48,83 @@ export class ProjectManager extends EventTarget {
         this.dirty = false;
         this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
-    start_from_file() {}
-    async add_sound() {
-        if (!this.db) return;
+    async start_from_file() {
+        const decoder = new TextDecoder();
 
-        const audios = await openFilePicker();
-        let files: { id: string; file: ArrayBuffer }[] = [];
+        const filelist = await openFilePicker({
+            multiple: false,
+            accept: PROJECT_FILE_EX,
+        });
+        if (!filelist) return;
+        if (!filelist[0]) return;
+        const file = filelist[0];
 
-        for (const audiofile of audios) {
-            const bin: ArrayBuffer = await audiofile.arrayBuffer();
-            const id = await this.AudioEngine.add(audiofile.name, bin.slice(0));
-            files.push({ id, file: bin });
+        //lsvfファイルならヘッダーの先頭4バイトがLVSFなはず
+        const header = await file.slice(0, 4).arrayBuffer();
+        const decodedheader = decoder.decode(header);
+        console.log(decodedheader);
+        if (decodedheader !== PROJECT_FILE_EX) return;
+
+        const jsonsize = await file.slice(8, 16).arrayBuffer();
+        const decodedjsonsize = Number(
+            new DataView(jsonsize).getBigUint64(0, true),
+        );
+
+        const json_body = await file
+            .slice(16, 16 + decodedjsonsize)
+            .arrayBuffer();
+        const body = JSON.parse(decoder.decode(json_body)) as {
+            sounds: SoundInfo[];
+            files: SoundFile[];
+        };
+        await this.AudioEngine.dispose();
+        this.AudioEngine = new Engine();
+        let frag = [];
+        for (const sound_info of body.sounds) {
+            const id = sound_info.id;
+
+            const soundfile_info = body.files.filter((v) => v.id == id)[0];
+            if (!soundfile_info) return;
+            const soundfile_pos = [
+                soundfile_info.offset,
+                soundfile_info.offset + soundfile_info.size,
+            ];
+
+            const audio = await file.slice(...soundfile_pos).arrayBuffer();
+
+            frag.push({ id, file: audio, name: sound_info.filename });
         }
+        await this.add_sound(frag);
+    }
+    async add_sound(
+        sounds?: { id: string; file: ArrayBuffer; name: string }[],
+    ) {
+        if (!this.db) return;
+        let files: { id: string; file: ArrayBuffer; name: string }[] = [];
 
+        if (!sounds) {
+            const audios = await openFilePicker();
+
+            for (const audiofile of audios) {
+                const bin: ArrayBuffer = await audiofile.arrayBuffer();
+                const id = await this.AudioEngine.add(
+                    audiofile.name,
+                    bin.slice(0),
+                );
+                if (!id) continue;
+                files.push({ id, file: bin, name: audiofile.name });
+            }
+        } else {
+            files = sounds;
+            for (const sound of files) {
+                const result = await this.AudioEngine.add(
+                    sound.name,
+                    sound.file.slice(0),
+                    sound.id,
+                );
+                if (!result) continue;
+            }
+        }
         const transaction = this.db.transaction(
             ["audioFileCache"],
             "readwrite",
@@ -117,7 +186,7 @@ export class ProjectManager extends EventTarget {
         const blob = lvsffile.build();
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.download = "名称未設定.lvsf";
+        a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
         a.href = url;
         a.click();
     }

@@ -17,11 +17,11 @@ export class Engine {
             }
         });
     }
-    async add(name: string, file: ArrayBuffer) {
-        const id = crypto.randomUUID();
+    async add(name: string, file: ArrayBuffer, id?: string) {
+        const sound_id = id ?? crypto.randomUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
-        this.library.add(name, id, audiobuffer);
-        this.mixer.create_channel(id);
+        this.library.add(name, sound_id, audiobuffer);
+        this.mixer.create_channel(sound_id);
         return id;
     }
     play(id: string) {
