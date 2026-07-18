@@ -49,6 +49,12 @@ class Engine {
     get_library() {
         return this.library.get_library();
     }
+    stop_all_sfx() {
+        const keys = Object.keys(this.playing);
+        for (const key of keys) {
+            this.stop(key);
+        }
+    }
 }
 
 class ProjectManager extends EventTarget {
@@ -91,6 +97,9 @@ class ProjectManager extends EventTarget {
     }
     get_library() {
         return this.AudioEngine.get_library();
+    }
+    stop_all_sfx() {
+        return this.AudioEngine.stop_all_sfx();
     }
 }
 

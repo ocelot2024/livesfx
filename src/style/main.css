@@ -14,4 +14,8 @@ body {
 }
 button {
     background-color: var(--gray-6);
+    cursor: pointer;
+    border-radius: 12px;
+    border: 1px solid var(--gray-4);
+    padding: 7px;
 }
