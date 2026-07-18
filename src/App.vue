@@ -17,6 +17,11 @@ const menu: MenuList[] = [
                     ProjectEngine.start_with_blank()
                 }
             }, {
+                label: "名前を付けて保存",
+                id: "save",
+                handle: () => { ProjectEngine.export() }
+            },
+            {
                 label: "サウンドの追加",
                 id: "add",
                 handle: () => {

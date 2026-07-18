@@ -31,7 +31,7 @@ interface SoundFile {
     size: number;
     id: string;
 }
-class LVSFXFileManager {
+export class LVSFFile {
     soundMap: Record<string, SoundInfo>;
     files: Map<string, ArrayBuffer>;
     constructor(file?: ArrayBuffer) {
