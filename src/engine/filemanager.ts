@@ -7,7 +7,7 @@ export const openFilePicker = ({
     multiple?: boolean;
     accept?: string;
 } = {}): Promise<File[]> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const input = document.createElement("input");
 
         input.type = "file";
@@ -22,6 +22,7 @@ export const openFilePicker = ({
             },
         );
 
+        input.addEventListener("cancel", () => reject());
         input.click();
     });
 };

@@ -217,6 +217,7 @@ export class ProjectManager extends EventTarget {
         a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
         a.href = url;
         a.click();
+        URL.revokeObjectURL(url);
         this.dirty = false;
     }
 }
