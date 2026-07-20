@@ -20,6 +20,17 @@ export class ProjectManager extends EventTarget {
     async init() {
         await this.db_init();
         this.projectname = "名称未設定";
+
+        window.addEventListener("beforeunload", (e) => {
+            if (this.dirty) {
+                const will = confirm(
+                    "未保存の変更があります。終了してもよろしいですか？",
+                );
+                if (!will) {
+                    e.preventDefault();
+                }
+            }
+        });
     }
     async db_init() {
         if (this.db) {
