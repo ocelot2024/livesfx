@@ -61,7 +61,7 @@ const menu: MenuList[] = [
         </button>
     </div>
     <footer>
-        <button @click="ProjectEngine.stop_all_sfx">すべて停止</button>
+        <button @click="ProjectEngine.stop_all_sfx()">すべて停止</button>
     </footer>
 </template>
 
