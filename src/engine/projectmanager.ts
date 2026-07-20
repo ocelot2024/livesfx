@@ -68,7 +68,7 @@ export class ProjectManager extends EventTarget {
 
         const filelist = await openFilePicker({
             multiple: false,
-            accept: PROJECT_FILE_EX,
+            accept: "." + PROJECT_FILE_EX,
         });
         if (!filelist) return;
         if (!filelist[0]) return;
