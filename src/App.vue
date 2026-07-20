@@ -22,6 +22,13 @@ const menu: MenuList[] = [
                 handle: () => { ProjectEngine.export() }
             },
             {
+                label: "開く",
+                id: "open",
+                handle: () => {
+                    ProjectEngine.start_from_file();
+                }
+            },
+            {
                 label: "サウンドの追加",
                 id: "add",
                 handle: () => {
