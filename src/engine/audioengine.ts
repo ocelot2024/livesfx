@@ -71,6 +71,6 @@ export class Engine {
             delete this.playing[value.source_id];
         });
         this.library.remove(id);
-        this.mixer;
+        this.mixer.delete_channel(id);
     }
 }

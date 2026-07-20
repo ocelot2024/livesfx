@@ -16,42 +16,39 @@ export class ProjectManager extends EventTarget {
         this.projectname = "名称未設定";
         this.dirty = false;
         this.AudioEngine = new Engine();
+        window.addEventListener("beforeunload", (e) => {
+            if (this.dirty) {
+                e.preventDefault();
+            }
+        });
     }
     async init() {
         await this.db_init();
         this.projectname = "名称未設定";
-
-        window.addEventListener("beforeunload", (e) => {
-            if (this.dirty) {
-                const will = confirm(
-                    "未保存の変更があります。終了してもよろしいですか？",
-                );
-                if (!will) {
-                    e.preventDefault();
-                }
-            }
-        });
     }
     private async db_init() {
         if (this.db) {
             this.db.close();
             this.db = undefined;
         }
-        this.db = await new Promise<IDBDatabase>(async (resolve, reject) => {
-            const delete_request = indexedDB.deleteDatabase("fileCache");
-            await new Promise((resolve, reject) => {
-                delete_request.onsuccess = () => resolve(undefined);
-                delete_request.onerror = () => reject(delete_request.error);
+
+        try {
+            await new Promise<void>((resolve, reject) => {
+                const request = indexedDB.deleteDatabase("fileCache");
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+                request.onblocked = () =>
+                    reject(new Error("Database deletion blocked"));
             });
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
 
+        this.db = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open("fileCache", 1);
-            request.onerror = () => {
-                reject(request.error);
-            };
-            request.onsuccess = () => {
-                resolve(request.result);
-            };
-
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
             request.onupgradeneeded = () => {
                 const db = request.result;
                 if (!db.objectStoreNames.contains("audioFileCache")) {
@@ -92,7 +89,7 @@ export class ProjectManager extends EventTarget {
         const file = filelist[0];
         this.projectname = file.name.replace("." + PROJECT_FILE_EX, "");
         document.title = this.projectname;
-        //lsvfファイルならヘッダーの先頭4バイトがLVSFなはず
+        //lsvfファイルならヘッダーの先頭4バイトがlvsfなはず
         const header = await file.slice(0, 4).arrayBuffer();
         const decodedheader = decoder.decode(header);
         console.log(decodedheader);
@@ -113,7 +110,7 @@ export class ProjectManager extends EventTarget {
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         await this.db_init();
-        let frag = [];
+        const frag: { id: string; file: ArrayBuffer; name: string }[] = [];
         for (const sound_info of body.sounds) {
             const id = sound_info.id;
 
