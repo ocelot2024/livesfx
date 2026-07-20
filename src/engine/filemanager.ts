@@ -34,7 +34,7 @@ export interface SoundFile {
 export class LVSFFile {
     soundMap: Record<string, SoundInfo>;
     files: Map<string, ArrayBuffer>;
-    constructor(file?: ArrayBuffer) {
+    constructor() {
         this.soundMap = {};
         this.files = new Map<string, ArrayBuffer>();
     }
