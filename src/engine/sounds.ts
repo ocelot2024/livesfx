@@ -26,6 +26,9 @@ export class SoundLibrary {
         this.sounds[id] = sound;
         return id;
     }
+    remove(id: string) {
+        delete this.sounds[id];
+    }
     get_sound(id: string) {
         if (id in this.sounds)
             return new AudioBufferSourceNode(this.ctx, {

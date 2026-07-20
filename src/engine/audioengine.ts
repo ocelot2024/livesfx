@@ -6,8 +6,10 @@ export class Engine {
     private library: SoundLibrary;
     private ctx = new window.AudioContext();
     private playing: Record<string, AudioBufferSourceNode>;
+    private playing_id: { source_id: string; sfx_id: string }[];
     constructor() {
         this.playing = {};
+        this.playing_id = [];
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
 
@@ -29,9 +31,16 @@ export class Engine {
         const sound = this.library.get_sound(id);
         if (!sound) return;
         this.playing[source_id] = sound;
+        this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.send(id, sound);
         sound.onended = () => {
             delete this.playing[source_id];
+            this.playing_id.splice(
+                this.playing_id.findIndex(
+                    (value) => value.source_id == source_id,
+                ),
+                1,
+            );
         };
         sound.start();
         return { soundID: id, sourceID: source_id };
@@ -52,5 +61,16 @@ export class Engine {
         for (const key of keys) {
             this.stop(key);
         }
+    }
+    discard_sound(id: string) {
+        const playing_Target = this.playing_id.filter(
+            (value) => value.sfx_id == id,
+        );
+        playing_Target.forEach((value) => {
+            this.playing[value.source_id]?.stop();
+            delete this.playing[value.source_id];
+        });
+        this.library.remove(id);
+        this.mixer;
     }
 }

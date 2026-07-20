@@ -24,6 +24,9 @@ export class AudioMixer {
         this.channels[id] = channnel;
         this.channels[id].output.connect(this.master.inputGain);
     }
+    delete_channel(id: string) {
+        delete this.channels[id];
+    }
     send(id: string, source: AudioBufferSourceNode) {
         const channel = this.channels[id];
         if (channel) {
