@@ -32,7 +32,7 @@ export class ProjectManager extends EventTarget {
             }
         });
     }
-    async db_init() {
+    private async db_init() {
         if (this.db) {
             this.db.close();
             this.db = undefined;
