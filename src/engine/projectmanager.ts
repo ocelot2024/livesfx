@@ -64,6 +64,12 @@ export class ProjectManager extends EventTarget {
         this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
     async start_from_file() {
+        if (this.dirty) {
+            const will = confirm(
+                "未保存の変更があり余す。このプロジェクトを閉じてもよいですか？",
+            );
+            if (!will) return;
+        }
         const decoder = new TextDecoder();
 
         const filelist = await openFilePicker({
