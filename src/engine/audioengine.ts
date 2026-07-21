@@ -13,12 +13,18 @@ export class Engine {
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
 
-        window.addEventListener("click", () => {
-            if (this.ctx.state == "suspended") {
-                this.ctx.resume();
-            }
-        });
+        window.addEventListener("click", this.resume_ctx);
+        window.addEventListener("touchstart", this.resume_ctx);
+        window.addEventListener("touchend", this.resume_ctx);
+        window.addEventListener("pointerdown", this.resume_ctx);
     }
+
+    private resume_ctx() {
+        if (this.ctx.state == "suspended") {
+            this.ctx.resume();
+        }
+    }
+
     async add(name: string, file: ArrayBuffer, id?: string) {
         const sound_id = id ?? crypto.randomUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
@@ -33,14 +39,14 @@ export class Engine {
         this.playing[source_id] = sound;
         this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.send(id, sound);
+
+        const index = this.playing_id.findIndex(
+            (value) => value.source_id == source_id,
+        );
+        if (index < 0) return;
         sound.onended = () => {
             delete this.playing[source_id];
-            this.playing_id.splice(
-                this.playing_id.findIndex(
-                    (value) => value.source_id == source_id,
-                ),
-                1,
-            );
+            this.playing_id.splice(index, 1);
         };
         sound.start();
         return { soundID: id, sourceID: source_id };
@@ -52,6 +58,10 @@ export class Engine {
     }
     async dispose() {
         await this.ctx.close();
+        window.removeEventListener("click", this.resume_ctx);
+        window.removeEventListener("touchstart", this.resume_ctx);
+        window.removeEventListener("touchend", this.resume_ctx);
+        window.removeEventListener("pointerdown", this.resume_ctx);
     }
     get_library() {
         return this.library.get_library();
