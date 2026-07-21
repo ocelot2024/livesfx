@@ -19,11 +19,11 @@ export class Engine {
         window.addEventListener("pointerdown", this.resume_ctx);
     }
 
-    private resume_ctx() {
+    private resume_ctx = () => {
         if (this.ctx.state == "suspended") {
             this.ctx.resume();
         }
-    }
+    };
 
     async add(name: string, file: ArrayBuffer, id?: string) {
         const sound_id = id ?? crypto.randomUUID();
@@ -40,11 +40,11 @@ export class Engine {
         this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.send(id, sound);
 
-        const index = this.playing_id.findIndex(
-            (value) => value.source_id == source_id,
-        );
-        if (index < 0) return;
         sound.onended = () => {
+            const index = this.playing_id.findIndex(
+                (value) => value.source_id == source_id,
+            );
+            if (index < 0) return;
             delete this.playing[source_id];
             this.playing_id.splice(index, 1);
         };
