@@ -25,6 +25,7 @@ export class ProjectManager extends EventTarget {
     async init() {
         await this.db_init();
         this.projectname = "名称未設定";
+        this.set_title(this.projectname);
     }
     private async db_init() {
         if (this.db) {
@@ -57,6 +58,9 @@ export class ProjectManager extends EventTarget {
             };
         });
     }
+    private set_title(prjname: string) {
+        document.title = this.projectname + " - LiveSFX";
+    }
     async start_with_blank() {
         if (this.dirty) {
             const will = confirm(
@@ -88,7 +92,6 @@ export class ProjectManager extends EventTarget {
         if (!filelist[0]) return;
         const file = filelist[0];
         this.projectname = file.name.replace("." + PROJECT_FILE_EX, "");
-        document.title = this.projectname;
         //lsvfファイルならヘッダーの先頭4バイトがlvsfなはず
         const header = await file.slice(0, 4).arrayBuffer();
         const decodedheader = decoder.decode(header);
@@ -107,9 +110,10 @@ export class ProjectManager extends EventTarget {
             sounds: SoundInfo[];
             files: SoundFile[];
         };
+        this.set_title(this.projectname);
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
-        await this.db_init();
+        await this.init();
         const frag: { id: string; file: ArrayBuffer; name: string }[] = [];
         for (const sound_info of body.sounds) {
             const id = sound_info.id;
