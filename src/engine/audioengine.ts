@@ -1,5 +1,6 @@
 import { AudioMixer } from "./mixer";
 import { SoundLibrary } from "./sounds";
+import { generateUUID } from "./util";
 
 export class Engine {
     private mixer: AudioMixer;
@@ -26,14 +27,14 @@ export class Engine {
     };
 
     async add(name: string, file: ArrayBuffer, id?: string) {
-        const sound_id = id ?? crypto.randomUUID();
+        const sound_id = id ?? generateUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
         this.library.add(name, sound_id, audiobuffer);
         this.mixer.create_channel(sound_id);
         return sound_id;
     }
     play(id: string) {
-        const source_id = crypto.randomUUID();
+        const source_id = generateUUID();
         const sound = this.library.get_sound(id);
         if (!sound) return;
         this.playing[source_id] = sound;
