@@ -143,7 +143,9 @@ export class ProjectManager extends EventTarget {
         let files: { id: string; file: ArrayBuffer; name: string }[] = [];
 
         if (!sounds) {
-            const audios = await openFilePicker();
+            const audios = await openFilePicker({
+                accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
+            });
 
             for (const audiofile of audios) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
