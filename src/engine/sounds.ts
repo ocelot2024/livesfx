@@ -1,4 +1,5 @@
 import { type SoundInfo } from "./types";
+import { compute_peaks, type WaveformPeaks } from "./waveform";
 
 class Sound {
     readonly filename: string;
@@ -34,6 +35,14 @@ export class SoundLibrary {
             return new AudioBufferSourceNode(this.ctx, {
                 buffer: this.sounds[id]?.getbuffer(),
             });
+    }
+    get_duration(id: string) {
+        return this.sounds[id]?.getbuffer().duration;
+    }
+    get_waveform(id: string, buckets: number): WaveformPeaks | undefined {
+        const sound = this.sounds[id];
+        if (!sound) return undefined;
+        return compute_peaks(sound.getbuffer(), buckets);
     }
     get_library() {
         let frag: Record<string, SoundInfo> = {};

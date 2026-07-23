@@ -183,8 +183,8 @@ export class ProjectManager extends EventTarget {
         this.dirty = true;
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
-    play(id: string) {
-        const result = this.AudioEngine.play(id);
+    play(id: string, options?: { start?: number; end?: number }) {
+        const result = this.AudioEngine.play(id, options);
         return result;
     }
     stop(source_id: string) {
@@ -192,6 +192,12 @@ export class ProjectManager extends EventTarget {
     }
     get_library() {
         return this.AudioEngine.get_library();
+    }
+    get_duration(id: string) {
+        return this.AudioEngine.get_duration(id);
+    }
+    get_waveform(id: string, buckets: number) {
+        return this.AudioEngine.get_waveform(id, buckets);
     }
     stop_all_sfx() {
         return this.AudioEngine.stop_all_sfx();

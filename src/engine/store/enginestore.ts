@@ -6,6 +6,7 @@ import { EngineEvent } from "../types";
 
 export const useEngineState = defineStore("engine", () => {
     const library = ref<SoundInfo[]>([]);
+    const ui_mode = ref<"live" | "edit">("live");
 
     ProjectEngine.addEventListener(EngineEvent.ChangedLibrary, () => {
         const sounds: Record<string, SoundInfo> = ProjectEngine.get_library();
@@ -17,6 +18,7 @@ export const useEngineState = defineStore("engine", () => {
         library.value = Object.values(sounds);
     });
     return {
+        ui_mode,
         library,
     };
 });

@@ -32,7 +32,7 @@ export class Engine {
         this.mixer.create_channel(sound_id);
         return sound_id;
     }
-    play(id: string) {
+    play(id: string, options?: { start?: number; end?: number }) {
         const source_id = crypto.randomUUID();
         const sound = this.library.get_sound(id);
         if (!sound) return;
@@ -48,7 +48,22 @@ export class Engine {
             delete this.playing[source_id];
             this.playing_id.splice(index, 1);
         };
-        sound.start();
+
+        if (options) {
+            // トリムの試聴用
+            const bufferDuration = sound.buffer?.duration ?? 0;
+            const start = Math.min(
+                Math.max(0, options.start ?? 0),
+                bufferDuration,
+            );
+            const end = Math.min(
+                Math.max(start, options.end ?? bufferDuration),
+                bufferDuration,
+            );
+            sound.start(0, start, Math.max(0, end - start));
+        } else {
+            sound.start();
+        }
         return { soundID: id, sourceID: source_id };
     }
     stop(source_id: string) {
@@ -65,6 +80,12 @@ export class Engine {
     }
     get_library() {
         return this.library.get_library();
+    }
+    get_duration(id: string) {
+        return this.library.get_duration(id);
+    }
+    get_waveform(id: string, buckets: number) {
+        return this.library.get_waveform(id, buckets);
     }
     stop_all_sfx() {
         const keys = Object.keys(this.playing);
