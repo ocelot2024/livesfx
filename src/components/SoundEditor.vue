@@ -82,9 +82,10 @@ const draw = () => {
 const load_sound = () => {
     stop_preview();
     const d = ProjectEngine.get_duration(props.soundId) ?? 0;
+    const meta = ProjectEngine.get_soundinfo(props.soundId);
     duration.value = d;
-    trimStart.value = 0;
-    trimEnd.value = d;
+    trimStart.value = meta?.start_from ?? 0;
+    trimEnd.value = meta?.end_at ?? d;
     draw();
 };
 
@@ -170,6 +171,10 @@ onBeforeUnmount(() => {
     resizeObserver?.disconnect();
     stop_preview();
 });
+
+const save = () => {
+    ProjectEngine.trim(props.soundId, trimStart.value, trimEnd.value)
+}
 </script>
 
 <template>
@@ -204,7 +209,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
         </section>
-        <button>変更を保存</button>
+        <button @click="save()">変更を保存</button>
     </div>
 </template>
 

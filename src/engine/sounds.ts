@@ -1,17 +1,34 @@
-import { type SoundInfo } from "./types";
+import { type SoundMeta } from "./types";
 import { compute_peaks, type WaveformPeaks } from "./waveform";
 
 class Sound {
-    readonly filename: string;
-    readonly id: string;
-    private readonly buffer: AudioBuffer;
+    private meta: SoundMeta;
+    private buffer: AudioBuffer;
     constructor(name: string, id: string, buffer: AudioBuffer) {
-        this.filename = name;
-        this.id = id;
+        this.meta = {
+            id,
+            filename: name,
+            start_from: 0,
+            end_at: buffer.duration,
+        };
         this.buffer = buffer;
     }
-    getbuffer() {
-        return this.buffer;
+    getPlayInfo() {
+        return {
+            buffer: this.buffer,
+            start_from: this.meta.start_from,
+            end_at: this.meta.end_at,
+        };
+    }
+    getInfo() {
+        return this.meta;
+    }
+    get_duration() {
+        return this.buffer.duration;
+    }
+    trim(start: number, end: number) {
+        this.meta.start_from = start;
+        this.meta.end_at = end;
     }
 }
 
@@ -30,31 +47,51 @@ export class SoundLibrary {
     remove(id: string) {
         delete this.sounds[id];
     }
-    get_sound(id: string) {
-        if (id in this.sounds)
-            return new AudioBufferSourceNode(this.ctx, {
-                buffer: this.sounds[id]?.getbuffer(),
-            });
+    get_PlayInfo(id: string) {
+        if (id in this.sounds) {
+            const info = this.sounds[id]?.getPlayInfo();
+            const buffer = info?.buffer;
+            if (!buffer || !info) throw new Error();
+
+            const { buffer: _, ...rest } = info;
+
+            return {
+                node: new AudioBufferSourceNode(this.ctx, {
+                    buffer,
+                }),
+                ...rest,
+            };
+        }
+    }
+    get_soundinfo(id: string) {
+        if (id in this.sounds) {
+            return this.sounds[id]?.getInfo();
+        }
     }
     get_duration(id: string) {
-        return this.sounds[id]?.getbuffer().duration;
+        return this.sounds[id]?.get_duration();
     }
     get_waveform(id: string, buckets: number): WaveformPeaks | undefined {
         const sound = this.sounds[id];
         if (!sound) return undefined;
-        return compute_peaks(sound.getbuffer(), buckets);
+        return compute_peaks(sound.getPlayInfo().buffer, buckets);
     }
     get_library() {
-        let frag: Record<string, SoundInfo> = {};
+        let frag: Record<string, SoundMeta> = {};
         for (const i in this.sounds) {
             if (!this.sounds[i]) continue;
             const id = i;
-            const filename = this.sounds[i].filename;
+            const filename = this.sounds[i].getInfo().filename;
             frag[i] = {
                 id: id,
                 filename,
             };
         }
         return { ...frag };
+    }
+    trim(id: string, start: number, end: number) {
+        if (id in this.sounds) {
+            this.sounds[id]?.trim(start, end);
+        }
     }
 }

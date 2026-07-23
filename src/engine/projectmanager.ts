@@ -1,6 +1,7 @@
 import { Engine } from "./audioengine";
-import { EngineEvent, type SoundInfo } from "./types";
+import { EngineEvent } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
+import { type SoundMeta } from "./types";
 
 const PROJECT_FILE_EX = "lvsf";
 
@@ -107,7 +108,7 @@ export class ProjectManager extends EventTarget {
             .slice(16, 16 + decodedjsonsize)
             .arrayBuffer();
         const body = JSON.parse(decoder.decode(json_body)) as {
-            sounds: SoundInfo[];
+            sounds: SoundMeta[];
             files: SoundFile[];
         };
         this.set_title(this.projectname);
@@ -199,8 +200,14 @@ export class ProjectManager extends EventTarget {
     get_waveform(id: string, buckets: number) {
         return this.AudioEngine.get_waveform(id, buckets);
     }
+    get_soundinfo(id: string) {
+        return this.AudioEngine.get_soundinfo(id);
+    }
     stop_all_sfx() {
         return this.AudioEngine.stop_all_sfx();
+    }
+    trim(id: string, start: number, end: number) {
+        this.AudioEngine.trim(id, start, end);
     }
     async export() {
         if (!this.db) return;

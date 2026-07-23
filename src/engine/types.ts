@@ -4,7 +4,9 @@ export enum EngineEvent {
     NewSound = "new_sound",
     Initialised = "initialised",
 }
-export interface SoundInfo {
+export interface SoundMeta {
     id: string;
     filename: string;
+    start_from?: number;
+    end_at?: number;
 }
