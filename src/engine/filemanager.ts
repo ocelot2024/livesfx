@@ -1,4 +1,4 @@
-import type { SoundInfo } from "./types";
+import type { SoundMeta } from "./types";
 
 export const openFilePicker = ({
     multiple = true,
@@ -33,13 +33,13 @@ export interface SoundFile {
     id: string;
 }
 export class LVSFFile {
-    soundMap: Record<string, SoundInfo>;
+    soundMap: Record<string, SoundMeta>;
     files: Map<string, ArrayBuffer>;
     constructor() {
         this.soundMap = {};
         this.files = new Map<string, ArrayBuffer>();
     }
-    addFile(file: ArrayBuffer, sound: SoundInfo) {
+    addFile(file: ArrayBuffer, sound: SoundMeta) {
         this.soundMap[sound.id] = sound;
         this.files.set(sound.id, file);
     }
@@ -55,7 +55,7 @@ export class LVSFFile {
             });
             offset += file.byteLength;
         }
-
+        console.log(this.soundMap);
         const body = {
             sounds: Object.values(this.soundMap),
             files: entries,

@@ -80,11 +80,9 @@ export class SoundLibrary {
         let frag: Record<string, SoundMeta> = {};
         for (const i in this.sounds) {
             if (!this.sounds[i]) continue;
-            const id = i;
-            const filename = this.sounds[i].getInfo().filename;
+            const info = this.sounds[i].getInfo();
             frag[i] = {
-                id: id,
-                filename,
+                ...info,
             };
         }
         return { ...frag };

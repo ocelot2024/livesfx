@@ -111,11 +111,12 @@ export class ProjectManager extends EventTarget {
             sounds: SoundMeta[];
             files: SoundFile[];
         };
+        console.log(body);
         this.set_title(this.projectname);
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         await this.init();
-        const frag: { id: string; file: ArrayBuffer; name: string }[] = [];
+        const frag: (SoundMeta & { file: ArrayBuffer })[] = [];
         for (const sound_info of body.sounds) {
             const id = sound_info.id;
 
@@ -132,16 +133,14 @@ export class ProjectManager extends EventTarget {
 
             const audio = await file.slice(...soundfile_pos).arrayBuffer();
 
-            frag.push({ id, file: audio, name: sound_info.filename });
+            frag.push({ file: audio, ...sound_info });
         }
         await this.add_sound(frag);
         this.dirty = false;
     }
-    async add_sound(
-        sounds?: { id: string; file: ArrayBuffer; name: string }[],
-    ) {
+    async add_sound(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
         if (!this.db) return;
-        let files: { id: string; file: ArrayBuffer; name: string }[] = [];
+        let files: (SoundMeta & { file: ArrayBuffer })[] = [];
 
         if (!sounds) {
             const audios = await openFilePicker();
@@ -153,16 +152,19 @@ export class ProjectManager extends EventTarget {
                     bin.slice(0),
                 );
                 if (!id) continue;
-                files.push({ id, file: bin, name: audiofile.name });
+                files.push({ id, file: bin, filename: audiofile.name });
             }
         } else {
             files = sounds;
             for (const sound of files) {
                 const result = await this.AudioEngine.add(
-                    sound.name,
+                    sound.filename,
                     sound.file.slice(0),
                     sound.id,
                 );
+                if (sound.start_from && sound.end_at) {
+                    this.trim(result, sound.start_from, sound.end_at);
+                }
                 if (!result) continue;
             }
         }
