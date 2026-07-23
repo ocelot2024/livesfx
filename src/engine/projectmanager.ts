@@ -1,6 +1,7 @@
 import { Engine } from "./audioengine";
-import { EngineEvent, type SoundInfo } from "./types";
+import { EngineEvent } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
+import { type SoundMeta } from "./types";
 
 const PROJECT_FILE_EX = "lvsf";
 
@@ -107,14 +108,15 @@ export class ProjectManager extends EventTarget {
             .slice(16, 16 + decodedjsonsize)
             .arrayBuffer();
         const body = JSON.parse(decoder.decode(json_body)) as {
-            sounds: SoundInfo[];
+            sounds: SoundMeta[];
             files: SoundFile[];
         };
+        console.log(body);
         this.set_title(this.projectname);
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         await this.init();
-        const frag: { id: string; file: ArrayBuffer; name: string }[] = [];
+        const frag: (SoundMeta & { file: ArrayBuffer })[] = [];
         for (const sound_info of body.sounds) {
             const id = sound_info.id;
 
@@ -131,16 +133,14 @@ export class ProjectManager extends EventTarget {
 
             const audio = await file.slice(...soundfile_pos).arrayBuffer();
 
-            frag.push({ id, file: audio, name: sound_info.filename });
+            frag.push({ file: audio, ...sound_info });
         }
         await this.add_sound(frag);
         this.dirty = false;
     }
-    async add_sound(
-        sounds?: { id: string; file: ArrayBuffer; name: string }[],
-    ) {
+    async add_sound(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
         if (!this.db) return;
-        let files: { id: string; file: ArrayBuffer; name: string }[] = [];
+        let files: (SoundMeta & { file: ArrayBuffer })[] = [];
 
         if (!sounds) {
             const audios = await openFilePicker({
@@ -154,16 +154,19 @@ export class ProjectManager extends EventTarget {
                     bin.slice(0),
                 );
                 if (!id) continue;
-                files.push({ id, file: bin, name: audiofile.name });
+                files.push({ id, file: bin, filename: audiofile.name });
             }
         } else {
             files = sounds;
             for (const sound of files) {
                 const result = await this.AudioEngine.add(
-                    sound.name,
+                    sound.filename,
                     sound.file.slice(0),
                     sound.id,
                 );
+                if (sound.start_from && sound.end_at) {
+                    this.trim(result, sound.start_from, sound.end_at);
+                }
                 if (!result) continue;
             }
         }
@@ -185,8 +188,8 @@ export class ProjectManager extends EventTarget {
         this.dirty = true;
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
-    play(id: string) {
-        const result = this.AudioEngine.play(id);
+    play(id: string, options?: { start?: number; end?: number }) {
+        const result = this.AudioEngine.play(id, options);
         return result;
     }
     stop(source_id: string) {
@@ -195,8 +198,20 @@ export class ProjectManager extends EventTarget {
     get_library() {
         return this.AudioEngine.get_library();
     }
+    get_duration(id: string) {
+        return this.AudioEngine.get_duration(id);
+    }
+    get_waveform(id: string, buckets: number) {
+        return this.AudioEngine.get_waveform(id, buckets);
+    }
+    get_soundinfo(id: string) {
+        return this.AudioEngine.get_soundinfo(id);
+    }
     stop_all_sfx() {
         return this.AudioEngine.stop_all_sfx();
+    }
+    trim(id: string, start: number, end: number) {
+        this.AudioEngine.trim(id, start, end);
     }
     async export() {
         if (!this.db) return;

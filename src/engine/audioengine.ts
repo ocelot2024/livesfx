@@ -33,15 +33,22 @@ export class Engine {
         this.mixer.create_channel(sound_id);
         return sound_id;
     }
-    play(id: string) {
-        const source_id = generateUUID();
-        const sound = this.library.get_sound(id);
-        if (!sound) return;
-        this.playing[source_id] = sound;
+    trim(id: string, start: number, end: number) {
+        this.library.trim(id, start, end);
+    }
+    play(id: string, options?: { start?: number; end?: number }) {
+        const source_id = crypto.randomUUID();
+        const { node, ...meta } = this.library.get_PlayInfo(id) ?? {
+            node: null,
+            start_from: null,
+            end_at: null,
+        };
+        if (!node) return;
+        this.playing[source_id] = node;
         this.playing_id.push({ source_id, sfx_id: id });
-        this.mixer.send(id, sound);
+        this.mixer.send(id, node);
 
-        sound.onended = () => {
+        node.onended = () => {
             const index = this.playing_id.findIndex(
                 (value) => value.source_id == source_id,
             );
@@ -49,7 +56,26 @@ export class Engine {
             delete this.playing[source_id];
             this.playing_id.splice(index, 1);
         };
-        sound.start();
+        if (options) {
+            const bufferDuration = node.buffer?.duration ?? 0;
+            const start = Math.min(
+                Math.max(0, options.start ?? 0),
+                bufferDuration,
+            );
+            const end = Math.min(
+                Math.max(start, options.end ?? bufferDuration),
+                bufferDuration,
+            );
+            node.start(0, start, Math.max(0, end - start));
+        } else if (meta.start_from != null && meta.end_at != null) {
+            node.start(
+                0,
+                meta.start_from,
+                Math.max(0, meta.end_at - meta.start_from),
+            );
+        } else {
+            node.start();
+        }
         return { soundID: id, sourceID: source_id };
     }
     stop(source_id: string) {
@@ -67,6 +93,12 @@ export class Engine {
     get_library() {
         return this.library.get_library();
     }
+    get_duration(id: string) {
+        return this.library.get_duration(id);
+    }
+    get_waveform(id: string, buckets: number) {
+        return this.library.get_waveform(id, buckets);
+    }
     stop_all_sfx() {
         const keys = Object.keys(this.playing);
         for (const key of keys) {
@@ -83,5 +115,8 @@ export class Engine {
         });
         this.library.remove(id);
         this.mixer.delete_channel(id);
+    }
+    get_soundinfo(id: string) {
+        return this.library.get_soundinfo(id);
     }
 }
