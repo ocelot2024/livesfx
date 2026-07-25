@@ -24,7 +24,8 @@ export class ProjectManager extends EventTarget {
         });
     }
     async init() {
-        await this.db_init();
+        const result = await this.db_init();
+        if (!result.ok) this.dispatchEvent(new Event(EngineEvent.Warn));
         this.projectname = "名称未設定";
         this.set_title(this.projectname);
     }
@@ -167,10 +168,13 @@ export class ProjectManager extends EventTarget {
                     sound.file.slice(0),
                     sound.id,
                 );
-                if (sound.start_from && sound.end_at) {
+                if (!result) continue;
+                if (
+                    sound.start_from !== undefined &&
+                    sound.end_at !== undefined
+                ) {
                     this.trim(result, sound.start_from, sound.end_at);
                 }
-                if (!result) continue;
             }
         }
         const transaction = this.db.transaction(

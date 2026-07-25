@@ -3,6 +3,7 @@ export enum EngineEvent {
     SavedLibrary = "saved_library",
     NewSound = "new_sound",
     Initialised = "initialised",
+    Warn = "warning",
 }
 export interface SoundMeta {
     id: string;
