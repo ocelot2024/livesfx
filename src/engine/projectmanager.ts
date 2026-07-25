@@ -212,6 +212,8 @@ export class ProjectManager extends EventTarget {
     }
     trim(id: string, start: number, end: number) {
         this.AudioEngine.trim(id, start, end);
+        this.dirty = true;
+        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     async export() {
         if (!this.db) return;
