@@ -10,10 +10,15 @@ export default defineConfig({
         vue(),
         vueDevTools(),
         VitePWA({
-            devOptions: { enabled: true },
+            devOptions: { enabled: false },
+            registerType: "prompt",
             manifest: {
                 name: "LiveSFX",
                 short_name: "LIVE",
+                theme_color: "#1c1c1e",
+                background_color: "#1c1c1e",
+                start_url: "/",
+                display: "standalone",
                 icons: [
                     {
                         sizes: "192x192",
