@@ -1,5 +1,5 @@
 import { Engine } from "./audioengine";
-import { EngineEvent } from "./types";
+import { EngineEvent, Err, Ok, type Result } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
 import { type SoundMeta } from "./types";
 
@@ -22,13 +22,26 @@ export class ProjectManager extends EventTarget {
                 e.preventDefault();
             }
         });
+        this.addEventListener(EngineEvent.ChangedLibrary, () => {
+            this.dirty = true;
+            this.render_title();
+        });
+        this.addEventListener(EngineEvent.SavedLibrary, () => {
+            this.dirty = false;
+            this.render_title();
+        });
+        this.addEventListener(EngineEvent.LoadedPrj, () => {
+            this.dirty = false;
+            this.render_title();
+        });
     }
     async init() {
-        await this.db_init();
+        const result = await this.db_init();
+        if (!result.ok) this.dispatchEvent(new Event(EngineEvent.Warn));
         this.projectname = "名称未設定";
-        this.set_title(this.projectname);
+        this.render_title(this.projectname);
     }
-    private async db_init() {
+    private async db_init(): Promise<Result<string, unknown>> {
         if (this.db) {
             this.db.close();
             this.db = undefined;
@@ -43,8 +56,7 @@ export class ProjectManager extends EventTarget {
                     reject(new Error("Database deletion blocked"));
             });
         } catch (e) {
-            console.error(e);
-            throw e;
+            return Err(e);
         }
 
         this.db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -58,10 +70,12 @@ export class ProjectManager extends EventTarget {
                 }
             };
         });
+        return Ok("DB initialised");
     }
-    private set_title(prjname: string) {
-        document.title = prjname + " - LiveSFX";
-        this.projectname = prjname;
+    private render_title(prjname?: string) {
+        if (prjname) this.projectname = prjname;
+        document.title =
+            (this.dirty ? "* " : "") + this.projectname + " - LiveSFX";
     }
     async start_with_blank() {
         if (this.dirty) {
@@ -77,12 +91,12 @@ export class ProjectManager extends EventTarget {
         this.dirty = false;
         this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
-    async start_from_file() {
+    async start_from_file(): Promise<Result<string, string>> {
         if (this.dirty) {
             const will = confirm(
                 "未保存の変更があり余す。このプロジェクトを閉じてもよいですか？",
             );
-            if (!will) return;
+            if (!will) return Ok("");
         }
         const decoder = new TextDecoder();
 
@@ -90,14 +104,15 @@ export class ProjectManager extends EventTarget {
             multiple: false,
             accept: "." + PROJECT_FILE_EX,
         });
-        if (!filelist) return;
-        if (!filelist[0]) return;
+        if (!filelist) return Ok("");
+        if (!filelist[0]) return Ok("");
         const file = filelist[0];
         //lsvfファイルならヘッダーの先頭4バイトがlvsfなはず
         const header = await file.slice(0, 4).arrayBuffer();
         const decodedheader = decoder.decode(header);
         console.log(decodedheader);
-        if (decodedheader !== PROJECT_FILE_EX) return;
+        if (decodedheader !== PROJECT_FILE_EX)
+            return Err("Invalid file chosen");
 
         const jsonsize = await file.slice(8, 16).arrayBuffer();
         const decodedjsonsize = Number(
@@ -115,13 +130,14 @@ export class ProjectManager extends EventTarget {
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         await this.init();
-        this.set_title(file.name.replace("." + PROJECT_FILE_EX, ""));
+        this.render_title(file.name.replace("." + PROJECT_FILE_EX, ""));
         const frag: (SoundMeta & { file: ArrayBuffer })[] = [];
         for (const sound_info of body.sounds) {
             const id = sound_info.id;
 
             const soundfile_info = body.files.filter((v) => v.id == id)[0];
-            if (!soundfile_info) return;
+            if (!soundfile_info)
+                return Err("Could not retrieve sound files infomation.");
             //それぞれヘッダーとｊjson部の長さを足しておく
             const soundfile_pos = [
                 soundfile_info.offset + 16 + decodedjsonsize,
@@ -136,7 +152,8 @@ export class ProjectManager extends EventTarget {
             frag.push({ file: audio, ...sound_info });
         }
         await this.add_sound(frag);
-        this.dirty = false;
+        this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
+        return Ok("");
     }
     async add_sound(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
         if (!this.db) return;
@@ -164,10 +181,13 @@ export class ProjectManager extends EventTarget {
                     sound.file.slice(0),
                     sound.id,
                 );
-                if (sound.start_from && sound.end_at) {
+                if (!result) continue;
+                if (
+                    sound.start_from !== undefined &&
+                    sound.end_at !== undefined
+                ) {
                     this.trim(result, sound.start_from, sound.end_at);
                 }
-                if (!result) continue;
             }
         }
         const transaction = this.db.transaction(
@@ -185,7 +205,6 @@ export class ProjectManager extends EventTarget {
             transaction.onerror = () => reject(transaction.error);
         });
 
-        this.dirty = true;
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     play(id: string, options?: { start?: number; end?: number }) {
@@ -212,7 +231,6 @@ export class ProjectManager extends EventTarget {
     }
     trim(id: string, start: number, end: number) {
         this.AudioEngine.trim(id, start, end);
-        this.dirty = true;
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     async export() {
@@ -249,6 +267,6 @@ export class ProjectManager extends EventTarget {
         a.href = url;
         a.click();
         URL.revokeObjectURL(url);
-        this.dirty = false;
+        this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
     }
 }
