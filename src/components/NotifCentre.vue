@@ -1,0 +1,25 @@
+<script setup lang="ts">
+import { useEngineState } from '@/engine/store/enginestore';
+import Notif from './Notif.vue';
+
+const store = useEngineState();
+</script>
+<template>
+    <div class="notif_list">
+        <Notif v-for="(value, index) in store.notif_queue" :key="index" v-bind="value" />
+    </div>
+</template>
+<style scoped>
+.notif_list {
+    position: fixed;
+    width: 15rem;
+    right: 12px;
+    top: 12px;
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+    height: calc(100vh - 24px);
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+</style>

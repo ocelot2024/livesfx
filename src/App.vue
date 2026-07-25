@@ -4,6 +4,7 @@ import { defineAsyncComponent, ref, computed, nextTick, onMounted, onBeforeUnmou
 import AppBar, { type MenuList } from './components/AppBar.vue';
 import { ProjectEngine, } from './engine/index.ts';
 import { useEngineState } from './engine/store/enginestore.ts';
+import NotifCentre from "./components/NotifCentre.vue";
 
 const store = useEngineState();
 
@@ -202,7 +203,6 @@ const toggle_ui_mode = () => {
 
         <div v-if="modalPhase !== 'closed'" class="expand-container" :style="modalStyle">
 
-            <!-- ① 最終サイズのモーダルコンテンツ -->
             <div class="expand-card" :style="targetSizeStyle"
                 :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
                 <header class="expand-header">
@@ -214,13 +214,13 @@ const toggle_ui_mode = () => {
                 </div>
             </div>
 
-            <!-- ② 元のカードに見せかけるダミーコンテンツ -->
             <div class="dummy-card" :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
                 <h3>{{ activeSound?.filename }}</h3>
             </div>
 
         </div>
     </Teleport>
+    <NotifCentre />
 </template>
 
 <style scoped>
