@@ -30,6 +30,10 @@ export class ProjectManager extends EventTarget {
             this.dirty = false;
             this.render_title();
         });
+        this.addEventListener(EngineEvent.LoadedPrj, () => {
+            this.dirty = false;
+            this.render_title();
+        });
     }
     async init() {
         const result = await this.db_init();
@@ -70,9 +74,8 @@ export class ProjectManager extends EventTarget {
     }
     private render_title(prjname?: string) {
         if (prjname) this.projectname = prjname;
-        document.title = this.dirty
-            ? "* "
-            : "" + this.projectname + " - LiveSFX";
+        document.title =
+            (this.dirty ? "* " : "") + this.projectname + " - LiveSFX";
     }
     async start_with_blank() {
         if (this.dirty) {
@@ -149,7 +152,7 @@ export class ProjectManager extends EventTarget {
             frag.push({ file: audio, ...sound_info });
         }
         await this.add_sound(frag);
-        this.dirty = false;
+        this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
         return Ok("");
     }
     async add_sound(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {

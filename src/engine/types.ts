@@ -4,6 +4,7 @@ export enum EngineEvent {
     NewSound = "new_sound",
     Initialised = "initialised",
     Warn = "warning",
+    LoadedPrj = "loaded_project",
 }
 export interface SoundMeta {
     id: string;
