@@ -37,7 +37,7 @@ export class Engine {
         this.library.trim(id, start, end);
     }
     play(id: string, options?: { start?: number; end?: number }) {
-        const source_id = crypto.randomUUID();
+        const source_id = generateUUID();
         const { node, ...meta } = this.library.get_PlayInfo(id) ?? {
             node: null,
             start_from: null,
