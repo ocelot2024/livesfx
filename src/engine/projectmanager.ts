@@ -1,5 +1,5 @@
 import { Engine } from "./audioengine";
-import { EngineEvent } from "./types";
+import { EngineEvent, Err, Ok, type Result } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
 import { type SoundMeta } from "./types";
 
@@ -28,7 +28,7 @@ export class ProjectManager extends EventTarget {
         this.projectname = "名称未設定";
         this.set_title(this.projectname);
     }
-    private async db_init() {
+    private async db_init(): Promise<Result<string, unknown>> {
         if (this.db) {
             this.db.close();
             this.db = undefined;
@@ -43,8 +43,7 @@ export class ProjectManager extends EventTarget {
                     reject(new Error("Database deletion blocked"));
             });
         } catch (e) {
-            console.error(e);
-            throw e;
+            return Err(e);
         }
 
         this.db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -58,6 +57,7 @@ export class ProjectManager extends EventTarget {
                 }
             };
         });
+        return Ok("DB initialised");
     }
     private set_title(prjname: string) {
         document.title = prjname + " - LiveSFX";
@@ -77,12 +77,12 @@ export class ProjectManager extends EventTarget {
         this.dirty = false;
         this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
-    async start_from_file() {
+    async start_from_file(): Promise<Result<string, string>> {
         if (this.dirty) {
             const will = confirm(
                 "未保存の変更があり余す。このプロジェクトを閉じてもよいですか？",
             );
-            if (!will) return;
+            if (!will) return Ok("");
         }
         const decoder = new TextDecoder();
 
@@ -90,14 +90,15 @@ export class ProjectManager extends EventTarget {
             multiple: false,
             accept: "." + PROJECT_FILE_EX,
         });
-        if (!filelist) return;
-        if (!filelist[0]) return;
+        if (!filelist) return Ok("");
+        if (!filelist[0]) return Ok("");
         const file = filelist[0];
         //lsvfファイルならヘッダーの先頭4バイトがlvsfなはず
         const header = await file.slice(0, 4).arrayBuffer();
         const decodedheader = decoder.decode(header);
         console.log(decodedheader);
-        if (decodedheader !== PROJECT_FILE_EX) return;
+        if (decodedheader !== PROJECT_FILE_EX)
+            return Err("Invalid file chosen");
 
         const jsonsize = await file.slice(8, 16).arrayBuffer();
         const decodedjsonsize = Number(
@@ -121,7 +122,8 @@ export class ProjectManager extends EventTarget {
             const id = sound_info.id;
 
             const soundfile_info = body.files.filter((v) => v.id == id)[0];
-            if (!soundfile_info) return;
+            if (!soundfile_info)
+                return Err("Could not retrieve sound files infomation.");
             //それぞれヘッダーとｊjson部の長さを足しておく
             const soundfile_pos = [
                 soundfile_info.offset + 16 + decodedjsonsize,
@@ -137,6 +139,7 @@ export class ProjectManager extends EventTarget {
         }
         await this.add_sound(frag);
         this.dirty = false;
+        return Ok("");
     }
     async add_sound(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
         if (!this.db) return;
