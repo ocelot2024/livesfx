@@ -22,12 +22,20 @@ export class ProjectManager extends EventTarget {
                 e.preventDefault();
             }
         });
+        this.addEventListener(EngineEvent.ChangedLibrary, () => {
+            this.dirty = true;
+            this.render_title();
+        });
+        this.addEventListener(EngineEvent.SavedLibrary, () => {
+            this.dirty = false;
+            this.render_title();
+        });
     }
     async init() {
         const result = await this.db_init();
         if (!result.ok) this.dispatchEvent(new Event(EngineEvent.Warn));
         this.projectname = "名称未設定";
-        this.set_title(this.projectname);
+        this.render_title(this.projectname);
     }
     private async db_init(): Promise<Result<string, unknown>> {
         if (this.db) {
@@ -60,9 +68,11 @@ export class ProjectManager extends EventTarget {
         });
         return Ok("DB initialised");
     }
-    private set_title(prjname: string) {
-        document.title = prjname + " - LiveSFX";
-        this.projectname = prjname;
+    private render_title(prjname?: string) {
+        if (prjname) this.projectname = prjname;
+        document.title = this.dirty
+            ? "* "
+            : "" + this.projectname + " - LiveSFX";
     }
     async start_with_blank() {
         if (this.dirty) {
@@ -117,7 +127,7 @@ export class ProjectManager extends EventTarget {
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         await this.init();
-        this.set_title(file.name.replace("." + PROJECT_FILE_EX, ""));
+        this.render_title(file.name.replace("." + PROJECT_FILE_EX, ""));
         const frag: (SoundMeta & { file: ArrayBuffer })[] = [];
         for (const sound_info of body.sounds) {
             const id = sound_info.id;
@@ -192,7 +202,6 @@ export class ProjectManager extends EventTarget {
             transaction.onerror = () => reject(transaction.error);
         });
 
-        this.dirty = true;
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     play(id: string, options?: { start?: number; end?: number }) {
@@ -219,7 +228,6 @@ export class ProjectManager extends EventTarget {
     }
     trim(id: string, start: number, end: number) {
         this.AudioEngine.trim(id, start, end);
-        this.dirty = true;
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     async export() {
@@ -256,6 +264,6 @@ export class ProjectManager extends EventTarget {
         a.href = url;
         a.click();
         URL.revokeObjectURL(url);
-        this.dirty = false;
+        this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
     }
 }
