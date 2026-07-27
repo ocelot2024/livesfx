@@ -210,7 +210,7 @@ const toggle_ui_mode = () => {
                     <button class="close-btn" @click="close_editor">✕</button>
                 </header>
                 <div class="expand-editor">
-                    <editor v-if="activeSoundId" :sound-id="activeSoundId" />
+                    <editor @saved="close_editor()" v-if="activeSoundId" :sound-id="activeSoundId" />
                 </div>
             </div>
 

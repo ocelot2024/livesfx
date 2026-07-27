@@ -21,5 +21,6 @@ const store = useEngineState();
     height: calc(100vh - 24px);
     overflow-y: auto;
     scrollbar-width: none;
+    pointer-events: none;
 }
 </style>

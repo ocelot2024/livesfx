@@ -172,8 +172,10 @@ onBeforeUnmount(() => {
     stop_preview();
 });
 
+const emit = defineEmits(['saved'])
 const save = () => {
-    ProjectEngine.trim(props.soundId, trimStart.value, trimEnd.value)
+    ProjectEngine.trim(props.soundId, trimStart.value, trimEnd.value);
+    emit('saved');
 }
 </script>
 
