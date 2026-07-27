@@ -152,8 +152,7 @@ onBeforeUnmount(() => {
 }
 
 
-.menu-item {
-    background-color: var(--gray-5);
+button.menu-item {
     border: none;
     color: inherit;
     font: inherit;
