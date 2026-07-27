@@ -5,7 +5,7 @@ export interface Notificatin {
     message: string;
 }
 
-const EngineProcState = {
+export const EngineProcState = {
     Idle: "idle",
     Loading: "loading",
     Writing: "writing",

@@ -2,6 +2,7 @@ import { Engine } from "./audioengine";
 import { EngineEvent, Err, Ok, type Result } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
 import { type SoundMeta } from "./types";
+import { EngineProcState } from "./store/enginestore_type";
 
 const PROJECT_FILE_EX = "lvsf";
 
@@ -72,6 +73,16 @@ export class ProjectManager extends EventTarget {
         });
         return Ok("DB initialised");
     }
+    private proc_event(state: EngineProcState) {
+        this.dispatchEvent(
+            new CustomEvent(EngineEvent.Proccessing, {
+                detail: { type: state },
+            }),
+        );
+    }
+    private fin_proc() {
+        this.dispatchEvent(new Event(EngineEvent.FinProc));
+    }
     private render_title(prjname?: string) {
         if (prjname) this.projectname = prjname;
         document.title =
@@ -98,6 +109,7 @@ export class ProjectManager extends EventTarget {
             );
             if (!will) return Ok("");
         }
+        this.proc_event(EngineProcState.Loading);
         const decoder = new TextDecoder();
 
         const filelist = await openFilePicker({
@@ -152,6 +164,7 @@ export class ProjectManager extends EventTarget {
             frag.push({ file: audio, ...sound_info });
         }
         await this.add_sound(frag);
+        this.fin_proc();
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
         return Ok("");
     }
