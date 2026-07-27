@@ -11,6 +11,8 @@ export const useEngineState = defineStore("engine", () => {
     const notif_queue = ref<Notificatin[]>([]);
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
 
+    let timer: number | null;
+
     ProjectEngine.addEventListener(EngineEvent.ChangedLibrary, () => {
         const sounds: Record<string, SoundMeta> = ProjectEngine.get_library();
         library.value = Object.values(sounds);
@@ -24,9 +26,16 @@ export const useEngineState = defineStore("engine", () => {
     ProjectEngine.addEventListener(EngineEvent.Proccessing, (e) => {
         const event = e as CustomEvent<{ type: EngineProcState }>;
         EngineState.value = event.detail.type;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+            if (EngineState.value !== EngineProcState.Idle) {
+                EngineState.value = EngineProcState.SomeTakesTooLong;
+            }
+        }, 1000);
     });
 
     ProjectEngine.addEventListener(EngineEvent.FinProc, () => {
+        if (timer) clearTimeout(timer);
         EngineState.value = EngineProcState.Idle;
     });
 

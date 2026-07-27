@@ -109,7 +109,6 @@ export class ProjectManager extends EventTarget {
             );
             if (!will) return Ok("");
         }
-        this.proc_event(EngineProcState.Loading);
         const decoder = new TextDecoder();
 
         const filelist = await openFilePicker({
@@ -118,6 +117,7 @@ export class ProjectManager extends EventTarget {
         });
         if (!filelist) return Ok("");
         if (!filelist[0]) return Ok("");
+        this.proc_event(EngineProcState.Loading);
         const file = filelist[0];
         //lsvfファイルならヘッダーの先頭4バイトがlvsfなはず
         const header = await file.slice(0, 4).arrayBuffer();
@@ -171,12 +171,12 @@ export class ProjectManager extends EventTarget {
     async add_sound(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
         if (!this.db) return;
         let files: (SoundMeta & { file: ArrayBuffer })[] = [];
-
         if (!sounds) {
             const audios = await openFilePicker({
                 accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
             });
 
+            this.proc_event(EngineProcState.Loading);
             for (const audiofile of audios) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
                 const id = await this.AudioEngine.add(
@@ -187,6 +187,7 @@ export class ProjectManager extends EventTarget {
                 files.push({ id, file: bin, filename: audiofile.name });
             }
         } else {
+            this.proc_event(EngineProcState.Loading);
             files = sounds;
             for (const sound of files) {
                 const result = await this.AudioEngine.add(
@@ -203,6 +204,7 @@ export class ProjectManager extends EventTarget {
                 }
             }
         }
+        this.proc_event(EngineProcState.Writing);
         const transaction = this.db.transaction(
             ["audioFileCache"],
             "readwrite",
@@ -217,7 +219,7 @@ export class ProjectManager extends EventTarget {
             transaction.oncomplete = () => resolve();
             transaction.onerror = () => reject(transaction.error);
         });
-
+        this.fin_proc();
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     play(id: string, options?: { start?: number; end?: number }) {
@@ -248,6 +250,7 @@ export class ProjectManager extends EventTarget {
     }
     async export() {
         if (!this.db) return;
+        this.proc_event(EngineProcState.Proccessing);
         const lvsffile = new LVSFFile();
         const lib = this.get_library();
         const transaction = this.db.transaction(["audioFileCache"], "readonly");
@@ -281,5 +284,6 @@ export class ProjectManager extends EventTarget {
         a.click();
         URL.revokeObjectURL(url);
         this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
+        this.fin_proc();
     }
 }

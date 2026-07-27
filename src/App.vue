@@ -5,6 +5,8 @@ import AppBar, { type MenuList } from './components/AppBar.vue';
 import { ProjectEngine, } from './engine/index.ts';
 import { useEngineState } from './engine/store/enginestore.ts';
 import NotifCentre from "./components/NotifCentre.vue";
+import Spinner from "./components/Spinner.vue";
+import { EngineProcState } from "./engine/store/enginestore_type.ts";
 
 const store = useEngineState();
 
@@ -168,6 +170,14 @@ const menu: MenuList[] = [
     }
 ]
 
+const message: Record<EngineProcState, string> = {
+    "idle": "",
+    "loading": "読み込み中",
+    "proc": "処理中",
+    "too_long": "想定より長く時間がかかっています",
+    "writing": "書き込み中"
+}
+
 const toggle_ui_mode = () => {
     if (store.ui_mode == "live") {
         const will = confirm('編集モードに入りますか?');
@@ -221,9 +231,42 @@ const toggle_ui_mode = () => {
         </div>
     </Teleport>
     <NotifCentre />
+    <div class="full" v-if="store.EngineState !== EngineProcState.Idle">
+        <div class="spinner_container">
+            <Spinner />
+            <p>{{ message[store.EngineState] }}</p>
+        </div>
+    </div>
 </template>
 
 <style scoped>
+.full {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--blur);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+}
+
+.spinner_container {
+    padding: 12px;
+    gap: 12px;
+    width: 15rem;
+    aspect-ratio: 1;
+    background-color: var(--gray-5);
+    border-radius: 7px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    text-align: center;
+}
+
 .grid button {
     background-color: transparent;
     border: none;

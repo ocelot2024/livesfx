@@ -128,7 +128,7 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
 
-    background: var(--background);
+    background: var(--gray-6);
     border: 1px solid var(--gray-5);
     border-radius: 8px;
 
@@ -153,6 +153,7 @@ onBeforeUnmount(() => {
 
 
 button.menu-item {
+    background-color: transparent;
     border: none;
     color: inherit;
     font: inherit;
