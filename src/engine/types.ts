@@ -1,3 +1,5 @@
+import type { SoundFile } from "./filemanager";
+
 export enum EngineEvent {
     ChangedLibrary = "changed_library",
     SavedLibrary = "saved_library",
@@ -13,6 +15,11 @@ export interface SoundMeta {
     filename: string;
     start_from?: number;
     end_at?: number;
+}
+
+export interface lvsf_prj_info {
+    sounds: SoundMeta;
+    files: SoundFile[];
 }
 
 export type Ok<T> = { ok: true; value: T };

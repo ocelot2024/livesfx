@@ -276,7 +276,7 @@ export class ProjectManager extends EventTarget {
             if (!lib[id]) return;
             lvsffile.addFile(fileMap[id], lib[id]);
         }
-        const blob = lvsffile.build();
+        const blob = lvsffile.export();
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
