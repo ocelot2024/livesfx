@@ -20,9 +20,9 @@ export class Engine {
         window.addEventListener("pointerdown", this.resume_ctx);
     }
 
-    private resume_ctx = () => {
+    private resume_ctx = async () => {
         if (this.ctx.state == "suspended") {
-            this.ctx.resume();
+            await this.ctx.resume();
         }
     };
 
