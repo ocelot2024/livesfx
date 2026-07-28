@@ -105,7 +105,7 @@ export class ProjectManager extends EventTarget {
     async start_from_file(): Promise<Result<string, string>> {
         if (this.dirty) {
             const will = confirm(
-                "未保存の変更があり余す。このプロジェクトを閉じてもよいですか？",
+                "未保存の変更があります。このプロジェクトを閉じてもよいですか？",
             );
             if (!will) return Ok("");
         }
