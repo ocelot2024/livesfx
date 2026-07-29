@@ -22,6 +22,7 @@ export interface lvsf_prj_internal_meta extends lvsf_prj_info {
 }
 
 export interface lvsf_prj_info {
+    filename: string;
     sounds: SoundMeta[];
 }
 

@@ -10,7 +10,7 @@ import { type SoundFile } from "./filemanager";
 
 const LVSF_MAGIC_BYTE = "lvsf";
 const HEADER_SIZE = 16;
-
+const LVSF_EX = "lvsf";
 export class LVSFFile {
     prj_info?: lvsf_prj_internal_meta;
     lvsf?: File;
@@ -99,7 +99,7 @@ export class LVSFFile {
             return Ok(json);
         else return Err(false);
     }
-    async open(lvsf: File): Promise<Result<lvsf_prj_info, string>> {
+    async parse(lvsf: File): Promise<Result<lvsf_prj_info, string>> {
         this.lvsf = lvsf;
         if (!(await LVSFFile.is_valid_lvsf(lvsf)))
             return Err("given invalid file");
@@ -107,15 +107,16 @@ export class LVSFFile {
         if (!prj_info.ok) return Err("couldn't parse prj info");
         this.prj_info = prj_info.value;
 
-        return Ok({ sounds: prj_info.value.sounds });
+        return Ok({
+            sounds: prj_info.value.sounds,
+            filename: lvsf.name.replace("." + LVSF_EX, ""),
+        });
     }
 
     get_sound_data(id: string): Result<Blob, string> {
         if (!this.json_size || !this.lvsf || !this.prj_info)
             return Err("load the file first");
-        const data = this.prj_info.files.find((value) => {
-            value.id == id;
-        });
+        const data = this.prj_info.files.find((value) => value.id == id);
         if (!data) return Err("The sound is not exist");
         const audio = this.lvsf.slice(
             data.offset + this.json_size + HEADER_SIZE,

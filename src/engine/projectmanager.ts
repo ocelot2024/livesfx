@@ -109,59 +109,24 @@ export class ProjectManager extends EventTarget {
             );
             if (!will) return Ok("");
         }
-        const decoder = new TextDecoder();
-
         const filelist = await openFilePicker({
             multiple: false,
             accept: "." + PROJECT_FILE_EX,
         });
         if (!filelist) return Ok("");
         if (!filelist[0]) return Ok("");
-        this.proc_event(EngineProcState.Loading);
-        const file = filelist[0];
-        //lsvfファイルならヘッダーの先頭4バイトがlvsfなはず
-        const header = await file.slice(0, 4).arrayBuffer();
-        const decodedheader = decoder.decode(header);
-        console.log(decodedheader);
-        if (decodedheader !== PROJECT_FILE_EX)
-            return Err("Invalid file chosen");
-
-        const jsonsize = await file.slice(8, 16).arrayBuffer();
-        const decodedjsonsize = Number(
-            new DataView(jsonsize).getBigUint64(0, true),
-        );
-
-        const json_body = await file
-            .slice(16, 16 + decodedjsonsize)
-            .arrayBuffer();
-        const body = JSON.parse(decoder.decode(json_body)) as {
-            sounds: SoundMeta[];
-            files: SoundFile[];
-        };
-        console.log(body);
+        const lvsf_manager = new LVSFFile();
+        const info = await lvsf_manager.parse(filelist[0]);
+        if (!info.ok) return Err(info.value);
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         await this.init();
-        this.render_title(file.name.replace("." + PROJECT_FILE_EX, ""));
+        this.render_title(info.value.filename);
         const frag: (SoundMeta & { file: ArrayBuffer })[] = [];
-        for (const sound_info of body.sounds) {
-            const id = sound_info.id;
-
-            const soundfile_info = body.files.filter((v) => v.id == id)[0];
-            if (!soundfile_info)
-                return Err("Could not retrieve sound files infomation.");
-            //それぞれヘッダーとｊjson部の長さを足しておく
-            const soundfile_pos = [
-                soundfile_info.offset + 16 + decodedjsonsize,
-                soundfile_info.offset +
-                    16 +
-                    decodedjsonsize +
-                    soundfile_info.size,
-            ];
-
-            const audio = await file.slice(...soundfile_pos).arrayBuffer();
-
-            frag.push({ file: audio, ...sound_info });
+        for (const sound_info of info.value.sounds) {
+            const blob = lvsf_manager.get_sound_data(sound_info.id);
+            if (!blob.ok) continue;
+            frag.push({ ...sound_info, file: await blob.value.arrayBuffer() });
         }
         await this.add_sound(frag);
         this.fin_proc();
