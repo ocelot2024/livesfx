@@ -122,6 +122,7 @@ export class LVSFFile {
             return Err("given invalid file");
         const prj_info = await this.get_prj_meta();
         if (!prj_info.ok) return Err("couldn't parse prj info");
+        this.prj_info = prj_info.value;
         this.extract_sounds();
 
         return Ok(prj_info.value);
