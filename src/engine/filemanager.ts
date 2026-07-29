@@ -1,4 +1,4 @@
-import type { SoundMeta } from "./types";
+import { LVSFFile } from "./lvsf";
 
 export const openFilePicker = ({
     multiple = true,
@@ -32,58 +32,5 @@ export interface SoundFile {
     size: number;
     id: string;
 }
-export class LVSFFile {
-    soundMap: Record<string, SoundMeta>;
-    files: Map<string, ArrayBuffer>;
-    constructor() {
-        this.soundMap = {};
-        this.files = new Map<string, ArrayBuffer>();
-    }
-    addFile(file: ArrayBuffer, sound: SoundMeta) {
-        this.soundMap[sound.id] = sound;
-        this.files.set(sound.id, file);
-    }
-    build() {
-        let offset = 0;
-        let entries: SoundFile[] = [];
 
-        for (const [id, file] of this.files) {
-            entries.push({
-                offset: offset,
-                size: file.byteLength,
-                id,
-            });
-            offset += file.byteLength;
-        }
-        console.log(this.soundMap);
-        const body = {
-            sounds: Object.values(this.soundMap),
-            files: entries,
-        };
-
-        const jsoned_body = JSON.stringify(body);
-        const binary_body = new TextEncoder().encode(jsoned_body);
-
-        const audios = Array.from(this.files.values());
-
-        const headerBuffer = new ArrayBuffer(16);
-        const header = new Uint8Array(headerBuffer);
-        const headerView = new DataView(headerBuffer);
-
-        const magic = new TextEncoder().encode("lvsf");
-        const formatVer = 0;
-
-        header.set(magic, 0);
-        headerView.setUint16(4, formatVer, true);
-        headerView.setBigUint64(8, BigInt(binary_body.byteLength), true);
-
-        return new Blob([header, binary_body, ...audios]);
-    }
-}
-/**
- * Header
- * 0-3 lvsf
- * 4-5 Format ver
- * 6-7 Reserved
- * 8-15 JSON size
- */
+export { LVSFFile };

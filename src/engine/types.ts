@@ -1,3 +1,5 @@
+import type { SoundFile } from "./filemanager";
+
 export enum EngineEvent {
     ChangedLibrary = "changed_library",
     SavedLibrary = "saved_library",
@@ -15,14 +17,32 @@ export interface SoundMeta {
     end_at?: number;
 }
 
-export type Ok<T> = { ok: true; value: T | undefined };
+export interface lvsf_prj_internal_meta extends lvsf_prj_info {
+    files: SoundFile[];
+}
+
+export interface lvsf_prj_info {
+    filename: string;
+    sounds: SoundMeta[];
+}
+
+export type Ok<T = void> = [T] extends [void]
+    ? { ok: true }
+    : { ok: true; value: T };
+
 export type Err<E> = { ok: false; value: E };
 
 export type Result<T, E = Error> = Ok<T> | Err<E>;
 
-export const Ok = <T>(value?: T): Ok<T> => {
+export function Ok(): Ok<void>;
+export function Ok<T>(value: T): Ok<T>;
+export function Ok<T>(value?: T) {
+    if (value === undefined) {
+        return { ok: true };
+    }
+
     return { ok: true, value };
-};
+}
 
 export const Err = <E>(message: E): Err<E> => {
     return { ok: false, value: message };
