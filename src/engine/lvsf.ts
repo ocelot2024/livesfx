@@ -1,7 +1,7 @@
 import {
     Err,
     Ok,
-    type lvsf_prj_info,
+    type lvsf_prj_internal_meta as lvsf_prj_internal_meta,
     type Result,
     type SoundMeta,
 } from "./types";
@@ -10,8 +10,14 @@ import { type SoundFile } from "./filemanager";
 const LVSF_MAGIC_BYTE = "lvsf";
 
 export class LVSFFile {
+    prj_info?: lvsf_prj_internal_meta;
+    lvsf?: File;
+    json_size?: number;
+    sound_blobs?: Record<string, Blob>;
+
     soundMap: Record<string, SoundMeta>;
     files: Map<string, ArrayBuffer>;
+
     constructor() {
         this.soundMap = {};
         this.files = new Map<string, ArrayBuffer>();
@@ -60,20 +66,23 @@ export class LVSFFile {
         const header = await target.slice(0, 4).arrayBuffer();
         return decoder.decode(header) == LVSF_MAGIC_BYTE;
     }
-    private static async get_prj_info_size(lvsf: File) {
+    private async get_prj_info_size(lvsf: File) {
         const buffer = await lvsf.slice(8, 16).arrayBuffer();
         return Number(new DataView(buffer).getBigUint64(0, true));
     }
-    private static async get_prj_info(
-        lvsf: File,
-    ): Promise<Result<lvsf_prj_info, unknown>> {
+    private async get_prj_meta(): Promise<
+        Result<lvsf_prj_internal_meta, unknown>
+    > {
+        if (!this.lvsf) return Err("load or init file first");
         const decoder = new TextDecoder();
-        const json_size = await this.get_prj_info_size(lvsf);
+        this.json_size = await this.get_prj_info_size(this.lvsf);
         let json;
         try {
             json = JSON.parse(
                 decoder.decode(
-                    await lvsf.slice(16, 16 + json_size).arrayBuffer(),
+                    await this.lvsf
+                        .slice(16, 16 + this.json_size)
+                        .arrayBuffer(),
                 ),
             );
         } catch (e) {
@@ -89,13 +98,33 @@ export class LVSFFile {
             return Ok(json);
         else return Err(false);
     }
-    static async parse(lvsf: File): Promise<Result<string, string>> {
+    private extract_sounds(): Result<string, string> {
+        let offset = this.json_size;
+        if (!this.lvsf || !this.prj_info || offset == undefined)
+            return Err("First load or init prj file");
+        const files = this.prj_info?.files;
+        if (!files) return Err("No Sound Files");
+        offset += 16;
+        for (const value of files) {
+            const id = value.id;
+            const file_offset = value.offset + offset;
+            const blob = this.lvsf.slice(file_offset, file_offset + value.size);
+
+            if (!this.sound_blobs) this.sound_blobs = {};
+
+            this.sound_blobs[id] = blob;
+        }
+        return Ok("");
+    }
+    async open(lvsf: File): Promise<Result<lvsf_prj_internal_meta, string>> {
+        this.lvsf = lvsf;
         if (!(await LVSFFile.is_valid_lvsf(lvsf)))
             return Err("given invalid file");
-        const prj_info = await this.get_prj_info(lvsf);
+        const prj_info = await this.get_prj_meta();
         if (!prj_info.ok) return Err("couldn't parse prj info");
+        this.extract_sounds();
 
-        return Ok("");
+        return Ok(prj_info.value);
     }
 }
 /**

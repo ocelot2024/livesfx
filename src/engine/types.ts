@@ -17,9 +17,12 @@ export interface SoundMeta {
     end_at?: number;
 }
 
-export interface lvsf_prj_info {
-    sounds: SoundMeta;
+export interface lvsf_prj_internal_meta extends lvsf_prj_info {
     files: SoundFile[];
+}
+
+export interface lvsf_prj_info {
+    sounds: SoundMeta[];
 }
 
 export type Ok<T> = { ok: true; value: T };
