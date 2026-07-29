@@ -15,12 +15,12 @@ export interface SoundMeta {
     end_at?: number;
 }
 
-export type Ok<T> = { ok: true; value: T };
+export type Ok<T> = { ok: true; value: T | undefined };
 export type Err<E> = { ok: false; value: E };
 
 export type Result<T, E = Error> = Ok<T> | Err<E>;
 
-export const Ok = <T>(value: T): Ok<T> => {
+export const Ok = <T>(value?: T): Ok<T> => {
     return { ok: true, value };
 };
 
