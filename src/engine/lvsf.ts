@@ -1,6 +1,7 @@
 import {
     Err,
     Ok,
+    type lvsf_prj_info,
     type lvsf_prj_internal_meta as lvsf_prj_internal_meta,
     type Result,
     type SoundMeta,
@@ -8,12 +9,12 @@ import {
 import { type SoundFile } from "./filemanager";
 
 const LVSF_MAGIC_BYTE = "lvsf";
+const HEADER_SIZE = 16;
 
 export class LVSFFile {
     prj_info?: lvsf_prj_internal_meta;
     lvsf?: File;
     json_size?: number;
-    sound_blobs?: Record<string, Blob>;
 
     soundMap: Record<string, SoundMeta>;
     files: Map<string, ArrayBuffer>;
@@ -98,34 +99,29 @@ export class LVSFFile {
             return Ok(json);
         else return Err(false);
     }
-    private extract_sounds(): Result<string, string> {
-        let offset = this.json_size;
-        if (!this.lvsf || !this.prj_info || offset == undefined)
-            return Err("First load or init prj file");
-        const files = this.prj_info?.files;
-        if (!files) return Err("No Sound Files");
-        offset += 16;
-        for (const value of files) {
-            const id = value.id;
-            const file_offset = value.offset + offset;
-            const blob = this.lvsf.slice(file_offset, file_offset + value.size);
-
-            if (!this.sound_blobs) this.sound_blobs = {};
-
-            this.sound_blobs[id] = blob;
-        }
-        return Ok("");
-    }
-    async open(lvsf: File): Promise<Result<lvsf_prj_internal_meta, string>> {
+    async open(lvsf: File): Promise<Result<lvsf_prj_info, string>> {
         this.lvsf = lvsf;
         if (!(await LVSFFile.is_valid_lvsf(lvsf)))
             return Err("given invalid file");
         const prj_info = await this.get_prj_meta();
         if (!prj_info.ok) return Err("couldn't parse prj info");
         this.prj_info = prj_info.value;
-        this.extract_sounds();
 
-        return Ok(prj_info.value);
+        return Ok({ sounds: prj_info.value.sounds });
+    }
+
+    get_sound_data(id: string): Result<Blob, string> {
+        if (!this.json_size || !this.lvsf || !this.prj_info)
+            return Err("load the file first");
+        const data = this.prj_info.files.find((value) => {
+            value.id == id;
+        });
+        if (!data) return Err("The sound is not exist");
+        const audio = this.lvsf.slice(
+            data.offset + this.json_size + HEADER_SIZE,
+            data.size + data.offset + this.json_size + HEADER_SIZE,
+        );
+        return Ok(audio);
     }
 }
 /**
