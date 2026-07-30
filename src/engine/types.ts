@@ -47,3 +47,16 @@ export function Ok<T>(value?: T) {
 export const Err = <E>(message: E): Err<E> => {
     return { ok: false, value: message };
 };
+export type None = { some: false };
+export type Some<T> = { some: true; value: T };
+
+export type Option<T> = Some<T> | None;
+
+export const Some = <T>(value: T): Option<T> => ({
+    some: true,
+    value,
+});
+
+export const None = (): Option<never> => ({
+    some: false,
+});
