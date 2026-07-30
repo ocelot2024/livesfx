@@ -60,3 +60,8 @@ export const Some = <T>(value: T): Option<T> => ({
 export const None = (): Option<never> => ({
     some: false,
 });
+
+export const isSome = <T>(option: Option<T>) => {
+    const some = option.some;
+    return some;
+};

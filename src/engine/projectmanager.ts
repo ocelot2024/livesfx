@@ -113,10 +113,10 @@ export class ProjectManager extends EventTarget {
             multiple: false,
             accept: "." + PROJECT_FILE_EX,
         });
-        if (!filelist) return Ok("");
-        if (!filelist[0]) return Ok("");
+        if (!filelist.some) return Ok("");
+        if (!filelist.value[0]) return Ok("");
         const lvsf_manager = new LVSFFile();
-        const info = await lvsf_manager.parse(filelist[0]);
+        const info = await lvsf_manager.parse(filelist.value[0]);
         if (!info.ok) return Err(info.value);
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
@@ -142,7 +142,8 @@ export class ProjectManager extends EventTarget {
             });
 
             this.proc_event(EngineProcState.Loading);
-            for (const audiofile of audios) {
+            if (!audios.some) return;
+            for (const audiofile of audios.value) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
                 const id = await this.AudioEngine.add(
                     audiofile.name,
