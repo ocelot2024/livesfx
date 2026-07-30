@@ -3,6 +3,7 @@ import { EngineEvent, Err, Ok, type Result } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
 import { type SoundMeta } from "./types";
 import { EngineProcState } from "./store/enginestore_type";
+import { EngineException } from "./error_types";
 
 const PROJECT_FILE_EX = "lvsf";
 
@@ -54,7 +55,7 @@ export class ProjectManager extends EventTarget {
                 request.onsuccess = () => resolve();
                 request.onerror = () => reject(request.error);
                 request.onblocked = () =>
-                    reject(new Error("Database deletion blocked"));
+                    reject(new Error(EngineException.InitialiseDBException));
             });
         } catch (e) {
             return Err(e);

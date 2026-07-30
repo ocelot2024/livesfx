@@ -1,3 +1,4 @@
+import { EngineException } from "./error_types";
 import { type SoundMeta } from "./types";
 import { compute_peaks, type WaveformPeaks } from "./waveform";
 
@@ -51,7 +52,7 @@ export class SoundLibrary {
         if (id in this.sounds) {
             const info = this.sounds[id]?.getPlayInfo();
             const buffer = info?.buffer;
-            if (!buffer || !info) throw new Error();
+            if (!buffer || !info) throw new Error(EngineException.NoSoundData);
 
             const { buffer: _, ...rest } = info;
 
