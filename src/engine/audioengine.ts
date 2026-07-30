@@ -36,7 +36,8 @@ export class Engine {
     trim(id: string, start: number, end: number) {
         this.library.trim(id, start, end);
     }
-    play(id: string, options?: { start?: number; end?: number }) {
+    async play(id: string, options?: { start?: number; end?: number }) {
+        await this.resume_ctx();
         const source_id = generateUUID();
         const { node, ...meta } = this.library.get_PlayInfo(id) ?? {
             node: null,
