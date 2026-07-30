@@ -5,6 +5,7 @@ import { type SoundMeta } from "..";
 import { EngineEvent } from "../types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
 import { EngineError, EngineException } from "../error_types";
+import { generateUUID } from "../util";
 
 export const useEngineState = defineStore("engine", () => {
     const library = ref<SoundMeta[]>([]);
@@ -42,12 +43,20 @@ export const useEngineState = defineStore("engine", () => {
 
     ProjectEngine.addEventListener(EngineEvent.Error, (e) => {
         const event = e as CustomEvent<{ type: EngineError | EngineException }>;
-
+        const id = generateUUID();
         notif_queue.value.push({
+            id,
             type: "critical",
             title: "エラーが発生しました",
             message: messages[event.detail.type],
         });
+        setTimeout(() => {
+            const index = notif_queue.value.findIndex((v) => id === v.id);
+
+            if (index !== -1) {
+                notif_queue.value.splice(index, 1);
+            }
+        }, 1000);
     });
     return {
         ui_mode,
