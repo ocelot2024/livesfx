@@ -4,6 +4,7 @@ import { ProjectEngine } from "..";
 import { type SoundMeta } from "..";
 import { EngineEvent } from "../types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
+import { EngineError, EngineException } from "../error_types";
 
 export const useEngineState = defineStore("engine", () => {
     const library = ref<SoundMeta[]>([]);
@@ -39,6 +40,15 @@ export const useEngineState = defineStore("engine", () => {
         EngineState.value = EngineProcState.Idle;
     });
 
+    ProjectEngine.addEventListener(EngineEvent.Error, (e) => {
+        const event = e as CustomEvent<{ type: EngineError | EngineException }>;
+
+        notif_queue.value.push({
+            type: "critical",
+            title: "エラーが発生しました",
+            message: messages[event.detail.type],
+        });
+    });
     return {
         ui_mode,
         library,
@@ -46,3 +56,20 @@ export const useEngineState = defineStore("engine", () => {
         EngineState,
     };
 });
+
+type ErrMsgType = {
+    [K in EngineError | EngineException]: string;
+};
+
+const messages: ErrMsgType = {
+    [EngineException.DBSaveCacheError]:
+        "データベースにキャッシュを書き込めませんでした",
+    [EngineError.NoProjectFile]: "処理するプロジェクトファイルがありません。",
+    [EngineError.InvalidLVSFFile]: "LVSFファイルが壊れています",
+    [EngineError.SoundNotExist]: "音源が見つかりませんでした",
+    [EngineError.CouldNotCleanUpDB]:
+        "データベースをクリーンアップできませんでした",
+    [EngineException.InitialiseDBException]:
+        "データベースを初期化できませんでした",
+    [EngineException.NoSoundData]: "音源が見つかりませんでした",
+};
