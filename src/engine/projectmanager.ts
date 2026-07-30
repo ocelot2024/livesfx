@@ -3,7 +3,7 @@ import { EngineEvent, Err, Ok, type Result } from "./types";
 import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
 import { type SoundMeta } from "./types";
 import { EngineProcState } from "./store/enginestore_type";
-import { EngineException } from "./error_types";
+import { EngineError, EngineException } from "./error_types";
 
 const PROJECT_FILE_EX = "lvsf";
 
@@ -37,9 +37,27 @@ export class ProjectManager extends EventTarget {
             this.render_title();
         });
     }
+    private error(type: EngineError | EngineException) {
+        this.dispatchEvent(
+            new CustomEvent(EngineEvent.Error, {
+                detail: {
+                    type: type,
+                },
+            }),
+        );
+    }
+    private warn(type: EngineError) {
+        this.dispatchEvent(
+            new CustomEvent(EngineEvent.Warn, {
+                detail: {
+                    type: type,
+                },
+            }),
+        );
+    }
     async init() {
         const result = await this.db_init();
-        if (!result.ok) this.dispatchEvent(new Event(EngineEvent.Warn));
+        if (!result.ok) this.warn(EngineError.CouldNotCleanUpDB);
         this.projectname = "名称未設定";
         this.render_title(this.projectname);
     }
@@ -118,7 +136,10 @@ export class ProjectManager extends EventTarget {
         if (!filelist.value[0]) return Ok("");
         const lvsf_manager = new LVSFFile();
         const info = await lvsf_manager.parse(filelist.value[0]);
-        if (!info.ok) return Err(info.value);
+        if (!info.ok) {
+            this.error(EngineError.InvalidLVSFFile);
+            return Err(info.value);
+        }
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         await this.init();
@@ -181,11 +202,14 @@ export class ProjectManager extends EventTarget {
         for (const file of files) {
             objStore.add(file);
         }
-
-        await new Promise<void>((resolve, reject) => {
-            transaction.oncomplete = () => resolve();
-            transaction.onerror = () => reject(transaction.error);
-        });
+        try {
+            await new Promise<void>((resolve, reject) => {
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+            });
+        } catch (e) {
+            this.error(EngineException.DBSaveCacheError);
+        }
         this.fin_proc();
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }

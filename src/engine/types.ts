@@ -9,6 +9,7 @@ export enum EngineEvent {
     LoadedPrj = "loaded_project",
     Proccessing = "proccessing",
     FinProc = "proc_end",
+    Error = "error",
 }
 export interface SoundMeta {
     id: string;
