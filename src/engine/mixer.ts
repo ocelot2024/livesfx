@@ -1,3 +1,6 @@
+import { Ok, type Result } from "./types";
+import { generateUUID } from "./util";
+
 class Channel {
     readonly inputGain: GainNode;
     readonly output: GainNode;
@@ -19,10 +22,12 @@ export class AudioMixer {
         this.master = new Channel(ctx);
         this.master.output.connect(ctx.destination);
     }
-    create_channel(id: string) {
+    create_channel(id: string): string {
+        if (id in this.channels) return this.create_channel(generateUUID());
         const channnel = new Channel(this.ctx);
         this.channels[id] = channnel;
         this.channels[id].output.connect(this.master.inputGain);
+        return id;
     }
     delete_channel(id: string) {
         const channel = this.channels[id];
