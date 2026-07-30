@@ -1,4 +1,5 @@
 import { LVSFFile } from "./lvsf";
+import { None, Some, type Option } from "./types";
 
 export const openFilePicker = ({
     multiple = true,
@@ -6,8 +7,8 @@ export const openFilePicker = ({
 }: {
     multiple?: boolean;
     accept?: string;
-} = {}): Promise<File[]> => {
-    return new Promise((resolve, reject) => {
+} = {}): Promise<Option<File[]>> => {
+    return new Promise((resolve, _reject) => {
         const input = document.createElement("input");
 
         input.type = "file";
@@ -16,13 +17,13 @@ export const openFilePicker = ({
 
         input.addEventListener(
             "change",
-            () => resolve([...(input.files ?? [])]),
+            () => resolve(Some([...(input.files ?? [])])),
             {
                 once: true,
             },
         );
 
-        input.addEventListener("cancel", () => reject());
+        input.addEventListener("cancel", () => resolve(None()));
         input.click();
     });
 };
