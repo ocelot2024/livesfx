@@ -1,4 +1,5 @@
 import {
+    EngineEvent,
     Err,
     Ok,
     type lvsf_prj_info,
@@ -7,6 +8,7 @@ import {
     type SoundMeta,
 } from "./types";
 import { type SoundFile } from "./filemanager";
+import { EngineError } from "./error_types";
 
 const LVSF_MAGIC_BYTE = "lvsf";
 const HEADER_SIZE = 16;
@@ -74,7 +76,7 @@ export class LVSFFile {
     private async get_prj_meta(): Promise<
         Result<lvsf_prj_internal_meta, unknown>
     > {
-        if (!this.lvsf) return Err("load or init file first");
+        if (!this.lvsf) return Err(EngineError.NoProjectFile);
         const decoder = new TextDecoder();
         this.json_size = await this.get_prj_info_size(this.lvsf);
         let json;
@@ -104,7 +106,7 @@ export class LVSFFile {
         if (!(await LVSFFile.is_valid_lvsf(lvsf)))
             return Err("given invalid file");
         const prj_info = await this.get_prj_meta();
-        if (!prj_info.ok) return Err("couldn't parse prj info");
+        if (!prj_info.ok) return Err(EngineError.InvalidLVSFFile);
         this.prj_info = prj_info.value;
 
         return Ok({
@@ -115,9 +117,9 @@ export class LVSFFile {
 
     get_sound_data(id: string): Result<Blob, string> {
         if (!this.json_size || !this.lvsf || !this.prj_info)
-            return Err("load the file first");
+            return Err(EngineError.NoProjectFile);
         const data = this.prj_info.files.find((value) => value.id == id);
-        if (!data) return Err("The sound is not exist");
+        if (!data) return Err(EngineError.SoundNotExist);
         const audio = this.lvsf.slice(
             data.offset + this.json_size + HEADER_SIZE,
             data.size + data.offset + this.json_size + HEADER_SIZE,
