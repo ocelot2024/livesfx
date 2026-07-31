@@ -3,6 +3,9 @@ export enum EngineError {
     InvalidLVSFFile = "invalid_prj_file",
     SoundNotExist = "no_sound",
     CouldNotCleanUpDB = "db_cleanup_err",
+    GroupAlreadyExist = "groupexist",
+    GroupNotFound = "groupnotfound",
+    ChannelNotFound = "channelNotFound",
 }
 
 export enum EngineException {
