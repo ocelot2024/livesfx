@@ -29,7 +29,7 @@ export function compute_peaks(
         for (let i = start; i < end && i < buffer.length; i++) {
             for (const channel of channels) {
                 const v = channel[i];
-                if (!v) continue;
+                if (v === undefined) continue;
                 if (v < bucketMin) bucketMin = v;
                 if (v > bucketMax) bucketMax = v;
             }

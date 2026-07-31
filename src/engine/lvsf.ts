@@ -77,9 +77,9 @@ export class LVSFFile {
     > {
         if (!this.lvsf) return Err(EngineError.NoProjectFile);
         const decoder = new TextDecoder();
-        this.json_size = await this.get_prj_info_size(this.lvsf);
         let json;
         try {
+            this.json_size = await this.get_prj_info_size(this.lvsf);
             json = JSON.parse(
                 decoder.decode(
                     await this.lvsf
@@ -110,8 +110,14 @@ export class LVSFFile {
 
         return Ok({
             sounds: prj_info.value.sounds,
-            filename: lvsf.name.replace("." + LVSF_EX, ""),
+            filename: LVSFFile.strip_lvsf_extension(lvsf.name),
         });
+    }
+    private static strip_lvsf_extension(filename: string): string {
+        const suffix = "." + LVSF_EX;
+        return filename.endsWith(suffix)
+            ? filename.slice(0, -suffix.length)
+            : filename;
     }
 
     get_sound_data(id: string): Result<Blob, string> {
