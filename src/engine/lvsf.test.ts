@@ -9,15 +9,9 @@ test("Build LVSF file", async () => {
     expect(result).toBeInstanceOf(Blob);
 
     const buffer = await result.arrayBuffer();
-    const view = new DataView(buffer);
-
-    const magic = String.fromCharCode(
-        view.getUint8(0),
-        view.getUint8(1),
-        view.getUint8(2),
-        view.getUint8(3),
-    );
-    expect(magic).toBe(LVSF_MAGIC_BYTE);
+    const decoder = new TextDecoder();
+    const magic = buffer.slice(0, 4);
+    expect(decoder.decode(magic)).toBe(LVSF_MAGIC_BYTE);
 });
 
 test("Parse LVSF file", async () => {

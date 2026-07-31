@@ -1,5 +1,4 @@
 import {
-    EngineEvent,
     Err,
     Ok,
     type lvsf_prj_info,
@@ -10,7 +9,7 @@ import {
 import { type SoundFile } from "./filemanager";
 import { EngineError } from "./error_types";
 
-const LVSF_MAGIC_BYTE = "lvsf";
+export const LVSF_MAGIC_BYTE = "lvsf";
 const HEADER_SIZE = 16;
 const LVSF_EX = "lvsf";
 export class LVSFFile {
