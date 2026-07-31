@@ -36,7 +36,7 @@ export class AudioMixer {
         }
         delete this.channels[id];
     }
-    send(id: string, source: AudioBufferSourceNode) {
+    input(id: string, source: AudioBufferSourceNode) {
         const channel = this.channels[id];
         if (channel) {
             source.connect(channel.inputGain);

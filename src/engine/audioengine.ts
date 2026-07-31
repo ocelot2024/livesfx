@@ -47,7 +47,7 @@ export class Engine {
         if (!node) return;
         this.playing[source_id] = node;
         this.playing_id.push({ source_id, sfx_id: id });
-        this.mixer.send(id, node);
+        this.mixer.input(id, node);
 
         node.onended = () => {
             const index = this.playing_id.findIndex(
