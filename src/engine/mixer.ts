@@ -1,4 +1,3 @@
-import { Ok, type Result } from "./types";
 import { generateUUID } from "./util";
 
 class Channel {
