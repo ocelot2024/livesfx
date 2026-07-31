@@ -157,7 +157,7 @@ const menu: MenuList[] = [
             { label: "新規", id: "new", handle: () => { ProjectEngine.start_with_blank() } },
             { label: "名前を付けて保存", id: "save", handle: () => { ProjectEngine.export() } },
             { label: "開く", id: "open", handle: () => { ProjectEngine.start_from_file(); } },
-            { label: "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sound(); } },
+            { label: "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sfx(); } },
             { label: "環境設定", id: "pref", handle: () => { } }
         ]
     },
@@ -165,7 +165,7 @@ const menu: MenuList[] = [
         label: "編集",
         id: "edit",
         children: [
-            { "label": "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sound(); } }
+            { "label": "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sfx(); } }
         ]
     }
 ]

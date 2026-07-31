@@ -1,5 +1,6 @@
 import { AudioMixer } from "./mixer";
 import { SoundLibrary } from "./sounds";
+import { Err, Ok, type Result } from "./types";
 import { generateUUID } from "./util";
 
 export class Engine {
@@ -25,13 +26,21 @@ export class Engine {
             await this.ctx.resume();
         }
     };
-
-    async add(name: string, file: ArrayBuffer, id?: string) {
+    createChannel(name: string): Result<string, string> {
+        const result = this.mixer.createGroup(name);
+        return result.ok ? Ok(name) : Err(result.value);
+    }
+    async add_sfx(
+        name: string,
+        file: ArrayBuffer,
+        id?: string,
+    ): Promise<Result<string, string>> {
         const sound_id = id ?? generateUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
         this.library.add(name, sound_id, audiobuffer);
-        this.mixer.create_channel(sound_id);
-        return sound_id;
+        const result = this.mixer.create_channel(sound_id, "SFX");
+        if (result.ok) return Ok(result.value);
+        else return Err(result.value);
     }
     trim(id: string, start: number, end: number) {
         this.library.trim(id, start, end);

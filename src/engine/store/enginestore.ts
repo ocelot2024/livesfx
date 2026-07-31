@@ -6,6 +6,7 @@ import { EngineEvent } from "../types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
 import { EngineError, EngineException } from "../error_types";
 import { generateUUID } from "../util";
+import { Engine } from "../audioengine";
 
 export const useEngineState = defineStore("engine", () => {
     const library = ref<SoundMeta[]>([]);
@@ -42,13 +43,22 @@ export const useEngineState = defineStore("engine", () => {
     });
 
     ProjectEngine.addEventListener(EngineEvent.Error, (e) => {
-        const event = e as CustomEvent<{ type: EngineError | EngineException }>;
+        const event = e as CustomEvent<{
+            type: EngineError | EngineException | string;
+        }>;
         const id = generateUUID();
+        const type = event.detail.type;
+
+        const message =
+            type in messages
+                ? messages[type as EngineError | EngineException]
+                : type;
+
         notif_queue.value.push({
             id,
             type: "critical",
             title: "エラーが発生しました",
-            message: messages[event.detail.type],
+            message: message,
         });
         setTimeout(() => {
             const index = notif_queue.value.findIndex((v) => id === v.id);
@@ -81,4 +91,7 @@ const messages: ErrMsgType = {
     [EngineException.InitialiseDBException]:
         "データベースを初期化できませんでした",
     [EngineException.NoSoundData]: "音源が見つかりませんでした",
+    [EngineError.GroupAlreadyExist]: "そのグループは既に存在します",
+    [EngineError.GroupNotFound]: "グループが見つかりませんでした",
+    [EngineError.ChannelNotFound]: "チャンネルが見つかりませんでした",
 };

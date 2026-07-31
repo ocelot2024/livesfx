@@ -37,7 +37,7 @@ export class ProjectManager extends EventTarget {
             this.render_title();
         });
     }
-    private error(type: EngineError | EngineException) {
+    private error(type: EngineError | EngineException | string) {
         this.dispatchEvent(
             new CustomEvent(EngineEvent.Error, {
                 detail: {
@@ -150,12 +150,13 @@ export class ProjectManager extends EventTarget {
             if (!blob.ok) continue;
             frag.push({ ...sound_info, file: await blob.value.arrayBuffer() });
         }
-        await this.add_sound(frag);
+        this.AudioEngine.createChannel("SFX");
+        await this.add_sfx(frag);
         this.fin_proc();
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
         return Ok("");
     }
-    async add_sound(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
+    async add_sfx(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
         if (!this.db) return;
         let files: (SoundMeta & { file: ArrayBuffer })[] = [];
         if (!sounds) {
@@ -167,28 +168,37 @@ export class ProjectManager extends EventTarget {
             if (!audios.some) return;
             for (const audiofile of audios.value) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
-                const id = await this.AudioEngine.add(
+                const id = await this.AudioEngine.add_sfx(
                     audiofile.name,
                     bin.slice(0),
                 );
-                if (!id) continue;
-                files.push({ id, file: bin, filename: audiofile.name });
+                if (!id.ok) return;
+                else {
+                    files.push({
+                        id: id.value,
+                        file: bin,
+                        filename: audiofile.name,
+                    });
+                }
             }
         } else {
             this.proc_event(EngineProcState.Loading);
             files = sounds;
             for (const sound of files) {
-                const result = await this.AudioEngine.add(
+                const result = await this.AudioEngine.add_sfx(
                     sound.filename,
                     sound.file.slice(0),
                     sound.id,
                 );
-                if (!result) continue;
+                if (!result.ok) {
+                    this.error(result.value);
+                    continue;
+                }
                 if (
                     sound.start_from !== undefined &&
                     sound.end_at !== undefined
                 ) {
-                    this.trim(result, sound.start_from, sound.end_at);
+                    this.trim(result.value, sound.start_from, sound.end_at);
                 }
             }
         }
