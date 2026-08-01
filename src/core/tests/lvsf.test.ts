@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { LVSF_MAGIC_BYTE, LVSFFile } from "../files/lvsf";
+import { LVSFFile } from "../files/lvsf";
+import { LVSF_MAGIC_BYTE } from "../constants";
 import { EngineError } from "../types/error_types";
 import type { SoundMeta } from "../types/types";
 

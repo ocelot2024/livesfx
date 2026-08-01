@@ -8,10 +8,8 @@ import {
 } from "../types/types";
 import { type SoundFile } from "./filemanager";
 import { EngineError } from "../types/error_types";
+import { LVSF_MAGIC_BYTE, HEADER_SIZE, PROJECT_FILE_EX } from "../constants";
 
-export const LVSF_MAGIC_BYTE = "lvsf";
-const HEADER_SIZE = 16;
-const LVSF_EX = "lvsf";
 export class LVSFFile {
     prj_info?: lvsf_prj_internal_meta;
     lvsf?: File;
@@ -114,7 +112,7 @@ export class LVSFFile {
         });
     }
     private static strip_lvsf_extension(filename: string): string {
-        const suffix = "." + LVSF_EX;
+        const suffix = "." + PROJECT_FILE_EX;
         return filename.endsWith(suffix)
             ? filename.slice(0, -suffix.length)
             : filename;

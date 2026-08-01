@@ -4,8 +4,7 @@ import { openFilePicker, LVSFFile } from "../files/filemanager";
 import { type SoundMeta } from "../types/types";
 import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
-
-const PROJECT_FILE_EX = "lvsf";
+import { PROJECT_FILE_EX } from "../constants";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
