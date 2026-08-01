@@ -133,14 +133,14 @@ const stop_preview = () => {
     isPlaying.value = false;
 };
 
-const toggle_play = () => {
+const toggle_play = async () => {
     if (isPlaying.value) {
         stop_preview();
         return;
     }
 
     clamp_trim();
-    const result = ProjectEngine.play(props.soundId, {
+    const result = await ProjectEngine.play(props.soundId, {
         start: trimStart.value,
         end: trimEnd.value,
     });
