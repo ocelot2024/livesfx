@@ -6,7 +6,7 @@ import {
     type Result,
     type SoundMeta,
 } from "../types/types";
-import { type SoundFile } from "./filemanager";
+import { type SoundFile } from "./fileUtil";
 import { EngineError } from "../types/error_types";
 import { LVSF_MAGIC_BYTE, HEADER_SIZE, PROJECT_FILE_EX } from "../constants";
 
