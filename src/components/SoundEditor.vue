@@ -67,8 +67,8 @@ const draw = () => {
         const min = peaks.min[x]
         const max = peaks.max[x]
 
-        if (!min) continue;
-        if (!max) continue;
+        if (min == undefined) continue;
+        if (max == undefined) continue;
 
         const y1 = mid + min * mid;
         const y2 = mid + max * mid;
