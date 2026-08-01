@@ -2,11 +2,10 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { ProjectEngine } from "..";
 import { type SoundMeta } from "..";
-import { EngineEvent } from "../types";
+import { EngineEvent } from "../types/types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
-import { EngineError, EngineException } from "../error_types";
-import { generateUUID } from "../util";
-import { Engine } from "../audioengine";
+import { EngineError, EngineException } from "../types/error_types";
+import { generateUUID } from "../util/util";
 
 export const useEngineState = defineStore("engine", () => {
     const library = ref<SoundMeta[]>([]);

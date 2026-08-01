@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useEngineState } from '@/engine/store/enginestore';
+import { useEngineState } from '@/core/store/enginestore.ts';
 import Notif from './Notif.vue';
 
 const store = useEngineState();

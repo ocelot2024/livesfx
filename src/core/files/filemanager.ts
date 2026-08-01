@@ -1,5 +1,5 @@
 import { LVSFFile } from "./lvsf";
-import { None, Some, type Option } from "./types";
+import { None, Some, type Option } from "../types/types";
 
 export const openFilePicker = ({
     multiple = true,

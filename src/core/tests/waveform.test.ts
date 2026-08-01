@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { compute_peaks } from "./waveform";
+import { compute_peaks } from "../util/waveform";
 
 //Claude
 

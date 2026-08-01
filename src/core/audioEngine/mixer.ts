@@ -1,6 +1,6 @@
-import { EngineError } from "./error_types";
-import { EngineEvent, Err, Ok, type Result } from "./types";
-import { generateUUID } from "./util";
+import { EngineError } from "../types/error_types";
+import { Err, Ok, type Result } from "../types/types";
+import { generateUUID } from "../util/util";
 
 type MixerChannels = Record<string, { belongs_to: string; channel: Channel }>;
 

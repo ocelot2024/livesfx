@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
-import { ProjectEngine } from '../engine/index.ts';
-import { useEngineState } from '../engine/store/enginestore.ts';
+import { ProjectEngine } from '../core/index.ts';
+import { useEngineState } from '../core/store/enginestore.ts';
 
 const props = defineProps<{ soundId: string }>();
 

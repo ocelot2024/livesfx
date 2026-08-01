@@ -1,7 +1,7 @@
 import { AudioMixer } from "./mixer";
 import { SoundLibrary } from "./sounds";
-import { Err, Ok, type Result } from "./types";
-import { generateUUID } from "./util";
+import { Err, Ok, type Result } from "../types/types";
+import { generateUUID } from "../util/util";
 
 export class Engine {
     private mixer: AudioMixer;

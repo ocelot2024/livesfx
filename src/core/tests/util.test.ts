@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { generateUUID } from "./util";
+import { generateUUID } from "../util/util";
 
 // Loosely matches RFC 4122-shaped UUIDs. The fallback generator specifically
 // forces the version nibble to "4" and the variant nibble to 8/9/a/b, so

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Notificatin } from '@/engine/store/enginestore_type';
+import type { Notificatin } from '@/core/store/enginestore_type';
 
 const props = defineProps<Notificatin>()
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { LVSF_MAGIC_BYTE, LVSFFile } from "./lvsf";
-import { EngineError } from "./error_types";
-import type { SoundMeta } from "./types";
+import { LVSF_MAGIC_BYTE, LVSFFile } from "../files/lvsf";
+import { EngineError } from "../types/error_types";
+import type { SoundMeta } from "../types/types";
 
 const HEADER_SIZE = 16;
 

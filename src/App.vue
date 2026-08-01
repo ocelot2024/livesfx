@@ -2,11 +2,11 @@
 import type { CSSProperties } from "vue";
 import { defineAsyncComponent, ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import AppBar, { type MenuList } from './components/AppBar.vue';
-import { ProjectEngine, } from './engine/index.ts';
-import { useEngineState } from './engine/store/enginestore.ts';
+import { ProjectEngine, } from './core/index.ts';
+import { useEngineState } from './core/store/enginestore.ts';
 import NotifCentre from "./components/NotifCentre.vue";
 import Spinner from "./components/Spinner.vue";
-import { EngineProcState } from "./engine/store/enginestore_type.ts";
+import { EngineProcState } from "./core/store/enginestore_type.ts";
 
 const store = useEngineState();
 

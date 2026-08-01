@@ -1,9 +1,9 @@
-import { Engine } from "./audioengine";
-import { EngineEvent, Err, Ok, type Result } from "./types";
-import { openFilePicker, LVSFFile, type SoundFile } from "./filemanager";
-import { type SoundMeta } from "./types";
-import { EngineProcState } from "./store/enginestore_type";
-import { EngineError, EngineException } from "./error_types";
+import { Engine } from "../audioEngine/audioengine";
+import { EngineEvent, Err, Ok, type Result } from "../types/types";
+import { openFilePicker, LVSFFile } from "../files/filemanager";
+import { type SoundMeta } from "../types/types";
+import { EngineProcState } from "../store/enginestore_type";
+import { EngineError, EngineException } from "../types/error_types";
 
 const PROJECT_FILE_EX = "lvsf";
 

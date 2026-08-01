@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import "./style/main.css";
-import { ProjectEngine } from "./engine/index.ts";
+import { ProjectEngine } from "./core/index.ts";
 import { registerSW } from "virtual:pwa-register";
 
 window.addEventListener("load", async () => {

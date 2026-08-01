@@ -1,4 +1,4 @@
-import type { SoundFile } from "./filemanager";
+import type { SoundFile } from "../files/filemanager";
 
 export enum EngineEvent {
     ChangedLibrary = "changed_library",

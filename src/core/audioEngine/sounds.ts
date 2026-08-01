@@ -1,6 +1,6 @@
-import { EngineException } from "./error_types";
-import { type SoundMeta } from "./types";
-import { compute_peaks, type WaveformPeaks } from "./waveform";
+import { EngineException } from "../types/error_types";
+import { type SoundMeta } from "../types/types";
+import { compute_peaks, type WaveformPeaks } from "../util/waveform";
 
 class Sound {
     private meta: SoundMeta;

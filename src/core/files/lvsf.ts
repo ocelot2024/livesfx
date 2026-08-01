@@ -5,9 +5,9 @@ import {
     type lvsf_prj_internal_meta as lvsf_prj_internal_meta,
     type Result,
     type SoundMeta,
-} from "./types";
+} from "../types/types";
 import { type SoundFile } from "./filemanager";
-import { EngineError } from "./error_types";
+import { EngineError } from "../types/error_types";
 
 export const LVSF_MAGIC_BYTE = "lvsf";
 const HEADER_SIZE = 16;
