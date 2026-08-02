@@ -2,6 +2,7 @@ import { AudioMixer } from "./mixer";
 import { SoundLibrary } from "./sounds";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
+import { AudioEngineError } from "../types/err";
 
 export class Engine {
     private mixer: AudioMixer;
@@ -45,7 +46,12 @@ export class Engine {
     trim(id: string, start: number, end: number) {
         this.library.trim(id, start, end);
     }
-    async play(id: string, options?: { start?: number; end?: number }) {
+    async play(
+        id: string,
+        options?: { start?: number; end?: number },
+    ): Promise<
+        Result<{ soundID: string; sourceID: string }, AudioEngineError>
+    > {
         await this.resume_ctx();
         const source_id = generateUUID();
         const { node, ...meta } = this.library.get_PlayInfo(id) ?? {
@@ -53,7 +59,7 @@ export class Engine {
             start_from: null,
             end_at: null,
         };
-        if (!node) return;
+        if (!node) return Err(AudioEngineError.SoundNotFound);
         this.playing[source_id] = node;
         this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.input(id, node);
@@ -86,12 +92,14 @@ export class Engine {
         } else {
             node.start();
         }
-        return { soundID: id, sourceID: source_id };
+        return Ok({ soundID: id, sourceID: source_id });
     }
-    stop(source_id: string) {
-        if (!(source_id in this.playing)) return;
+    stop(source_id: string): Result<void, AudioEngineError> {
+        if (!(source_id in this.playing))
+            return Err(AudioEngineError.SpecifiedPlayingSoundNotFound);
         this.playing[source_id]?.stop();
         delete this.playing[source_id];
+        return Ok();
     }
     async dispose() {
         this.stop_all_sfx();

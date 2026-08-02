@@ -6,3 +6,11 @@ export const StorageError = {
 } as const;
 
 export type StorageError = (typeof StorageError)[keyof typeof StorageError];
+
+export const AudioEngineError = {
+    SpecifiedPlayingSoundNotFound: "specified_playing_sound_not_found",
+    SoundNotFound: "sound_not_found",
+} as const;
+
+export type AudioEngineError =
+    (typeof AudioEngineError)[keyof typeof AudioEngineError];
