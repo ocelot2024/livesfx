@@ -22,7 +22,7 @@ export class Engine {
     }
 
     private resume_ctx = async () => {
-        if (this.ctx.state == "suspended") {
+        if (this.ctx.state == "suspended" || this.ctx.state == "interrupted") {
             await this.ctx.resume();
         }
     };
