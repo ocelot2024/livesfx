@@ -116,11 +116,16 @@ export class ProjectManager extends EventTarget {
         await this.init();
         this.render_title(info.value.filename);
         const frag: SoundFile[] = [];
+        let load_failed = false;
         for (const sound_info of info.value.sounds) {
             const blob = lvsf_manager.get_sound_data(sound_info.id);
-            if (!blob.ok) continue;
+            if (!blob.ok) {
+                load_failed = true;
+                continue;
+            }
             frag.push({ ...sound_info, file: await blob.value.arrayBuffer() });
         }
+        if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
         this.AudioEngine.createChannel("SFX");
         await this.add_sfx(frag);
         this.fin_proc();
@@ -128,8 +133,10 @@ export class ProjectManager extends EventTarget {
         return Ok("");
     }
     async add_sfx(sounds?: SoundFile[]) {
-        // TODO: ここの明らかに例外な部分をマネージャー側でフックしてストアに投げる処理を追加する。。
-        if (!this.storageManager.is_initialised()) return;
+        if (!this.storageManager.is_initialised()) {
+            this.error(EngineError.StorageNotReady);
+            return;
+        }
         let files: SoundFile[] = [];
         if (!sounds) {
             const audios = await openFilePicker({
@@ -138,21 +145,24 @@ export class ProjectManager extends EventTarget {
 
             this.proc_event(EngineProcState.Loading);
             if (!audios.some) return;
+            let add_failed = false;
             for (const audiofile of audios.value) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
                 const id = await this.AudioEngine.add_sfx(
                     audiofile.name,
                     bin.slice(0),
                 );
-                if (!id.ok) return;
-                else {
-                    files.push({
-                        id: id.value,
-                        file: bin,
-                        filename: audiofile.name,
-                    });
+                if (!id.ok) {
+                    add_failed = true;
+                    continue;
                 }
+                files.push({
+                    id: id.value,
+                    file: bin,
+                    filename: audiofile.name,
+                });
             }
+            if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
         } else {
             this.proc_event(EngineProcState.Loading);
             files = sounds;
@@ -175,7 +185,8 @@ export class ProjectManager extends EventTarget {
             }
         }
         this.proc_event(EngineProcState.Writing);
-        this.storageManager.save_sound_cache(files);
+        const save_result = await this.storageManager.save_sound_cache(files);
+        if (!save_result.ok) this.error(save_result.value);
         this.fin_proc();
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
@@ -206,34 +217,43 @@ export class ProjectManager extends EventTarget {
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     async export() {
-        // TODO: 上になじく例外処理つける
-        if (!this.storageManager.is_initialised()) return;
+        if (!this.storageManager.is_initialised()) {
+            this.error(EngineError.StorageNotReady);
+            return;
+        }
         this.proc_event(EngineProcState.Proccessing);
         const lvsffile = new LVSFFile();
         const lib = this.get_library();
         const files = await this.storageManager.load_sound_cache();
 
-        if (files.ok) {
-            const fileMap = Object.fromEntries(
-                files.value.map(({ id, file }) => [id, file]),
-            );
-
-            for (const id in lib) {
-                if (!fileMap[id]) return;
-                if (!lib[id]) return;
-                lvsffile.addFile(fileMap[id], lib[id]);
-            }
-            const blob = lvsffile.export();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
-            a.href = url;
-            a.click();
-            URL.revokeObjectURL(url);
-            this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
+        if (!files.ok) {
+            this.error(files.value);
             this.fin_proc();
-        } else {
-            return; //TODO ここも例外処理
+            return;
         }
+
+        const fileMap = Object.fromEntries(
+            files.value.map(({ id, file }) => [id, file]),
+        );
+
+        let missing = false;
+        for (const id in lib) {
+            if (!fileMap[id] || !lib[id]) {
+                missing = true;
+                continue;
+            }
+            lvsffile.addFile(fileMap[id], lib[id]);
+        }
+        if (missing) this.warn(EngineError.MissingCachedAudioForExport);
+
+        const blob = lvsffile.export();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
+        this.fin_proc();
     }
 }

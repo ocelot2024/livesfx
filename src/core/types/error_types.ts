@@ -6,6 +6,10 @@ export enum EngineError {
     GroupAlreadyExist = "groupexist",
     GroupNotFound = "groupnotfound",
     ChannelNotFound = "channelNotFound",
+    StorageNotReady = "storage_not_ready",
+    PartialSoundLoadFailed = "partial_sound_load_failed",
+    PartialSoundAddFailed = "partial_sound_add_failed",
+    MissingCachedAudioForExport = "missing_cache_audio_for_export",
 }
 
 export enum EngineException {
