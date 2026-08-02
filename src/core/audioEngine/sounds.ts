@@ -2,6 +2,10 @@ import { EngineException } from "../types/error_types";
 import { type SoundMeta } from "../types/types";
 import { compute_peaks, type WaveformPeaks } from "../util/waveform";
 
+export interface SoundFile extends SoundMeta {
+    file: ArrayBuffer;
+}
+
 class Sound {
     private meta: SoundMeta;
     private buffer: AudioBuffer;
