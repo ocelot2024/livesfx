@@ -5,6 +5,8 @@ import { type SoundMeta } from "../types/types";
 import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
+import projectStorageManager from "./projectStorageManager";
+import type { SoundFile } from "../audioEngine/sounds";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
@@ -12,10 +14,11 @@ export class ProjectManager extends EventTarget {
     private AudioEngine: Engine;
     private dirty: boolean;
 
-    private db?: IDBDatabase;
+    private storageManager: projectStorageManager;
     constructor() {
         super();
         this.projectname = "名称未設定";
+        this.storageManager = new projectStorageManager();
         this.dirty = false;
         this.AudioEngine = new Engine();
         window.addEventListener("beforeunload", (e) => {
@@ -55,41 +58,10 @@ export class ProjectManager extends EventTarget {
         );
     }
     async init() {
-        const result = await this.db_init();
+        const result = await this.storageManager.initialise_storage();
         if (!result.ok) this.warn(EngineError.CouldNotCleanUpDB);
         this.projectname = "名称未設定";
         this.render_title(this.projectname);
-    }
-    private async db_init(): Promise<Result<string, unknown>> {
-        if (this.db) {
-            this.db.close();
-            this.db = undefined;
-        }
-
-        try {
-            await new Promise<void>((resolve, reject) => {
-                const request = indexedDB.deleteDatabase("fileCache");
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-                request.onblocked = () =>
-                    reject(new Error(EngineException.InitialiseDBException));
-            });
-        } catch (e) {
-            return Err(e);
-        }
-
-        this.db = await new Promise<IDBDatabase>((resolve, reject) => {
-            const request = indexedDB.open("fileCache", 1);
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = () => {
-                const db = request.result;
-                if (!db.objectStoreNames.contains("audioFileCache")) {
-                    db.createObjectStore("audioFileCache", { keyPath: "id" });
-                }
-            };
-        });
-        return Ok("DB initialised");
     }
     private proc_event(state: EngineProcState) {
         this.dispatchEvent(
@@ -143,7 +115,7 @@ export class ProjectManager extends EventTarget {
         this.AudioEngine = new Engine();
         await this.init();
         this.render_title(info.value.filename);
-        const frag: (SoundMeta & { file: ArrayBuffer })[] = [];
+        const frag: SoundFile[] = [];
         for (const sound_info of info.value.sounds) {
             const blob = lvsf_manager.get_sound_data(sound_info.id);
             if (!blob.ok) continue;
@@ -155,9 +127,10 @@ export class ProjectManager extends EventTarget {
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
         return Ok("");
     }
-    async add_sfx(sounds?: (SoundMeta & { file: ArrayBuffer })[]) {
-        if (!this.db) return;
-        let files: (SoundMeta & { file: ArrayBuffer })[] = [];
+    async add_sfx(sounds?: SoundFile[]) {
+        // TODO: ここの明らかに例外な部分をマネージャー側でフックしてストアに投げる処理を追加する。。
+        if (!this.storageManager.is_initialised()) return;
+        let files: SoundFile[] = [];
         if (!sounds) {
             const audios = await openFilePicker({
                 accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
@@ -202,23 +175,7 @@ export class ProjectManager extends EventTarget {
             }
         }
         this.proc_event(EngineProcState.Writing);
-        const transaction = this.db.transaction(
-            ["audioFileCache"],
-            "readwrite",
-        );
-        const objStore = transaction.objectStore("audioFileCache");
-
-        for (const file of files) {
-            objStore.add(file);
-        }
-        try {
-            await new Promise<void>((resolve, reject) => {
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = () => reject(transaction.error);
-            });
-        } catch (e) {
-            this.error(EngineException.DBSaveCacheError);
-        }
+        this.storageManager.save_sound_cache(files);
         this.fin_proc();
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
@@ -249,41 +206,34 @@ export class ProjectManager extends EventTarget {
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     async export() {
-        if (!this.db) return;
+        // TODO: 上になじく例外処理つける
+        if (!this.storageManager.is_initialised()) return;
         this.proc_event(EngineProcState.Proccessing);
         const lvsffile = new LVSFFile();
         const lib = this.get_library();
-        const transaction = this.db.transaction(["audioFileCache"], "readonly");
-        const store = transaction.objectStore("audioFileCache");
+        const files = await this.storageManager.load_sound_cache();
 
-        const files: { id: string; file: ArrayBuffer }[] = (await Promise.all(
-            Object.keys(lib).map(
-                (key) =>
-                    new Promise((resolve, reject) => {
-                        const request = store.get(key);
-                        request.onerror = () => reject(request.error);
-                        request.onsuccess = () => resolve(request.result);
-                    }),
-            ),
-        )) as { id: string; file: ArrayBuffer }[];
-        console.log(files);
-        const fileMap = Object.fromEntries(
-            files.map(({ id, file }) => [id, file]),
-        );
+        if (files.ok) {
+            const fileMap = Object.fromEntries(
+                files.value.map(({ id, file }) => [id, file]),
+            );
 
-        for (const id in lib) {
-            if (!fileMap[id]) return;
-            if (!lib[id]) return;
-            lvsffile.addFile(fileMap[id], lib[id]);
+            for (const id in lib) {
+                if (!fileMap[id]) return;
+                if (!lib[id]) return;
+                lvsffile.addFile(fileMap[id], lib[id]);
+            }
+            const blob = lvsffile.export();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+            this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
+            this.fin_proc();
+        } else {
+            return; //TODO ここも例外処理
         }
-        const blob = lvsffile.export();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.download = `${this.projectname}.${PROJECT_FILE_EX}`;
-        a.href = url;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
-        this.fin_proc();
     }
 }
