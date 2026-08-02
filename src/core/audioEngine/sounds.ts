@@ -1,9 +1,27 @@
 import { EngineException } from "../types/error_types";
-import { type SoundMeta } from "../types/types";
 import { compute_peaks, type WaveformPeaks } from "../util/waveform";
+
+export enum SFXPlayMode {
+    OverLap,
+    Restart,
+    Ignore,
+    Fade,
+}
+
+export interface SoundMeta {
+    id: string;
+    filename: string;
+    start_from?: number;
+    end_at?: number;
+    play_mode?: SFXPlayMode;
+}
 
 export interface SoundFile extends SoundMeta {
     file: ArrayBuffer;
+}
+
+export interface PlaybackInfo extends SoundMeta {
+    buffer: AudioBuffer;
 }
 
 class Sound {
@@ -18,11 +36,14 @@ class Sound {
         };
         this.buffer = buffer;
     }
-    getPlayInfo() {
+    getPlayInfo(): PlaybackInfo {
         return {
+            id: this.meta.id,
+            filename: this.meta.filename,
             buffer: this.buffer,
             start_from: this.meta.start_from,
             end_at: this.meta.end_at,
+            play_mode: this.meta.play_mode ?? SFXPlayMode.OverLap,
         };
     }
     getInfo() {
@@ -34,6 +55,12 @@ class Sound {
     trim(start: number, end: number) {
         this.meta.start_from = start;
         this.meta.end_at = end;
+    }
+    set_mode(mode: SFXPlayMode) {
+        this.meta.play_mode = mode;
+    }
+    get_mode(): SFXPlayMode {
+        return this.meta.play_mode ?? SFXPlayMode.OverLap;
     }
 }
 

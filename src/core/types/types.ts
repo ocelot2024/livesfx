@@ -1,3 +1,4 @@
+import { type SoundMeta } from "../audioEngine/sounds";
 import type { LVSFSoundFileMeta } from "../files/fileUtil";
 
 export enum EngineEvent {
@@ -10,12 +11,6 @@ export enum EngineEvent {
     Proccessing = "proccessing",
     FinProc = "proc_end",
     Error = "error",
-}
-export interface SoundMeta {
-    id: string;
-    filename: string;
-    start_from?: number;
-    end_at?: number;
 }
 
 export interface lvsf_prj_internal_meta extends lvsf_prj_info {
