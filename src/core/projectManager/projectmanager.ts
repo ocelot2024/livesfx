@@ -1,7 +1,6 @@
 import { Engine } from "../audioEngine/audioengine";
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import { openFilePicker, LVSFFile } from "../files/fileUtil";
-import { type SoundMeta } from "../types/types";
 import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
