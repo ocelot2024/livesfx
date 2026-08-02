@@ -1,4 +1,4 @@
-import type { SoundFile } from "../files/fileUtil";
+import type { LVSFSoundFileMeta } from "../files/fileUtil";
 
 export enum EngineEvent {
     ChangedLibrary = "changed_library",
@@ -19,7 +19,7 @@ export interface SoundMeta {
 }
 
 export interface lvsf_prj_internal_meta extends lvsf_prj_info {
-    files: SoundFile[];
+    files: LVSFSoundFileMeta[];
 }
 
 export interface lvsf_prj_info {

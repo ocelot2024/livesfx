@@ -28,7 +28,7 @@ export const openFilePicker = ({
     });
 };
 
-export interface SoundFile {
+export interface LVSFSoundFileMeta {
     offset: number;
     size: number;
     id: string;

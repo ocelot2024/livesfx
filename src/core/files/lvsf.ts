@@ -6,7 +6,7 @@ import {
     type Result,
     type SoundMeta,
 } from "../types/types";
-import { type SoundFile } from "./fileUtil";
+import { type LVSFSoundFileMeta } from "./fileUtil";
 import { EngineError } from "../types/error_types";
 import { LVSF_MAGIC_BYTE, HEADER_SIZE, PROJECT_FILE_EX } from "../constants";
 
@@ -28,7 +28,7 @@ export class LVSFFile {
     }
     export() {
         let offset = 0;
-        let entries: SoundFile[] = [];
+        let entries: LVSFSoundFileMeta[] = [];
 
         for (const [id, file] of this.files) {
             entries.push({

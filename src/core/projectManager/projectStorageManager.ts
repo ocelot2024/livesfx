@@ -1,4 +1,4 @@
-import type { SoundFile } from "../files/fileUtil";
+import type { LVSFSoundFileMeta } from "../files/fileUtil";
 import { StorageError } from "../types/err";
 import { Err, Ok, type Result, type SoundMeta } from "../types/types";
 
@@ -46,7 +46,9 @@ export default class {
         }
         return Ok();
     }
-    save_sound_cache(files: SoundFile[]): Promise<Result<void, StorageError>> {
+    save_sound_cache(
+        files: LVSFSoundFileMeta[],
+    ): Promise<Result<void, StorageError>> {
         if (!this.db) {
             return Promise.resolve(Err(StorageError.DBIsNotInitialised));
         }
@@ -69,7 +71,7 @@ export default class {
         });
     }
 
-    load_sound_cache(): Promise<Result<SoundFile[], StorageError>> {
+    load_sound_cache(): Promise<Result<LVSFSoundFileMeta[], StorageError>> {
         if (!this.db)
             return Promise.resolve(Err(StorageError.DBIsNotInitialised));
         const transaction = this.db.transaction(["audioFileCache"], "readonly");
