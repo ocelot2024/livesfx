@@ -94,6 +94,7 @@ export class Engine {
         delete this.playing[source_id];
     }
     async dispose() {
+        this.stop_all_sfx();
         await this.ctx.close();
         window.removeEventListener("click", this.resume_ctx);
         window.removeEventListener("touchstart", this.resume_ctx);
