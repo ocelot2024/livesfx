@@ -93,4 +93,11 @@ const messages: ErrMsgType = {
     [EngineError.GroupAlreadyExist]: "そのグループは既に存在します",
     [EngineError.GroupNotFound]: "グループが見つかりませんでした",
     [EngineError.ChannelNotFound]: "チャンネルが見つかりませんでした",
+    [EngineError.StorageNotReady]: "キャッシュストレージが初期化されていません",
+    [EngineError.PartialSoundLoadFailed]:
+        "一部の音声のキャッシュ読み込みに失敗しました。",
+    [EngineError.PartialSoundAddFailed]:
+        "一部の音声キャッシュの保存に失敗しました",
+    [EngineError.MissingCachedAudioForExport]:
+        "エクスポートするのに必要なキャッシュが欠損しています。",
 };

@@ -2,10 +2,12 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { ProjectEngine } from '../core/index.ts';
 import { useEngineState } from '../core/store/enginestore.ts';
+import { SFXPlayMode } from '@/core/audioEngine/sounds.ts';
 
 const props = defineProps<{ soundId: string }>();
 
 const store = useEngineState();
+//@ts-ignore
 const sound = computed(() => store.library.find(s => s.id === props.soundId));
 
 const waveformEl = ref<HTMLDivElement | null>(null);
@@ -22,6 +24,8 @@ const MIN_GAP = 0.02;
 const isPlaying = ref(false);
 const activeSourceId = ref<string | null>(null);
 let playResetTimer: number | null = null;
+
+const playbackOption = ref<SFXPlayMode>(SFXPlayMode.OverLap);
 
 const format_time = (seconds: number) => {
     if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
@@ -83,6 +87,7 @@ const load_sound = () => {
     stop_preview();
     const d = ProjectEngine.get_duration(props.soundId) ?? 0;
     const meta = ProjectEngine.get_soundinfo(props.soundId);
+    playbackOption.value = meta?.play_mode ?? SFXPlayMode.OverLap;
     duration.value = d;
     trimStart.value = meta?.start_from ?? 0;
     trimEnd.value = meta?.end_at ?? d;
@@ -144,9 +149,9 @@ const toggle_play = async () => {
         start: trimStart.value,
         end: trimEnd.value,
     });
-    if (!result) return;
-
-    activeSourceId.value = result.sourceID;
+    if (!result.ok) return;
+    if (!result.value.played) return;
+    activeSourceId.value = result.value.sourceID;
     isPlaying.value = true;
 
     const playMs = Math.max(0, trimEnd.value - trimStart.value) * 1000;
@@ -175,6 +180,7 @@ onBeforeUnmount(() => {
 const emit = defineEmits(['saved'])
 const save = () => {
     ProjectEngine.trim(props.soundId, trimStart.value, trimEnd.value);
+    ProjectEngine.set_sfx_playmode(props.soundId, playbackOption.value);
     emit('saved');
 }
 </script>
@@ -209,6 +215,17 @@ const save = () => {
                     <input class="trim-time" type="number" :min="trimStart + MIN_GAP" :max="duration" step="0.01"
                         v-model.number="trimEnd" @change="clamp_trim">
                 </div>
+            </div>
+        </section>
+        <section>
+            <div>
+                <label for="PlayBackOption">再生中に再生ボタンを押したときの動作</label>
+                <select name="PlaybackOption" v-model="playbackOption">
+                    <option :value="SFXPlayMode.OverLap">上書き再生</option>
+                    <option :value="SFXPlayMode.Restart">再生しなおす</option>
+                    <option :value="SFXPlayMode.Ignore">無視する</option>
+                    <option :value="SFXPlayMode.Stop">とめる</option>
+                </select>
             </div>
         </section>
         <button @click="save()">変更を保存</button>

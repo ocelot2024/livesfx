@@ -5,7 +5,7 @@ import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
 import projectStorageManager from "./projectStorageManager";
-import type { SoundFile } from "../audioEngine/sounds";
+import type { SFXPlayMode, SoundFile } from "../audioEngine/sounds";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
@@ -213,6 +213,10 @@ export class ProjectManager extends EventTarget {
     }
     trim(id: string, start: number, end: number) {
         this.AudioEngine.trim(id, start, end);
+        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+    }
+    set_sfx_playmode(id: string, mode: SFXPlayMode) {
+        this.AudioEngine.set_sfx_play_mode(id, mode);
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
     }
     async export() {

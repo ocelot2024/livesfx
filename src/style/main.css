@@ -9,6 +9,11 @@ body {
     color: var(--label-normal);
     user-select: none;
 }
+input,
+select,
+option {
+    background-color: var(--gray-6);
+}
 body {
     background-color: var(--gray-6);
 }
@@ -18,4 +23,8 @@ button {
     border-radius: 12px;
     border: 1px solid var(--gray-4);
     padding: 7px;
+}
+
+label {
+    margin-inline-end: 3rem;
 }

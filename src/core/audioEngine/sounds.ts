@@ -1,11 +1,12 @@
 import { EngineException } from "../types/error_types";
+import type { Result } from "../types/types";
 import { compute_peaks, type WaveformPeaks } from "../util/waveform";
 
 export enum SFXPlayMode {
     OverLap,
     Restart,
     Ignore,
-    Fade,
+    Stop,
 }
 
 export interface SoundMeta {
@@ -122,6 +123,11 @@ export class SoundLibrary {
     trim(id: string, start: number, end: number) {
         if (id in this.sounds) {
             this.sounds[id]?.trim(start, end);
+        }
+    }
+    set_sfx_playmode(id: string, mode: SFXPlayMode) {
+        if (id in this.sounds) {
+            this.sounds[id]?.set_mode(mode);
         }
     }
 }

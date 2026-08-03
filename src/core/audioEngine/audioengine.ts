@@ -50,6 +50,9 @@ export class Engine {
     trim(id: string, start: number, end: number) {
         this.library.trim(id, start, end);
     }
+    set_sfx_play_mode(id: string, mode: SFXPlayMode) {
+        this.library.set_sfx_playmode(id, mode);
+    }
     async play(
         id: string,
         options?: { start?: number; end?: number },
@@ -62,14 +65,17 @@ export class Engine {
         const playMode = PlaybackInfo?.play_mode;
         if (!node) return Err(AudioEngineError.SoundNotFound);
         //PlayModeを確認する。絶対にあるはずやからなかったらおかしい
-        if (!playMode) return Err(AudioEngineError.SoundNotFound);
+        if (!playMode && playMode !== 0)
+            return Err(AudioEngineError.SoundNotFound);
 
-        if (playMode > SFXPlayMode.Restart) {
+        if (playMode >= SFXPlayMode.Restart) {
             //TODO ミキサーのプリ段より前に新しくGainNodeを挟んでFadeをできるようにする。
-            if (playMode == SFXPlayMode.Ignore) return Ok({ played: false });
             const playing = this.playing_id.find((v) => v.sfx_id == meta.id);
+            if (playMode == SFXPlayMode.Ignore && playing)
+                return Ok({ played: false });
             if (playing) {
                 this.stop(playing.source_id);
+                if (playMode === SFXPlayMode.Stop) return Ok({ played: false });
             }
         }
         this.playing[source_id] = node;

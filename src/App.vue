@@ -32,7 +32,7 @@ const viewportHeight = ref(window.innerHeight);
 
 const DURATION = 400;
 
-const activeSound = computed(() => store.library.find(s => s.id === activeSoundId.value));
+const activeSound = computed(() => store.library.find((s: { id: string | null; }) => s.id === activeSoundId.value));
 
 // 展開後のターゲットサイズ（最大 600x800、画面中央配置）を計算
 const targetRect = computed(() => {
