@@ -181,6 +181,9 @@ export class ProjectManager extends EventTarget {
                 ) {
                     this.trim(result.value, sound.start_from, sound.end_at);
                 }
+                if (sound.play_mode !== undefined) {
+                    this.set_sfx_playmode(result.value, sound.play_mode);
+                }
             }
         }
         this.proc_event(EngineProcState.Writing);

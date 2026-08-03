@@ -4,11 +4,11 @@ import {
     type lvsf_prj_info,
     type lvsf_prj_internal_meta as lvsf_prj_internal_meta,
     type Result,
-    type SoundMeta,
 } from "../types/types";
 import { type LVSFSoundFileMeta } from "./fileUtil";
 import { EngineError } from "../types/error_types";
 import { LVSF_MAGIC_BYTE, HEADER_SIZE, PROJECT_FILE_EX } from "../constants";
+import { type SoundMeta } from "../audioEngine/sounds";
 
 export class LVSFFile {
     prj_info?: lvsf_prj_internal_meta;
