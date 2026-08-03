@@ -1,6 +1,6 @@
 import type { SoundFile } from "../audioEngine/sounds";
 import { StorageError } from "../types/err";
-import { Err, Ok, type Result, type SoundMeta } from "../types/types";
+import { Err, Ok, type Result } from "../types/types";
 
 export default class {
     private db?: IDBDatabase;

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { ProjectEngine } from "..";
-import { type SoundMeta } from "..";
+import { type SoundMeta } from "../audioEngine/sounds";
 import { EngineEvent } from "../types/types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";

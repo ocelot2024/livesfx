@@ -72,10 +72,11 @@ export class Engine {
             //TODO ミキサーのプリ段より前に新しくGainNodeを挟んでFadeをできるようにする。
             const playing = this.playing_id.find((v) => v.sfx_id == meta.id);
             if (playMode == SFXPlayMode.Ignore && playing)
-                return Ok({ played: false });
+                return Ok<PlayResult>({ played: false });
             if (playing) {
                 this.stop(playing.source_id);
-                if (playMode === SFXPlayMode.Stop) return Ok({ played: false });
+                if (playMode === SFXPlayMode.Stop)
+                    return Ok<PlayResult>({ played: false });
             }
         }
         this.playing[source_id] = node;
