@@ -1,8 +1,12 @@
 import { AudioMixer } from "./mixer";
-import { SoundLibrary } from "./sounds";
+import { SFXPlayMode, SoundLibrary } from "./sounds";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
 import { AudioEngineError } from "../types/err";
+
+export type PlayResult =
+    | { played: true; soundID: string; sourceID: string }
+    | { played: false };
 
 export class Engine {
     private mixer: AudioMixer;
@@ -49,17 +53,25 @@ export class Engine {
     async play(
         id: string,
         options?: { start?: number; end?: number },
-    ): Promise<
-        Result<{ soundID: string; sourceID: string }, AudioEngineError>
-    > {
+    ): Promise<Result<PlayResult, AudioEngineError>> {
         await this.resume_ctx();
         const source_id = generateUUID();
-        const { node, ...meta } = this.library.get_PlayInfo(id) ?? {
-            node: null,
-            start_from: null,
-            end_at: null,
-        };
+        const PlaybackInfo = this.library.get_PlayInfo(id);
+        if (!PlaybackInfo) return Err(AudioEngineError.SoundNotFound);
+        const { node, ...meta } = PlaybackInfo;
+        const playMode = PlaybackInfo?.play_mode;
         if (!node) return Err(AudioEngineError.SoundNotFound);
+        //PlayModeを確認する。絶対にあるはずやからなかったらおかしい
+        if (!playMode) return Err(AudioEngineError.SoundNotFound);
+
+        if (playMode > SFXPlayMode.Restart) {
+            //TODO ミキサーのプリ段より前に新しくGainNodeを挟んでFadeをできるようにする。
+            if (playMode == SFXPlayMode.Ignore) return Ok({ played: false });
+            const playing = this.playing_id.find((v) => v.sfx_id == meta.id);
+            if (playing) {
+                this.stop(playing.source_id);
+            }
+        }
         this.playing[source_id] = node;
         this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.input(id, node);
@@ -92,7 +104,7 @@ export class Engine {
         } else {
             node.start();
         }
-        return Ok({ soundID: id, sourceID: source_id });
+        return Ok({ played: true, soundID: id, sourceID: source_id });
     }
     stop(source_id: string): Result<void, AudioEngineError> {
         if (!(source_id in this.playing))
