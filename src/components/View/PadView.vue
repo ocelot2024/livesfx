@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { CSSProperties } from "vue";
 import { defineAsyncComponent, ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
-import { ProjectEngine, } from '../core/index.ts';
-import { useEngineState } from '../core/store/enginestore.ts';
+import { ProjectEngine, } from '../../core/index.ts';
+import { useEngineState } from '../../core/store/enginestore.ts';
 
 const store = useEngineState();
 

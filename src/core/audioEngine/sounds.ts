@@ -15,6 +15,7 @@ export interface SoundMeta {
     start_from?: number;
     end_at?: number;
     play_mode?: SFXPlayMode;
+    group?: string;
 }
 
 export interface SoundFile extends SoundMeta {
@@ -28,12 +29,13 @@ export interface PlaybackInfo extends SoundMeta {
 class Sound {
     private meta: SoundMeta;
     private buffer: AudioBuffer;
-    constructor(name: string, id: string, buffer: AudioBuffer) {
+    constructor(name: string, id: string, buffer: AudioBuffer, parent: string) {
         this.meta = {
             id,
             filename: name,
             start_from: 0,
             end_at: buffer.duration,
+            group: parent,
         };
         this.buffer = buffer;
     }
@@ -72,8 +74,8 @@ export class SoundLibrary {
         this.sounds = {};
         this.ctx = ctx;
     }
-    add(name: string, id: string, audiobuffer: AudioBuffer) {
-        const sound = new Sound(name, id, audiobuffer);
+    add(name: string, id: string, audiobuffer: AudioBuffer, parent: string) {
+        const sound = new Sound(name, id, audiobuffer, parent);
         this.sounds[id] = sound;
         return id;
     }

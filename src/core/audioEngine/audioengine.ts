@@ -39,11 +39,13 @@ export class Engine {
         name: string,
         file: ArrayBuffer,
         id?: string,
+        group?: string,
     ): Promise<Result<string, string>> {
         const sound_id = id ?? generateUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
-        this.library.add(name, sound_id, audiobuffer);
-        const result = this.mixer.create_channel(sound_id, "SFX");
+        const groupname = group ?? "SFX";
+        this.library.add(name, sound_id, audiobuffer, groupname);
+        const result = this.mixer.create_channel(sound_id, name, groupname);
         if (result.ok) return Ok(result.value);
         else return Err(result.value);
     }
@@ -155,5 +157,8 @@ export class Engine {
     }
     get_soundinfo(id: string) {
         return this.library.get_soundinfo(id);
+    }
+    get_group_children(parent: string) {
+        return this.mixer.group_children(parent);
     }
 }

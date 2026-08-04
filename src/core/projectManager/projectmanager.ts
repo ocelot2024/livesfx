@@ -262,4 +262,7 @@ export class ProjectManager extends EventTarget {
         this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
         this.fin_proc();
     }
+    get_group_children(parent: string) {
+        return this.AudioEngine.get_group_children(parent);
+    }
 }

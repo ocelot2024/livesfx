@@ -2,12 +2,12 @@
 import AppBar, { type MenuList } from './components/AppBar.vue';
 import { ProjectEngine, } from './core/index.ts';
 import { useEngineState } from './core/store/enginestore.ts';
-import NotifCentre from "./components/NotifCentre.vue";
+import NotifCentre from "./components/View/NotifCentre.vue";
 import Spinner from "./components/Spinner.vue";
 import { EngineProcState } from "./core/store/enginestore_type.ts";
-import PadView from "./components/PadView.vue";
+import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
-import MixerView from "./components/MixerView.vue";
+import MixerView from "./components/View/MixerView.vue";
 import { ref } from 'vue';
 
 const store = useEngineState();

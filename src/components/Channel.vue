@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 
-const volume = defineModel<number>('volume', { default: 0.8 })
+defineProps<{ channelName: string, id: string }>()
+
+const volume = defineModel<number>('volume', { default: 1 })
 
 const track = ref<HTMLElement | null>(null)
 const thumbHeight = 60
@@ -99,40 +101,34 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="flex mixer">
-        <div class="groupContainer">
-            <div class="groupName">
-                <p>MASTER</p>
-            </div>
-            <div class="channel">
-                <div class="fader flex">
-                    <div class="track" ref="track" @pointerdown="onTrackClick">
-                        <div class="unityMark" :style="{ top: `${unityMarkTop}px` }"></div>
-                        <div class="fill" :style="{ height: `${300 - thumbTop}px` }"></div>
-                        <div class="thumb flex" :class="{ dragging }" :style="{ top: `${thumbTop}px` }"
-                            @pointerdown.stop="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp"
-                            @pointercancel="onPointerUp">
-                            <div class="thumbGrip">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
-                            <div class="thumbCenterLine"></div>
-                        </div>
+    <div class="channel">
+        <div class="fader flex">
+            <div class="track" ref="track" @pointerdown="onTrackClick">
+                <div class="unityMark" :style="{ top: `${unityMarkTop}px` }"></div>
+                <div class="fill" :style="{ height: `${300 - thumbTop}px` }"></div>
+                <div class="thumb flex" :class="{ dragging }" :style="{ top: `${thumbTop}px` }"
+                    @pointerdown.stop="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp"
+                    @pointercancel="onPointerUp">
+                    <div class="thumbGrip">
+                        <span></span>
+                        <span></span>
+                        <span></span>
                     </div>
-                    <span class="faderValue">{{ displayDb }}</span>
-                </div>
-                <div class="channeltitle">
-                    <h3>MAIN</h3>
+                    <div class="thumbCenterLine"></div>
                 </div>
             </div>
+            <span class="faderValue">{{ displayDb }}</span>
+        </div>
+        <div class="channeltitle">
+            <p>{{ channelName }}</p>
         </div>
     </div>
 </template>
 
 <style scoped>
-.mixer {
-    padding: 12px;
+.channel {
+    flex: 1;
+    flex-shrink: 0
 }
 
 .fader {
@@ -247,27 +243,11 @@ onUnmounted(() => {
     min-height: 12px;
 }
 
-.groupContainer {
-    background-color: var(--gray-5);
-    border-radius: 12px;
-    border: var(--gray-3) 1px solid;
-    position: relative;
-}
-
-.groupName {
-    position: absolute;
-    top: calc(-3px - 6.5pt);
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--gray-5);
-    padding: 0 8px;
-    white-space: nowrap;
-}
-
 .channeltitle {
     background-color: var(--gray-1);
     border-radius: 6px;
     text-align: center;
+    text-wrap-mode: nowrap;
 
     * {
         padding: 1px 12px;
@@ -276,6 +256,6 @@ onUnmounted(() => {
 
 .channel {
     padding: 10px;
-    width: 100px;
+    min-width: 100px;
 }
 </style>
