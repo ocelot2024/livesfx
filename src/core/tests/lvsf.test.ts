@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { LVSFFile } from "../files/lvsf";
 import { LVSF_MAGIC_BYTE } from "../constants";
 import { EngineError } from "../types/error_types";
-import type { SoundMeta } from "../audioEngine/sounds";
+import { SFXPlayMode, type SoundMeta } from "../audioEngine/sounds";
 
 const HEADER_SIZE = 16;
 
@@ -210,6 +210,85 @@ describe("LVSFFile.parse - round trip", () => {
         const result = await reader.parse(toFile(blob, "no-extension"));
         expect(result.ok).toBe(true);
         if (result.ok) expect(result.value.filename).toBe("no-extension");
+    });
+});
+
+describe("LVSFFile.parse - play_mode round trip", () => {
+    test("restores play_mode for every enum value, including OverLap (0)", async () => {
+        // SFXPlayMode.OverLap is 0, which is falsy in JS. A round trip that
+        // uses `sound.play_mode ?? default` or `if (sound.play_mode)` style
+        // checks anywhere in the pipeline would silently turn a real
+        // OverLap value into "unset". Exercise every enum member, including 0.
+        const writer = new LVSFFile();
+        const sounds: SoundMeta[] = [
+            {
+                id: "s-overlap",
+                filename: "a.wav",
+                play_mode: SFXPlayMode.OverLap,
+            },
+            {
+                id: "s-restart",
+                filename: "b.wav",
+                play_mode: SFXPlayMode.Restart,
+            },
+            {
+                id: "s-ignore",
+                filename: "c.wav",
+                play_mode: SFXPlayMode.Ignore,
+            },
+            { id: "s-stop", filename: "d.wav", play_mode: SFXPlayMode.Stop },
+        ];
+        for (const sound of sounds) {
+            writer.addFile(new Uint8Array([1]).buffer as ArrayBuffer, sound);
+        }
+        const file = toFile(writer.export(), "playmodes.lvsf");
+
+        const reader = new LVSFFile();
+        const result = await reader.parse(file);
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+
+        for (const expected of sounds) {
+            const restored = result.value.sounds.find(
+                (s) => s.id === expected.id,
+            );
+            expect(restored?.play_mode).toBe(expected.play_mode);
+        }
+    });
+
+    test("a sound saved without play_mode round trips with the field absent (not coerced to 0)", async () => {
+        const writer = new LVSFFile();
+        const sound: SoundMeta = { id: "s-none", filename: "e.wav" };
+        writer.addFile(new Uint8Array([1]).buffer as ArrayBuffer, sound);
+        const file = toFile(writer.export(), "no-playmode.lvsf");
+
+        const reader = new LVSFFile();
+        const result = await reader.parse(file);
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+
+        const restored = result.value.sounds.find((s) => s.id === "s-none");
+        expect(restored).toBeDefined();
+        expect("play_mode" in (restored as object)).toBe(false);
+        expect(restored?.play_mode).toBeUndefined();
+    });
+
+    test("an old-format file with no play_mode key anywhere in its JSON still parses", async () => {
+        // Simulates a .lvsf written before play_mode existed at all, rather
+        // than one written by the current export() with the field merely
+        // omitted per-sound.
+        const legacySound = { id: "legacy-1", filename: "old.wav" };
+        const blob = buildRawLvsf({
+            body: {
+                sounds: [legacySound],
+                files: [{ offset: 0, size: 1, id: "legacy-1" }],
+            },
+            audio: new Uint8Array([42]),
+        });
+        const result = await new LVSFFile().parse(toFile(blob, "legacy.lvsf"));
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+        expect(result.value.sounds).toEqual([legacySound]);
     });
 });
 
