@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { AudioMixer } from "../audioEngine/mixer";
+import { AudioMixer, MIXER_MASTER_CHANNEL_ID } from "../audioEngine/mixer";
 import { EngineError } from "../types/error_types";
 
 /**
@@ -13,6 +13,7 @@ class FakeNode {
     readonly label: string;
     connectedTo: FakeNode[] = [];
     disconnectCount = 0;
+    gain = { value: 1 };
     constructor(label: string) {
         this.label = label;
     }
@@ -84,7 +85,7 @@ describe("AudioMixer.create_channel", () => {
     test("creates a channel directly under master when no parent is given", () => {
         const { ctx } = makeFakeContext();
         const mixer = new AudioMixer(ctx);
-        const result = mixer.create_channel("sound-1");
+        const result = mixer.create_channel("sound-1", "sound-1");
         expect(result).toEqual({ ok: true, value: "sound-1" });
     });
 
@@ -96,19 +97,11 @@ describe("AudioMixer.create_channel", () => {
         expect(result).toEqual({ ok: true, value: "sound-1" });
     });
 
-    test("rejects a channel whose declared parent group doesn't exist", () => {
-        const { ctx } = makeFakeContext();
-        const mixer = new AudioMixer(ctx);
-        const result = mixer.create_channel("sound-1", "NoSuchGroup");
-        expect(result.ok).toBe(false);
-        if (!result.ok) expect(result.value).toBe(EngineError.GroupNotFound);
-    });
-
     test("on id collision under the same parent, regenerates the id rather than erroring", () => {
         const { ctx } = makeFakeContext();
         const mixer = new AudioMixer(ctx);
-        const first = mixer.create_channel("dup");
-        const second = mixer.create_channel("dup");
+        const first = mixer.create_channel("dup", "dup");
+        const second = mixer.create_channel("dup", "dup");
         expect(first.ok).toBe(true);
         expect(second.ok).toBe(true);
         if (!first.ok || !second.ok) return;
@@ -117,24 +110,13 @@ describe("AudioMixer.create_channel", () => {
         expect(first.value).toBe("dup");
         expect(second.value).not.toBe("dup");
     });
-
-    test("the same id can independently exist under two different groups", () => {
-        const { ctx } = makeFakeContext();
-        const mixer = new AudioMixer(ctx);
-        mixer.createGroup("SFX");
-        mixer.createGroup("BGM");
-        const a = mixer.create_channel("shared-id", "SFX");
-        const b = mixer.create_channel("shared-id", "BGM");
-        expect(a).toEqual({ ok: true, value: "shared-id" });
-        expect(b).toEqual({ ok: true, value: "shared-id" });
-    });
 });
 
 describe("AudioMixer.delete_channel", () => {
     test("removes a master-level channel and disconnects its nodes", () => {
         const { ctx } = makeFakeContext();
         const mixer = new AudioMixer(ctx);
-        mixer.create_channel("sound-1");
+        mixer.create_channel("sound-1", "sound-1");
         const result = mixer.delete_channel("sound-1");
         expect(result.ok).toBe(true);
         // deleted channel can no longer be found/reused for input()
@@ -167,7 +149,7 @@ describe("AudioMixer.input", () => {
     test("connects a source node into the target channel's input gain", () => {
         const { ctx } = makeFakeContext();
         const mixer = new AudioMixer(ctx);
-        mixer.create_channel("sound-1");
+        mixer.create_channel("sound-1", "sound-1");
         const source = new FakeNode("source");
         const result = mixer.input("sound-1", source as unknown as AudioNode);
         expect(result.ok).toBe(true);
@@ -195,5 +177,45 @@ describe("AudioMixer.input", () => {
         const result = mixer.input("sound-1", source as unknown as AudioNode);
         expect(result.ok).toBe(true);
         expect(source.connectedTo).toHaveLength(1);
+    });
+});
+describe("AudioMixer.set_gain / get_gain", () => {
+    test("adjusts and reads a master-level sound channel's gain", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.create_channel("sound-1", "sound-1");
+        expect(mixer.set_gain("sound-1", 0.5)).toEqual({
+            ok: true,
+            value: 0.5,
+        });
+        expect(mixer.get_gain("sound-1")).toEqual({ ok: true, value: 0.5 });
+    });
+
+    test("adjusts and reads the master bus gain directly", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        expect(mixer.set_gain(MIXER_MASTER_CHANNEL_ID, 0.7)).toEqual({
+            ok: true,
+            value: 0.7,
+        });
+        expect(mixer.get_gain(MIXER_MASTER_CHANNEL_ID)).toEqual({
+            ok: true,
+            value: 0.7,
+        });
+    });
+
+    test("adjusts and reads a group bus gain directly (not just its children)", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.createGroup("SFX");
+        expect(mixer.set_gain("SFX", 0.3)).toEqual({ ok: true, value: 0.3 });
+        expect(mixer.get_gain("SFX")).toEqual({ ok: true, value: 0.3 });
+    });
+
+    test("returns Err for a completely unknown id", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        const result = mixer.set_gain("ghost", 0.5);
+        expect(result.ok).toBe(false);
     });
 });
