@@ -69,7 +69,6 @@ export class Engine {
             return Err(AudioEngineError.SoundNotFound);
 
         if (playMode >= SFXPlayMode.Restart) {
-            //TODO ミキサーのプリ段より前に新しくGainNodeを挟んでFadeをできるようにする。
             const playing = this.playing_id.find((v) => v.sfx_id == meta.id);
             if (playMode == SFXPlayMode.Ignore && playing)
                 return Ok<PlayResult>({ played: false });
