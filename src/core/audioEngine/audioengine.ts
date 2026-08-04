@@ -2,7 +2,7 @@ import { AudioMixer } from "./mixer";
 import { SFXPlayMode, SoundLibrary } from "./sounds";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
-import { AudioEngineError } from "../types/err";
+import { AudioEngineError, AudioMixerError } from "../types/err";
 
 export type PlayResult =
     | { played: true; soundID: string; sourceID: string }
@@ -160,5 +160,8 @@ export class Engine {
     }
     get_group_children(parent: string) {
         return this.mixer.group_children(parent);
+    }
+    set_gain(id: string, gain: number): Result<void, AudioMixerError> {
+        return this.mixer.set_gain(id, gain);
     }
 }

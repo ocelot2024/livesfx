@@ -14,3 +14,9 @@ export const AudioEngineError = {
 
 export type AudioEngineError =
     (typeof AudioEngineError)[keyof typeof AudioEngineError];
+
+export const AudioMixerError = {
+    ChannelNotFound: "channel_not_found",
+};
+export type AudioMixerError =
+    (typeof AudioMixerError)[keyof typeof AudioMixerError];

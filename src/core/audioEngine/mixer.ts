@@ -1,3 +1,4 @@
+import { AudioMixerError } from "../types/err";
 import { EngineError } from "../types/error_types";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
@@ -9,7 +10,7 @@ interface MixerGroup {
     children: MixerChannels;
 }
 
-class Channel {
+export class Channel {
     readonly inputGain: GainNode;
     readonly output: GainNode;
     name: string;
@@ -117,5 +118,11 @@ export class AudioMixer {
         if (!target) return Err(EngineError.ChannelNotFound);
         target.channel && source.connect(target.channel.inputGain);
         return Ok();
+    }
+    set_gain(id: string, gain: number): Result<void, AudioMixerError> {
+        const target = this.channel_finder(id)?.target[id];
+        if (!target) return Err(AudioMixerError.ChannelNotFound);
+        target.channel.inputGain.gain.value = gain;
+        return Ok(target.channel.inputGain.gain.value);
     }
 }

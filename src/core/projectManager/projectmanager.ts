@@ -6,6 +6,7 @@ import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
 import projectStorageManager from "./projectStorageManager";
 import type { SFXPlayMode, SoundFile } from "../audioEngine/sounds";
+import type { AudioMixerError } from "../types/err";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
@@ -264,5 +265,8 @@ export class ProjectManager extends EventTarget {
     }
     get_group_children(parent: string) {
         return this.AudioEngine.get_group_children(parent);
+    }
+    set_gain(id: string, gain: number): Result<void, AudioMixerError> {
+        return this.AudioEngine.set_gain(id, gain);
     }
 }
