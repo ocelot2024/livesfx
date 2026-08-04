@@ -7,6 +7,7 @@ import { useEngineState } from './core/store/enginestore.ts';
 import NotifCentre from "./components/NotifCentre.vue";
 import Spinner from "./components/Spinner.vue";
 import { EngineProcState } from "./core/store/enginestore_type.ts";
+import PadView from "./components/PadView.vue";
 
 const store = useEngineState();
 
@@ -191,15 +192,7 @@ const toggle_ui_mode = () => {
 
 <template>
     <AppBar v-bind:items="menu" />
-    <div class="grid">
-        <button v-for="sound in store.library" :key="sound.id" :style="cardStyle(sound)"
-            @click="store.ui_mode == 'live' ? ProjectEngine.play(sound.id) : open_editor(sound.id, $event)"
-            :class="{ 'edit-mode': store.ui_mode === 'edit' }">
-            <div class="card" :class="{ vibrate: store.ui_mode === 'edit' }">
-                <h3>{{ sound.filename }}</h3>
-            </div>
-        </button>
-    </div>
+    <PadView />
     <footer>
         <div class="flex" style="justify-content: space-between;">
             <button @click="ProjectEngine.stop_all_sfx()">すべて停止</button>
@@ -207,29 +200,6 @@ const toggle_ui_mode = () => {
         </div>
     </footer>
 
-    <Teleport to="body">
-        <div v-if="modalPhase !== 'closed'" class="expand-backdrop" :class="{ visible: loadEditor }"
-            @click="close_editor" />
-
-        <div v-if="modalPhase !== 'closed'" class="expand-container" :style="modalStyle">
-
-            <div class="expand-card" :style="targetSizeStyle"
-                :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
-                <header class="expand-header">
-                    <h3>{{ activeSound?.filename }}</h3>
-                    <button class="close-btn" @click="close_editor">✕</button>
-                </header>
-                <div class="expand-editor">
-                    <editor @saved="close_editor()" v-if="activeSoundId" :sound-id="activeSoundId" />
-                </div>
-            </div>
-
-            <div class="dummy-card" :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
-                <h3>{{ activeSound?.filename }}</h3>
-            </div>
-
-        </div>
-    </Teleport>
     <NotifCentre />
     <div class="full" v-if="store.EngineState !== EngineProcState.Idle">
         <div class="spinner_container">
@@ -267,31 +237,6 @@ const toggle_ui_mode = () => {
     text-align: center;
 }
 
-.grid button {
-    background-color: transparent;
-    border: none;
-    padding: 0;
-}
-
-.grid {
-    display: grid;
-    gap: 32px;
-    padding: 32px;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-}
-
-.card {
-    cursor: pointer;
-    background-color: var(--gray-5);
-    border-radius: 12px;
-    padding: 12px;
-    aspect-ratio: 1/1;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.06);
-}
-
-button:active .card {
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 4px 12px rgba(0, 0, 0, 0.08), inset 0 12px 32px rgba(0, 0, 0, 0.06);
-}
 
 footer {
     border-top: 1px solid var(--gray-5);
@@ -300,143 +245,5 @@ footer {
     padding: 12px;
     left: 0;
     right: 0;
-}
-
-.edit-mode:nth-child(2n) .vibrate {
-    animation: wobble-a 0.25s infinite;
-    transform-origin: 50% 10%;
-}
-
-.edit-mode:nth-child(2n-1) .vibrate {
-    animation: wobble-b 0.25s infinite alternate;
-    transform-origin: 30% 5%;
-}
-
-.expand-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .3);
-    backdrop-filter: blur(20px);
-    opacity: 0;
-    transition: opacity .25s ease;
-    z-index: 100;
-}
-
-.expand-backdrop.visible {
-    opacity: 1;
-}
-
-.expand-container {
-    position: fixed;
-    z-index: 101;
-    overflow: hidden;
-
-    background: var(--gray-5);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .15), 0 32px 80px rgba(0, 0, 0, .2);
-
-    transition:
-        top .4s cubic-bezier(.32, .72, 0, 1),
-        left .4s cubic-bezier(.32, .72, 0, 1),
-        width .4s cubic-bezier(.32, .72, 0, 1),
-        height .4s cubic-bezier(.32, .72, 0, 1),
-        border-radius .4s cubic-bezier(.32, .72, 0, 1);
-    will-change: top, left, width, height, border-radius;
-}
-
-.expand-card {
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-
-    /* 初期状態は透明 */
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .3s ease;
-}
-
-.expand-card.is-opening {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.dummy-card {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 12px;
-
-    opacity: 1;
-    transition: opacity .2s ease;
-    pointer-events: none;
-}
-
-.dummy-card.is-opening {
-    opacity: 0;
-}
-
-.expand-header {
-    padding: 16px;
-    min-height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--gray-4);
-    flex-shrink: 0;
-}
-
-.expand-editor {
-    flex: 1;
-    overflow: hidden;
-    /* 遅延表示アニメーションを削除し、親のクロスフェードに合わせる */
-}
-
-.close-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: none;
-    background-color: var(--gray-5);
-    color: var(--gray-1, #8e8e93);
-    font-size: 14px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.close-btn:active {
-    opacity: 0.6;
-}
-</style>
-
-<style>
-@keyframes wobble-a {
-    0% {
-        transform: rotate(-2deg);
-        animation-timing-function: ease-in;
-    }
-
-    50% {
-        transform: rotate(3deg);
-        animation-timing-function: ease-out;
-    }
-}
-
-@keyframes wobble-b {
-    0% {
-        transform: rotate(2deg);
-        animation-timing-function: ease-in;
-    }
-
-    50% {
-        transform: rotate(-3deg);
-        animation-timing-function: ease-out;
-    }
 }
 </style>
