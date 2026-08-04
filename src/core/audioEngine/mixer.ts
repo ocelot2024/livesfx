@@ -140,7 +140,7 @@ export class AudioMixer {
         target.channel.output.gain.value = gain;
         return Ok(target.channel.output.gain.value);
     }
-    get_gain(id: string) {
+    get_gain(id: string): Result<number, AudioMixerError> {
         const group = this.resolve_group(id);
         if (group) {
             return Ok(group.output.gain.value);
