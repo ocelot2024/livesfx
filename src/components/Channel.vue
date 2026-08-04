@@ -10,7 +10,7 @@ const thumbHeight = 60
 const dragging = ref(false)
 
 
-const maxDb = 6
+const maxDb = 10
 const minDb = -60
 const unityDb = 0
 const unityPosition = 0.25
@@ -19,15 +19,16 @@ const unityPosition = 0.25
 const gainToDb = (g: number) => (g <= 0 ? -Infinity : 20 * Math.log10(g))
 const dbToGain = (db: number) => (db <= minDb ? 0 : Math.pow(10, db / 20))
 
+//TODO カーブを環境背一定にぶち込みたい
+const CURVE = 3
+
 const positionToDb = (pos: number) => {
     if (pos <= unityPosition) {
-        // top(maxDb) 〜 unity(0dB)
         const t = pos / unityPosition
         return maxDb + (unityDb - maxDb) * t
     } else {
-        // unity(0dB) 〜 bottom(minDb)
         const t = (pos - unityPosition) / (1 - unityPosition)
-        return unityDb + (minDb - unityDb) * t
+        return unityDb + (minDb - unityDb) * Math.pow(t, CURVE)
     }
 }
 
@@ -37,7 +38,7 @@ const dbToPosition = (db: number) => {
         return t * unityPosition
     } else {
         const t = (unityDb - db) / (unityDb - minDb)
-        return unityPosition + t * (1 - unityPosition)
+        return unityPosition + Math.pow(t, 1 / CURVE) * (1 - unityPosition)
     }
 }
 
