@@ -5,6 +5,8 @@ import { generateUUID } from "../util/util";
 
 type MixerChannels = Record<string, { belongs_to: string; channel: Channel }>;
 
+export const MIXER_MASTER_CHANNEL_ID = "MASTER";
+
 interface MixerGroup {
     grouping_channel: Channel;
     children: MixerChannels;
@@ -36,6 +38,12 @@ export class AudioMixer {
         this.master = new Channel(ctx, "MASTER", "MASTER");
         this.master.output.connect(ctx.destination);
         this.groups = {};
+    }
+
+    private resolve_group(id: string): Channel | null {
+        if (id === MIXER_MASTER_CHANNEL_ID) return this.master;
+        if (id in this.groups) return this.groups[id]?.grouping_channel ?? null;
+        return null;
     }
 
     createGroup(name: string): Result<string, string> {
@@ -120,12 +128,23 @@ export class AudioMixer {
         return Ok();
     }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
+        // グループとマスターのゲインを先に検査して返す。
+        // TODO UIでグループゲインの調整をできるように
+        const group = this.resolve_group(id);
+        if (group) {
+            group.output.gain.value = gain;
+            return Ok(gain);
+        }
         const target = this.channel_finder(id)?.target[id];
         if (!target) return Err(AudioMixerError.ChannelNotFound);
         target.channel.output.gain.value = gain;
         return Ok(target.channel.output.gain.value);
     }
     get_gain(id: string) {
+        const group = this.resolve_group(id);
+        if (group) {
+            return Ok(group.output.gain.value);
+        }
         const target = this.channel_finder(id)?.target[id];
         if (!target) return Err(AudioMixerError.ChannelNotFound);
         return Ok(target.channel.output.gain.value);
