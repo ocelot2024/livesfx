@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue';
 import { useEngineState } from '@/core/store/enginestore';
 import { ProjectEngine } from '@/core';
-import { Channel } from '@/core/audioEngine/mixer.ts';
+import { Channel, MIXER_MASTER_CHANNEL_ID } from '@/core/audioEngine/mixer.ts';
 import ChannelComponent from '../Channel.vue';
 
 const store = useEngineState();
@@ -16,9 +16,10 @@ const groups = computed(() =>
     )]
 )
 
-const set_gain = (e: number, value: Channel) => {
-    console.log(value.id, e)
-    const result = engine.set_gain(value.id ?? 'MASTER', e);
+const set_gain = (e: number, id?: string) => {
+    if (!id) return;
+    console.log(id, e)
+    const result = engine.set_gain(id ?? MIXER_MASTER_CHANNEL_ID, e);
     console.log(result)
 }
 const get_gain = (id?: string) => {
@@ -37,7 +38,7 @@ const get_gain = (id?: string) => {
             </div>
             <div class="groupContainer flex" :key="groupName">
                 <ChannelComponent v-for="value in engine.get_group_children(groupName)" :channel-name="value.name"
-                    :id="value.id ?? 'MASTER'" @update:volume="(e: number) => set_gain(e, value)"
+                    :id="value.id ?? ''" @update:volume="(e: number) => set_gain(e, value.id)"
                     :initial_gain="get_gain(value.id)" />
             </div>
         </div>
@@ -45,7 +46,9 @@ const get_gain = (id?: string) => {
             <p>MASTER</p>
         </div>
         <div class="groupContainer">
-            <ChannelComponent channel-name="MAIN" id="MAIN" />
+            <ChannelComponent channel-name="MAIN" :id="MIXER_MASTER_CHANNEL_ID"
+                @update:volume="(e: number) => set_gain(e, MIXER_MASTER_CHANNEL_ID)"
+                :initial_gain="get_gain(MIXER_MASTER_CHANNEL_ID)" />
         </div>
     </div>
 </template>
