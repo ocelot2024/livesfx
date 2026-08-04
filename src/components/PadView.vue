@@ -147,9 +147,8 @@ const cardStyle = (
 
 const onClick = async (id: string, e: MouseEvent) => {
     const is_live = store.ui_mode == "live";
-    console.log(is_live);
     if (is_live) {
-        console.log(await ProjectEngine.play(id))
+        await ProjectEngine.play(id)
     } else {
         open_editor(id, e)
     }
@@ -158,38 +157,40 @@ const onClick = async (id: string, e: MouseEvent) => {
 </script>
 
 <template>
-    <div class="grid">
-        <button v-for="sound in store.library" :key="sound.id" :style="cardStyle(sound)"
-            @click="onClick(sound.id, $event)" :class="{ 'edit-mode': store.ui_mode === 'edit' }">
-            <div class="card" :class="{ vibrate: store.ui_mode === 'edit' }">
-                <h3>{{ sound.filename }}</h3>
-            </div>
-        </button>
-    </div>
-
-    <Teleport to="body">
-        <div v-if="modalPhase !== 'closed'" class="expand-backdrop" :class="{ visible: loadEditor }"
-            @click="close_editor" />
-
-        <div v-if="modalPhase !== 'closed'" class="expand-container" :style="modalStyle">
-
-            <div class="expand-card" :style="targetSizeStyle"
-                :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
-                <header class="expand-header">
-                    <h3>{{ activeSound?.filename }}</h3>
-                    <button class="close-btn" @click="close_editor">✕</button>
-                </header>
-                <div class="expand-editor">
-                    <editor @saved="close_editor()" v-if="activeSoundId" :sound-id="activeSoundId" />
+    <div>
+        <div class="grid">
+            <button v-for="sound in store.library" :key="sound.id" :style="cardStyle(sound)"
+                @click="onClick(sound.id, $event)" :class="{ 'edit-mode': store.ui_mode === 'edit' }">
+                <div class="card" :class="{ vibrate: store.ui_mode === 'edit' }">
+                    <h3>{{ sound.filename }}</h3>
                 </div>
-            </div>
-
-            <div class="dummy-card" :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
-                <h3>{{ activeSound?.filename }}</h3>
-            </div>
-
+            </button>
         </div>
-    </Teleport>
+
+        <Teleport to="body">
+            <div v-if="modalPhase !== 'closed'" class="expand-backdrop" :class="{ visible: loadEditor }"
+                @click="close_editor" />
+
+            <div v-if="modalPhase !== 'closed'" class="expand-container" :style="modalStyle">
+
+                <div class="expand-card" :style="targetSizeStyle"
+                    :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
+                    <header class="expand-header">
+                        <h3>{{ activeSound?.filename }}</h3>
+                        <button class="close-btn" @click="close_editor">✕</button>
+                    </header>
+                    <div class="expand-editor">
+                        <editor @saved="close_editor()" v-if="activeSoundId" :sound-id="activeSoundId" />
+                    </div>
+                </div>
+
+                <div class="dummy-card" :class="{ 'is-opening': modalPhase === 'opening' || modalPhase === 'open' }">
+                    <h3>{{ activeSound?.filename }}</h3>
+                </div>
+
+            </div>
+        </Teleport>
+    </div>
 </template>
 
 <style scoped>

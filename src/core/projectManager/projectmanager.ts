@@ -61,6 +61,7 @@ export class ProjectManager extends EventTarget {
         if (!result.ok) this.warn(EngineError.CouldNotCleanUpDB);
         this.projectname = "名称未設定";
         this.render_title(this.projectname);
+        this.AudioEngine.createChannel("SFX");
     }
     private proc_event(state: EngineProcState) {
         this.dispatchEvent(
@@ -125,7 +126,6 @@ export class ProjectManager extends EventTarget {
             frag.push({ ...sound_info, file: await blob.value.arrayBuffer() });
         }
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
-        this.AudioEngine.createChannel("SFX");
         await this.add_sfx(frag);
         this.fin_proc();
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { CSSProperties } from "vue";
-import { defineAsyncComponent, ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import AppBar, { type MenuList } from './components/AppBar.vue';
 import { ProjectEngine, } from './core/index.ts';
 import { useEngineState } from './core/store/enginestore.ts';
@@ -8,147 +6,11 @@ import NotifCentre from "./components/NotifCentre.vue";
 import Spinner from "./components/Spinner.vue";
 import { EngineProcState } from "./core/store/enginestore_type.ts";
 import PadView from "./components/PadView.vue";
+import Tab, { type TabItem } from "./components/Tab.vue";
+import MixerView from "./components/MixerView.vue";
+import { ref } from 'vue';
 
 const store = useEngineState();
-
-const editor = defineAsyncComponent({
-    loader: () => import('./components/SoundEditor.vue')
-})
-
-type ModalPhase =
-    | "closed"
-    | "prepare"
-    | "opening"
-    | "open"
-    | "closing";
-
-const modalPhase = ref<ModalPhase>("closed");
-const activeSoundId = ref<string | null>(null);
-const originRect = ref<DOMRect | null>(null);
-
-const loadEditor = ref(false);
-
-const viewportWidth = ref(window.innerWidth);
-const viewportHeight = ref(window.innerHeight);
-
-const DURATION = 400;
-
-const activeSound = computed(() => store.library.find((s: { id: string | null; }) => s.id === activeSoundId.value));
-
-// 展開後のターゲットサイズ（最大 600x800、画面中央配置）を計算
-const targetRect = computed(() => {
-    const width = Math.min(600, viewportWidth.value - 32);
-    const height = Math.min(800, viewportHeight.value - 32);
-    const top = (viewportHeight.value - height) / 2;
-    const left = (viewportWidth.value - width) / 2;
-
-    return { top, left, width, height, borderRadius: 24 };
-});
-
-const modalStyle = computed(() => {
-    if (!originRect.value) return {};
-
-    const expanded = targetRect.value;
-
-    const collapsed = {
-        top: originRect.value.top,
-        left: originRect.value.left,
-        width: originRect.value.width,
-        height: originRect.value.height,
-        borderRadius: 12,
-    };
-
-    const target =
-        modalPhase.value === "opening" ||
-            modalPhase.value === "open"
-            ? expanded
-            : collapsed;
-
-    return {
-        top: `${target.top}px`,
-        left: `${target.left}px`,
-        width: `${target.width}px`,
-        height: `${target.height}px`,
-        borderRadius: `${target.borderRadius}px`,
-    };
-});
-
-const targetSizeStyle = computed(() => {
-    return {
-        width: `${targetRect.value.width}px`,
-        height: `${targetRect.value.height}px`,
-    };
-});
-
-const open_editor = async (
-    id: string,
-    evt: MouseEvent
-) => {
-    if (modalPhase.value !== "closed") return;
-
-    originRect.value = (evt.currentTarget as HTMLElement).getBoundingClientRect();
-    activeSoundId.value = id;
-
-    modalPhase.value = "prepare";
-    loadEditor.value = true;
-
-    await nextTick();
-
-    // 展開開始
-    requestAnimationFrame(() => {
-        modalPhase.value = "opening";
-    });
-
-    window.setTimeout(() => {
-        modalPhase.value = "open";
-    }, DURATION);
-};
-
-const close_editor = () => {
-    // 閉じるアニメーション開始
-    modalPhase.value = "closing";
-
-    setTimeout(() => {
-        // アニメーション完了後に状態をリセットし、エディターを破棄
-        modalPhase.value = "closed";
-        activeSoundId.value = null;
-        originRect.value = null;
-        loadEditor.value = false;
-    }, DURATION);
-};
-
-const handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') close_editor();
-};
-
-const handleResize = () => {
-    viewportWidth.value = window.innerWidth;
-    viewportHeight.value = window.innerHeight;
-};
-
-onMounted(() => {
-    window.addEventListener("keydown", handleKeydown);
-    window.addEventListener("resize", handleResize);
-});
-onBeforeUnmount(() => {
-    window.removeEventListener("keydown", handleKeydown);
-    window.removeEventListener("resize", handleResize);
-});
-
-const cardStyle = (
-    sound: { id: string }
-): CSSProperties => {
-    if (
-        activeSoundId.value === sound.id &&
-        modalPhase.value !== "closed"
-    ) {
-        return {
-            opacity: 0,
-            pointerEvents: "none",
-        };
-    }
-    return {};
-};
 
 const menu: MenuList[] = [
     {
@@ -188,11 +50,23 @@ const toggle_ui_mode = () => {
         store.ui_mode = "live";
     }
 }
+const tabitems: TabItem[] = [{
+    id: "pad",
+    label: "Pad"
+}, {
+    id: "mixer",
+    label: "ミキサー"
+}]
+
+const selectedView = ref("pad");
 </script>
 
 <template>
     <AppBar v-bind:items="menu" />
-    <PadView />
+    <Tab :tabs="tabitems" v-model="selectedView" />
+    <PadView v-show="selectedView === 'pad'" />
+    <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
+    <MixerView v-if="selectedView === 'mixer'" />
     <footer>
         <div class="flex" style="justify-content: space-between;">
             <button @click="ProjectEngine.stop_all_sfx()">すべて停止</button>
