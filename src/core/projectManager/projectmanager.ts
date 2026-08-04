@@ -143,7 +143,10 @@ export class ProjectManager extends EventTarget {
             });
 
             this.proc_event(EngineProcState.Loading);
-            if (!audios.some) return;
+            if (!audios.some) {
+                this.fin_proc();
+                return;
+            }
             let add_failed = false;
             for (const audiofile of audios.value) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
