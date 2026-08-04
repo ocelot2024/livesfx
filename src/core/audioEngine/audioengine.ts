@@ -163,8 +163,11 @@ export class Engine {
     get_group_children(parent: string) {
         return this.mixer.group_children(parent);
     }
-    set_gain(id: string, gain: number): Result<void, AudioMixerError> {
+    set_gain(id: string, gain: number): Result<number, AudioMixerError> {
         this.library.set_gain(id, gain);
         return this.mixer.set_gain(id, gain);
+    }
+    get_gain(id: string) {
+        return this.mixer.get_gain(id);
     }
 }

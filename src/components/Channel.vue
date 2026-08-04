@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 
-defineProps<{ channelName: string, id: string }>()
+const props = defineProps<{ channelName: string, id: string, initial_gain?: number }>()
 
 const volume = defineModel<number>('volume', { default: 1 })
+volume.value = props.initial_gain ?? 1;
 
 const track = ref<HTMLElement | null>(null)
 const thumbHeight = 60

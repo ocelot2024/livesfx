@@ -268,7 +268,10 @@ export class ProjectManager extends EventTarget {
     get_group_children(parent: string) {
         return this.AudioEngine.get_group_children(parent);
     }
-    set_gain(id: string, gain: number): Result<void, AudioMixerError> {
+    set_gain(id: string, gain: number): Result<number, AudioMixerError> {
         return this.AudioEngine.set_gain(id, gain);
+    }
+    get_gain(id: string): Result<number, AudioMixerError> {
+        return this.AudioEngine.get_gain(id);
     }
 }

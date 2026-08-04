@@ -8,9 +8,6 @@ import ChannelComponent from '../Channel.vue';
 const store = useEngineState();
 const engine = ProjectEngine;
 
-const init = () => {
-    console.log(store.library)
-}
 const groups = computed(() =>
     [...new Set(
         store.library
@@ -24,6 +21,12 @@ const set_gain = (e: number, value: Channel) => {
     const result = engine.set_gain(value.id ?? 'MASTER', e);
     console.log(result)
 }
+const get_gain = (id?: string) => {
+    if (id === undefined) return 1
+    const result = engine.get_gain(id)
+    if (!result.ok) return 1
+    return result.value ?? 1
+}
 </script>
 
 <template>
@@ -34,7 +37,8 @@ const set_gain = (e: number, value: Channel) => {
             </div>
             <div class="groupContainer flex" :key="groupName">
                 <ChannelComponent v-for="value in engine.get_group_children(groupName)" :channel-name="value.name"
-                    :id="value.id ?? 'MASTER'" @update:volume="(e: number) => set_gain(e, value)" />
+                    :id="value.id ?? 'MASTER'" @update:volume="(e: number) => set_gain(e, value)"
+                    :initial_gain="get_gain(value.id)" />
             </div>
         </div>
         <div class="groupName">

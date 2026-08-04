@@ -119,10 +119,15 @@ export class AudioMixer {
         target.channel && source.connect(target.channel.inputGain);
         return Ok();
     }
-    set_gain(id: string, gain: number): Result<void, AudioMixerError> {
+    set_gain(id: string, gain: number): Result<number, AudioMixerError> {
         const target = this.channel_finder(id)?.target[id];
         if (!target) return Err(AudioMixerError.ChannelNotFound);
-        target.channel.inputGain.gain.value = gain;
-        return Ok(target.channel.inputGain.gain.value);
+        target.channel.output.gain.value = gain;
+        return Ok(target.channel.output.gain.value);
+    }
+    get_gain(id: string) {
+        const target = this.channel_finder(id)?.target[id];
+        if (!target) return Err(AudioMixerError.ChannelNotFound);
+        return Ok(target.channel.output.gain.value);
     }
 }
