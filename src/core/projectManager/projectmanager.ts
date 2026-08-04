@@ -171,6 +171,8 @@ export class ProjectManager extends EventTarget {
                     sound.filename,
                     sound.file.slice(0),
                     sound.id,
+                    sound.group,
+                    sound.gain,
                 );
                 if (!result.ok) {
                     this.error(result.value);

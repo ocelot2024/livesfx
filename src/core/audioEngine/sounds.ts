@@ -16,6 +16,7 @@ export interface SoundMeta {
     end_at?: number;
     play_mode?: SFXPlayMode;
     group?: string;
+    gain?: number;
 }
 
 export interface SoundFile extends SoundMeta {
@@ -29,13 +30,20 @@ export interface PlaybackInfo extends SoundMeta {
 class Sound {
     private meta: SoundMeta;
     private buffer: AudioBuffer;
-    constructor(name: string, id: string, buffer: AudioBuffer, parent: string) {
+    constructor(
+        name: string,
+        id: string,
+        buffer: AudioBuffer,
+        parent: string,
+        gain: number,
+    ) {
         this.meta = {
             id,
             filename: name,
             start_from: 0,
             end_at: buffer.duration,
             group: parent,
+            gain,
         };
         this.buffer = buffer;
     }
@@ -47,6 +55,7 @@ class Sound {
             start_from: this.meta.start_from,
             end_at: this.meta.end_at,
             play_mode: this.meta.play_mode ?? SFXPlayMode.OverLap,
+            gain: this.meta.gain,
         };
     }
     getInfo() {
@@ -65,6 +74,12 @@ class Sound {
     get_mode(): SFXPlayMode {
         return this.meta.play_mode ?? SFXPlayMode.OverLap;
     }
+    update_meta(patch: Partial<SoundMeta>) {
+        this.meta = {
+            ...this.meta,
+            ...patch,
+        };
+    }
 }
 
 export class SoundLibrary {
@@ -75,7 +90,7 @@ export class SoundLibrary {
         this.ctx = ctx;
     }
     add(name: string, id: string, audiobuffer: AudioBuffer, parent: string) {
-        const sound = new Sound(name, id, audiobuffer, parent);
+        const sound = new Sound(name, id, audiobuffer, parent, 1);
         this.sounds[id] = sound;
         return id;
     }
@@ -131,5 +146,8 @@ export class SoundLibrary {
         if (id in this.sounds) {
             this.sounds[id]?.set_mode(mode);
         }
+    }
+    set_gain(id: string, gain: number) {
+        this.sounds[id]?.update_meta({ gain: gain });
     }
 }

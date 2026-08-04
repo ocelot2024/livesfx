@@ -40,14 +40,16 @@ export class Engine {
         file: ArrayBuffer,
         id?: string,
         group?: string,
+        gain?: number,
     ): Promise<Result<string, string>> {
         const sound_id = id ?? generateUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
         const groupname = group ?? "SFX";
         this.library.add(name, sound_id, audiobuffer, groupname);
         const result = this.mixer.create_channel(sound_id, name, groupname);
-        if (result.ok) return Ok(result.value);
-        else return Err(result.value);
+        if (!result.ok) return Err(AudioEngineError.ChannelCreationFailed);
+        this.mixer.set_gain(result.value, gain ?? 1);
+        return Ok(result.value);
     }
     trim(id: string, start: number, end: number) {
         this.library.trim(id, start, end);
@@ -162,6 +164,7 @@ export class Engine {
         return this.mixer.group_children(parent);
     }
     set_gain(id: string, gain: number): Result<void, AudioMixerError> {
+        this.library.set_gain(id, gain);
         return this.mixer.set_gain(id, gain);
     }
 }
