@@ -7,36 +7,32 @@ import { PROJECT_FILE_EX } from "../constants";
 import projectStorageManager from "./projectStorageManager";
 import type { SFXPlayMode, SoundFile } from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
+import projectStateManager from "./projectStateManager";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
 
     private AudioEngine: Engine;
-    private dirty: boolean;
 
     private storageManager: projectStorageManager;
+    private stateManager: projectStateManager;
     constructor() {
         super();
         this.projectname = "名称未設定";
         this.storageManager = new projectStorageManager();
-        this.dirty = false;
+        this.stateManager = new projectStateManager(this, {
+            onChangedHandler: () => {
+                this.render_title();
+            },
+            onSavedHandler: () => {
+                this.render_title();
+            },
+        });
         this.AudioEngine = new Engine();
         window.addEventListener("beforeunload", (e) => {
-            if (this.dirty) {
+            if (this.stateManager.is_dirty()) {
                 e.preventDefault();
             }
-        });
-        this.addEventListener(EngineEvent.ChangedLibrary, () => {
-            this.dirty = true;
-            this.render_title();
-        });
-        this.addEventListener(EngineEvent.SavedLibrary, () => {
-            this.dirty = false;
-            this.render_title();
-        });
-        this.addEventListener(EngineEvent.LoadedPrj, () => {
-            this.dirty = false;
-            this.render_title();
         });
     }
     private error(type: EngineError | EngineException | string) {
@@ -63,6 +59,7 @@ export class ProjectManager extends EventTarget {
         this.projectname = "名称未設定";
         this.render_title(this.projectname);
         this.AudioEngine.createChannel("SFX");
+        this.stateManager.init();
     }
     private proc_event(state: EngineProcState) {
         this.dispatchEvent(
@@ -77,35 +74,27 @@ export class ProjectManager extends EventTarget {
     private render_title(prjname?: string) {
         if (prjname) this.projectname = prjname;
         document.title =
-            (this.dirty ? "* " : "") + this.projectname + " - LiveSFX";
+            (this.stateManager.is_dirty() ? "* " : "") +
+            this.projectname +
+            " - LiveSFX";
     }
     async start_with_blank() {
-        if (this.dirty) {
-            const will = confirm(
-                "未保存の変更があります。終了してもよろしいですか？",
-            );
-            if (!will) return;
-        }
+        if (!this.stateManager.leaveConfirm()) return;
         await this.AudioEngine.dispose();
         this.AudioEngine = new Engine();
         console.log("restart...");
         await this.init();
-        this.dirty = false;
+        this.stateManager.markAsChanged();
         this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
-    async start_from_file(): Promise<Result<string, string>> {
-        if (this.dirty) {
-            const will = confirm(
-                "未保存の変更があります。このプロジェクトを閉じてもよいですか？",
-            );
-            if (!will) return Ok("");
-        }
+    async start_from_file(): Promise<Result<void, string>> {
+        if (!this.stateManager.leaveConfirm()) return Ok();
         const filelist = await openFilePicker({
             multiple: false,
             accept: "." + PROJECT_FILE_EX,
         });
-        if (!filelist.some) return Ok("");
-        if (!filelist.value[0]) return Ok("");
+        if (!filelist.some) return Ok();
+        if (!filelist.value[0]) return Ok();
         const lvsf_manager = new LVSFFile();
         const info = await lvsf_manager.parse(filelist.value[0]);
         if (!info.ok) {
@@ -129,8 +118,9 @@ export class ProjectManager extends EventTarget {
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
         await this.add_sfx(frag);
         this.fin_proc();
+        this.stateManager.markAsSaved();
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
-        return Ok("");
+        return Ok();
     }
     async add_sfx(sounds?: SoundFile[]) {
         if (!this.storageManager.is_initialised()) {
@@ -196,7 +186,7 @@ export class ProjectManager extends EventTarget {
         const save_result = await this.storageManager.save_sound_cache(files);
         if (!save_result.ok) this.error(save_result.value);
         this.fin_proc();
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        this.stateManager.markAsChanged();
     }
     play(id: string, options?: { start?: number; end?: number }) {
         const result = this.AudioEngine.play(id, options);
@@ -222,11 +212,11 @@ export class ProjectManager extends EventTarget {
     }
     trim(id: string, start: number, end: number) {
         this.AudioEngine.trim(id, start, end);
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        this.stateManager.markAsChanged();
     }
     set_sfx_playmode(id: string, mode: SFXPlayMode) {
         this.AudioEngine.set_sfx_play_mode(id, mode);
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        this.stateManager.markAsChanged();
     }
     async export() {
         if (!this.storageManager.is_initialised()) {
@@ -265,7 +255,7 @@ export class ProjectManager extends EventTarget {
         a.href = url;
         a.click();
         URL.revokeObjectURL(url);
-        this.dispatchEvent(new Event(EngineEvent.SavedLibrary));
+        this.stateManager.markAsSaved();
         this.fin_proc();
     }
     get_group_children(parent: string) {
