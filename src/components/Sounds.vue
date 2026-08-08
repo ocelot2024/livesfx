@@ -35,7 +35,7 @@ const onClick = async (id: string, e: MouseEvent) => {
             </button>
         </div>
 
-        <Modal v-if="selectedSound" @close="selectedSound = undefined"
+        <Modal :show="selectedSound" @close="selectedSound = undefined"
             :title="store.library.find(v => v.id == selectedSound)?.filename">
             <editor :sound-id="selectedSound" />
         </Modal>
