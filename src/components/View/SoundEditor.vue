@@ -7,8 +7,6 @@ import { SFXPlayMode } from '@/core/audioEngine/sounds.ts';
 const props = defineProps<{ soundId: string }>();
 
 const store = useEngineState();
-//@ts-ignore
-const sound = computed(() => store.library.find(s => s.id === props.soundId));
 
 const waveformEl = ref<HTMLDivElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
@@ -187,10 +185,7 @@ const save = () => {
 
 <template>
     <div class="editor">
-        <header class="header">
-            <h1>{{ sound?.filename ?? "" }}</h1>
-        </header>
-
+        <strong>トリミング</strong>
         <section class="waveform-panel">
             <div class="waveform" ref="waveformEl">
                 <canvas ref="canvas"></canvas>
@@ -217,6 +212,7 @@ const save = () => {
                 </div>
             </div>
         </section>
+        <strong>その他 </strong>
         <section>
             <div>
                 <label for="PlayBackOption">再生中に再生ボタンを押したときの動作</label>

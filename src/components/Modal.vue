@@ -1,10 +1,15 @@
 <script setup lang="ts">
 defineEmits(['close'])
+const props = defineProps<{ title?: string }>()
 </script>
 <template>
     <div class="full">
         <div class="dialog">
-            <header><button @click="$emit('close')">X</button></header>
+            <header>
+                <div>
+                    <h3>{{ props.title }}</h3>
+                </div><button @click="$emit('close')">X</button>
+            </header>
             <slot />
         </div>
     </div>
@@ -18,6 +23,20 @@ defineEmits(['close'])
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+header {
+    display: flex;
+
+    div {
+        padding-left: 20px;
+        flex: 1;
+        text-align: left;
+    }
+
+    button {
+        flex: 0
+    }
 }
 
 .dialog {
