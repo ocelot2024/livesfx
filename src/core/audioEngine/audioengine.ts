@@ -170,4 +170,7 @@ export class Engine {
     get_gain(id: string) {
         return this.mixer.get_gain(id);
     }
+    move_sound(id: string, toIndex: number): Result<void, string> {
+        return this.library.move(id, toIndex);
+    }
 }

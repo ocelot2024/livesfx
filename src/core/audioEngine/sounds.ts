@@ -1,5 +1,5 @@
 import { EngineException } from "../types/error_types";
-import type { Result } from "../types/types";
+import { Ok, Err, type Result } from "../types/types";
 import { compute_peaks, type WaveformPeaks } from "../util/waveform";
 
 export enum SFXPlayMode {
@@ -149,5 +149,24 @@ export class SoundLibrary {
     }
     set_gain(id: string, gain: number) {
         this.sounds[id]?.update_meta({ gain: gain });
+    }
+    move(id: string, toIndex: number): Result<void, string> {
+        const keys = Object.keys(this.sounds);
+        const fromIndex = keys.indexOf(id);
+        if (fromIndex === -1) return Err(`Sound not found: ${id}`);
+
+        const clampedIndex = Math.max(0, Math.min(toIndex, keys.length - 1));
+        if (fromIndex === clampedIndex) return Ok();
+
+        keys.splice(fromIndex, 1);
+        keys.splice(clampedIndex, 0, id);
+
+        const reordered: Record<string, Sound> = {};
+        for (const key of keys) {
+            const sound = this.sounds[key];
+            if (sound) reordered[key] = sound;
+        }
+        this.sounds = reordered;
+        return Ok();
     }
 }

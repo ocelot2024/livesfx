@@ -267,4 +267,14 @@ export class ProjectManager extends EventTarget {
     get_gain(id: string): Result<number, AudioMixerError> {
         return this.AudioEngine.get_gain(id);
     }
+    move_sound(id: string, toIndex: number): Result<void, string> {
+        const result = this.AudioEngine.move_sound(id, toIndex);
+        if (!result.ok) {
+            this.error(result.value);
+            return result;
+        }
+        this.stateManager.markAsChanged();
+        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        return Ok();
+    }
 }
