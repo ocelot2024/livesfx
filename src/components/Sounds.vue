@@ -258,7 +258,7 @@ const onClick = async (id: string) => {
         </Teleport>
 
         <Modal :show="selectedSound" @close="selectedSound = undefined"
-            :title="soundsById.get(selectedSound)?.filename">
+            :title="store.library.find(v => v.id == selectedSound)?.filename">
             <editor :sound-id="selectedSound" />
         </Modal>
     </div>
