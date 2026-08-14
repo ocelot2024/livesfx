@@ -94,10 +94,8 @@ const onGridPointerDown = (e: PointerEvent) => {
     const cardEl = (e.target as HTMLElement)?.closest('[data-sound-id]');
     if (!cardEl) return;
     const id = cardEl.getAttribute('data-sound-id');
-    if (!id) return;
-
-    const container = e.currentTarget as HTMLElement;
-    container.setPointerCapture(e.pointerId);
+    if (!id) return; e.currentTarget as HTMLElement;
+    cardEl.setPointerCapture(e.pointerId);
 
     dragState.id = id;
     dragState.active = false;
@@ -258,7 +256,7 @@ const onClick = async (id: string) => {
         </Teleport>
 
         <Modal :show="selectedSound" @close="selectedSound = undefined"
-            :title="soundsById.get(selectedSound)?.filename">
+            :title="store.library.find(v => v.id == selectedSound)?.filename">
             <editor :sound-id="selectedSound" />
         </Modal>
     </div>
