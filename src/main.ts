@@ -4,11 +4,14 @@ import App from "./App.vue";
 import "./style/main.css";
 import { ProjectEngine } from "./core/index.ts";
 import { registerSW } from "virtual:pwa-register";
+import { createPersistPlugin } from "./core/store/persist.ts";
 
 window.addEventListener("load", async () => {
     await ProjectEngine.init();
     const app = createApp(App);
-    app.use(createPinia());
+    const pinia = createPinia();
+    pinia.use(createPersistPlugin(["config"]));
+    app.use(pinia);
     app.mount("#app");
 });
 

@@ -2,10 +2,12 @@
 import { defineAsyncComponent, ref, reactive, computed, nextTick, watch } from 'vue';
 import { ProjectEngine } from '../core/index.ts';
 import { useEngineState } from '../core/store/enginestore.ts';
+import { useConfigStore } from '../core/store/configstore.ts';
 import Modal from './Modal.vue';
 
 const selectedSound = ref();
 const store = useEngineState();
+const config = useConfigStore();
 
 const editor = defineAsyncComponent({
     loader: () => import('./View/SoundEditor.vue'),
@@ -38,10 +40,7 @@ const setCardRef = (id: string, el: Element | { $el: Element } | null) => {
         cardRefs.set(id, node);
     }
 }
-//TODO 環境設定
-const DRAG_THRESHOLD = 8;
-const SWAP_INNER_RATIO = 1; // 0〜1。対象カード中心からこの割合の範囲に入るまでswapしない
-const SWAP_COOLDOWN_MS = 160;
+// ドラッグしきい値・入れ替えしきい値・クールダウンは環境設定(一般タブ)で変更できる
 let lastSwapAt = 0;
 
 const dragState = reactive<{
@@ -117,7 +116,7 @@ const onGridPointerMove = (e: PointerEvent) => {
     const draggedId = dragState.id;
 
     if (!dragState.active) {
-        if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+        if (Math.hypot(dx, dy) < config.dragThreshold) return;
         dragState.active = true;
         dragState.hasDragged = true;
     }
@@ -135,13 +134,13 @@ const onGridPointerMove = (e: PointerEvent) => {
     if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
 
     const now = performance.now();
-    if (now - lastSwapAt < SWAP_COOLDOWN_MS) return;
+    if (now - lastSwapAt < config.swapCooldownMs) return;
 
     const hoveredRect = hoveredEl.getBoundingClientRect();
     const centerX = hoveredRect.left + hoveredRect.width / 2;
     const centerY = hoveredRect.top + hoveredRect.height / 2;
-    const halfW = (hoveredRect.width / 2) * SWAP_INNER_RATIO;
-    const halfH = (hoveredRect.height / 2) * SWAP_INNER_RATIO;
+    const halfW = (hoveredRect.width / 2) * config.swapInnerRatio;
+    const halfH = (hoveredRect.height / 2) * config.swapInnerRatio;
     if (Math.abs(e.clientX - centerX) > halfW || Math.abs(e.clientY - centerY) > halfH) {
         return;
     }

@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { useConfigStore } from '@/core/store/configstore';
 import { Transition } from 'vue';
+
+const store = useConfigStore();
 
 defineEmits(['close'])
 
 const props = defineProps<{ title?: string, show: boolean }>()
 </script>
 <template>
-    <Transition>
+    <Transition :css="store.modalAnimation">
         <div class="full" v-if="props.show">
             <div class="dialog">
                 <header>

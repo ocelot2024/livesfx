@@ -8,6 +8,7 @@ import projectStorageManager from "./projectStorageManager";
 import type { SFXPlayMode, SoundFile } from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
 import projectStateManager from "./projectStateManager";
+import { useConfigStore } from "../store/configstore";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
@@ -30,7 +31,8 @@ export class ProjectManager extends EventTarget {
         });
         this.AudioEngine = new Engine();
         window.addEventListener("beforeunload", (e) => {
-            if (this.stateManager.is_dirty()) {
+            const store = useConfigStore();
+            if (this.stateManager.is_dirty() && store.alertBeforeLeave) {
                 e.preventDefault();
             }
         });

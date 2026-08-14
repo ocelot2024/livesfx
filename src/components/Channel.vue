@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
+import { useConfigStore } from '../core/store/configstore'
 
 const props = defineProps<{ channelName: string, id: string, initial_gain?: number }>()
 
@@ -10,36 +11,32 @@ const track = ref<HTMLElement | null>(null)
 const thumbHeight = 60
 const dragging = ref(false)
 
+const config = useConfigStore()
 
-const maxDb = 10
-const minDb = -60
+// 0dBは基準点として固定。それ以外(最大db/最小db/カーブ/ユニティ位置)は環境設定で変更できる
 const unityDb = 0
-const unityPosition = 0.25
 
 // gain(0〜) <-> dB
 const gainToDb = (g: number) => (g <= 0 ? -Infinity : 20 * Math.log10(g))
-const dbToGain = (db: number) => (db <= minDb ? 0 : Math.pow(10, db / 20))
-
-//TODO カーブを環境背一定にぶち込みたい
-const CURVE = 3
+const dbToGain = (db: number) => (db <= config.faderMinDb ? 0 : Math.pow(10, db / 20))
 
 const positionToDb = (pos: number) => {
-    if (pos <= unityPosition) {
-        const t = pos / unityPosition
-        return maxDb + (unityDb - maxDb) * t
+    if (pos <= config.faderUnityPosition) {
+        const t = pos / config.faderUnityPosition
+        return config.faderMaxDb + (unityDb - config.faderMaxDb) * t
     } else {
-        const t = (pos - unityPosition) / (1 - unityPosition)
-        return unityDb + (minDb - unityDb) * Math.pow(t, CURVE)
+        const t = (pos - config.faderUnityPosition) / (1 - config.faderUnityPosition)
+        return unityDb + (config.faderMinDb - unityDb) * Math.pow(t, config.faderCurve)
     }
 }
 
 const dbToPosition = (db: number) => {
     if (db >= unityDb) {
-        const t = (maxDb - db) / (maxDb - unityDb)
-        return t * unityPosition
+        const t = (config.faderMaxDb - db) / (config.faderMaxDb - unityDb)
+        return t * config.faderUnityPosition
     } else {
-        const t = (unityDb - db) / (unityDb - minDb)
-        return unityPosition + Math.pow(t, 1 / CURVE) * (1 - unityPosition)
+        const t = (unityDb - db) / (unityDb - config.faderMinDb)
+        return config.faderUnityPosition + Math.pow(t, 1 / config.faderCurve) * (1 - config.faderUnityPosition)
     }
 }
 
@@ -47,7 +44,7 @@ const thumbTop = computed(() => {
     const trackHeight = 300
     const range = trackHeight - thumbHeight
     const db = gainToDb(volume.value)
-    const pos = db === -Infinity ? 1 : dbToPosition(Math.max(db, minDb))
+    const pos = db === -Infinity ? 1 : dbToPosition(Math.max(db, config.faderMinDb))
     return pos * range
 })
 
@@ -60,7 +57,7 @@ const displayDb = computed(() => {
 const unityMarkTop = computed(() => {
     const trackHeight = 300
     const range = trackHeight - thumbHeight
-    return unityPosition * range + thumbHeight / 2
+    return config.faderUnityPosition * range + thumbHeight / 2
 })
 
 const positionToVolume = (clientY: number) => {

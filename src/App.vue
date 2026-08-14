@@ -11,6 +11,7 @@ import MixerView from "./components/View/MixerView.vue";
 import { ref } from 'vue';
 import Modal from './components/Modal.vue';
 import PreferencesView from './components/View/PreferencesView.vue';
+import { useConfigStore } from './core/store/configstore.ts';
 
 const store = useEngineState();
 
@@ -47,9 +48,10 @@ const message: Record<EngineProcState, string> = {
     "writing": "書き込み中"
 }
 
+const configstore = useConfigStore();
 const toggle_ui_mode = () => {
     if (store.ui_mode == "live") {
-        const will = confirm('編集モードに入りますか?');
+        const will = configstore.enterEditModeConfirm ? confirm('編集モードに入りますか?') : true;
         if (!will) return;
         store.ui_mode = "edit"
     } else {

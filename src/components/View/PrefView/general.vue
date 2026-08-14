@@ -16,6 +16,12 @@ const showLicense = ref(false);
 const licenseView = defineAsyncComponent({
     loader: () => import('../license.vue')
 })
+
+function resetSettings() {
+    const will = confirm('すべての設定を初期値に戻します。よろしいですか？')
+    if (!will) return
+    store.$reset()
+}
 </script>
 <template>
     <div>
@@ -38,10 +44,13 @@ const licenseView = defineAsyncComponent({
             </SettingsSection>
             <SettingsSection title="その他">
                 <SettingsRow label="ドラッグのしきい値">
+                    <input type="number" min="0" step="1" v-model.number="store.dragThreshold">
                 </SettingsRow>
                 <SettingsRow label="カード入れ替えのしきい値">
+                    <input type="number" min="0" max="1" step="0.1" v-model.number="store.swapInnerRatio">
                 </SettingsRow>
                 <SettingsRow label="入れ替えのクールダウン">
+                    <input type="number" min="0" step="10" v-model.number="store.swapCooldownMs">
                 </SettingsRow>
             </SettingsSection>
             <SettingsSection title="情報">
@@ -51,6 +60,9 @@ const licenseView = defineAsyncComponent({
                     <small>0.1.0</small>
                 </div>
                 <SettingsRow label="ライセンス一覧" chevron @click="showLicense = true" />
+            </SettingsSection>
+            <SettingsSection title="リセット">
+                <SettingsRow label="設定を初期値に戻す" chevron danger @click="resetSettings" />
             </SettingsSection>
         </Settinglist>
         <Modal :show="showLicense" @close="showLicense = false">

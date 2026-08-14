@@ -1,3 +1,4 @@
+import { useConfigStore } from "../store/configstore";
 import { EngineException } from "../types/error_types";
 import { Ok, Err, type Result } from "../types/types";
 import { compute_peaks, type WaveformPeaks } from "../util/waveform";
@@ -37,6 +38,7 @@ class Sound {
         parent: string,
         gain: number,
     ) {
+        const store = useConfigStore();
         this.meta = {
             id,
             filename: name,
@@ -44,17 +46,19 @@ class Sound {
             end_at: buffer.duration,
             group: parent,
             gain,
+            play_mode: store.defaultPlayMode,
         };
         this.buffer = buffer;
     }
     getPlayInfo(): PlaybackInfo {
+        const store = useConfigStore();
         return {
             id: this.meta.id,
             filename: this.meta.filename,
             buffer: this.buffer,
             start_from: this.meta.start_from,
             end_at: this.meta.end_at,
-            play_mode: this.meta.play_mode ?? SFXPlayMode.OverLap,
+            play_mode: this.meta.play_mode ?? store.defaultPlayMode,
             gain: this.meta.gain,
         };
     }
