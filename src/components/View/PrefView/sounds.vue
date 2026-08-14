@@ -3,12 +3,13 @@ import Settinglist from '@/components/settinglist.vue';
 import SettingsRow from '@/components/settingsRow.vue';
 import SettingsSection from '@/components/settingsSection.vue';
 import Toggle from '@/components/toggle.vue';
-import type { SFXPlayMode } from '@/core/audioEngine/sounds';
+import { SFXPlayMode } from '@/core/audioEngine/sounds';
+import { useConfigStore } from '@/core/store/configstore';
 import { ref } from 'vue';
 
-const defaultPlayMode = ref<SFXPlayMode>()
 
-const autoDucking = ref(false)
+const store = useConfigStore();
+
 
 </script>
 <template>
@@ -16,15 +17,23 @@ const autoDucking = ref(false)
         <Settinglist>
             <SettingsSection title="効果音">
                 <SettingsRow label="再生モードの初期値">
+                    <select name="PlaybackOption" v-model="store.defaultPlayMode">
+                        <option :value="SFXPlayMode.OverLap">上書き再生</option>
+                        <option :value="SFXPlayMode.Restart">再生しなおす</option>
+                        <option :value="SFXPlayMode.Ignore">無視する</option>
+                        <option :value="SFXPlayMode.Stop">とめる</option>
+                    </select>
                 </SettingsRow>
                 <SettingsRow label="発音数の上限">
+                    <input type="number" v-model="store.maxPoly">
                 </SettingsRow>
             </SettingsSection>
             <SettingsSection title="BGM">
-                <SettingsRow label="自動リピート再生" />
-                <SettingsRow label="デフォルト音量" />
+                <SettingsRow label="自動リピート再生">
+                    <Toggle v-model="store.autoRepeat"></Toggle>
+                </SettingsRow>
                 <SettingsRow label="自動ダッキング">
-                    <Toggle v-model="autoDucking" />
+                    <Toggle v-model="store.autoDucking" />
                 </SettingsRow>
             </SettingsSection>
         </Settinglist>

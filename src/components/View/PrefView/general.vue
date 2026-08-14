@@ -4,12 +4,12 @@ import Settinglist from '@/components/settinglist.vue';
 import SettingsRow from '@/components/settingsRow.vue';
 import SettingsSection from '@/components/settingsSection.vue';
 import Toggle from '@/components/toggle.vue';
+import { useConfigStore } from '@/core/store/configstore.ts';
 import { defineAsyncComponent, ref } from 'vue';
 
-const editConfirmdialog = ref(true);
 const alertNotSaved = ref(true)
 
-
+const store = useConfigStore()
 
 const showLicense = ref(false);
 
@@ -22,18 +22,18 @@ const licenseView = defineAsyncComponent({
         <Settinglist>
             <SettingsSection title="動作">
                 <SettingsRow label="編集モード繊維の確認">
-                    <Toggle v-model="editConfirmdialog" />
+                    <Toggle v-model="store.enterEditModeConfirm" />
                 </SettingsRow>
                 <SettingsRow label="プロジェクト未保存時の警告">
-                    <Toggle v-model="alertNotSaved" />
+                    <Toggle v-model="store.alertBeforeLeave" />
                 </SettingsRow>
             </SettingsSection>
             <SettingsSection title="アニメーション">
                 <SettingsRow label="編集モードのアニメーション">
-                    <Toggle v-model="editConfirmdialog" />
+                    <Toggle v-model="store.editModeAnimation" />
                 </SettingsRow>
                 <SettingsRow label="モーダルのアニメーション">
-                    <Toggle v-model="editConfirmdialog" />
+                    <Toggle v-model="store.modalAnimation" />
                 </SettingsRow>
             </SettingsSection>
             <SettingsSection title="その他">
