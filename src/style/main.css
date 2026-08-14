@@ -8,6 +8,7 @@ body {
     box-sizing: border-box;
     color: var(--label-normal);
     user-select: none;
+    font-family: system-ui, sans-serif;
 }
 input,
 select,
