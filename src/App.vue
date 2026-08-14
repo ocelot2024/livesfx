@@ -9,6 +9,8 @@ import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
 import MixerView from "./components/View/MixerView.vue";
 import { ref } from 'vue';
+import Modal from './components/Modal.vue';
+import PreferencesView from './components/View/PreferencesView.vue';
 
 const store = useEngineState();
 
@@ -21,7 +23,11 @@ const menu: MenuList[] = [
             { label: "名前を付けて保存", id: "save", handle: () => { ProjectEngine.export() } },
             { label: "開く", id: "open", handle: () => { ProjectEngine.start_from_file(); } },
             { label: "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sfx(); } },
-            { label: "環境設定", id: "pref", handle: () => { } }
+            {
+                label: "環境設定", id: "pref", handle: () => {
+                    showPrefView.value = true;
+                }
+            }
         ]
     },
     {
@@ -59,6 +65,7 @@ const tabitems: TabItem[] = [{
 }]
 
 const selectedView = ref("pad");
+const showPrefView = ref<boolean>(false);
 </script>
 
 <template>
@@ -81,6 +88,9 @@ const selectedView = ref("pad");
             <p>{{ message[store.EngineState] }}</p>
         </div>
     </div>
+    <Modal :show="showPrefView" @close="showPrefView = false">
+        <PreferencesView />
+    </Modal>
 </template>
 
 <style scoped>
