@@ -8,10 +8,14 @@ import { EngineProcState } from "./core/store/enginestore_type.ts";
 import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
 import MixerView from "./components/View/MixerView.vue";
-import { ref } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
 import Modal from './components/Modal.vue';
 import PreferencesView from './components/View/PreferencesView.vue';
 import { useConfigStore } from './core/store/configstore.ts';
+
+const BGMView = defineAsyncComponent({
+    loader: () => import('./components/View/BGMView.vue')
+})
 
 const store = useEngineState();
 
@@ -62,6 +66,9 @@ const tabitems: TabItem[] = [{
     id: "pad",
     label: "Pad"
 }, {
+    id: "bgm",
+    label: "BGM"
+}, {
     id: "mixer",
     label: "ミキサー"
 }]
@@ -74,6 +81,7 @@ const showPrefView = ref<boolean>(false);
     <AppBar v-bind:items="menu" />
     <Tab :tabs="tabitems" v-model="selectedView" />
     <PadView v-show="selectedView === 'pad'" />
+    <BGMView v-show="selectedView === 'bgm'" />
     <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
     <MixerView v-if="selectedView === 'mixer'" />
     <footer>
