@@ -36,8 +36,39 @@ export interface PlaybackInfo extends SoundMeta {
     buffer: AudioBuffer;
 }
 
-class Sound {
+abstract class BaseSound {
     private meta: SoundMeta;
+    constructor(option: SoundMeta) {
+        this.meta = { ...option };
+    }
+    getInfo() {
+        return this.meta;
+    }
+    getPlayInfo(): SoundMeta {
+        const store = useConfigStore();
+
+        return {
+            ...this.meta,
+            play_mode: this.meta.play_mode ?? store.defaultPlayMode,
+        };
+    }
+    trim(start: number, end: number) {
+        this.meta.start_from = start;
+        this.meta.end_at = end;
+    }
+
+    set_mode(mode: SFXPlayMode) {
+        this.meta.play_mode = mode;
+    }
+    update_meta(patch: Partial<SoundMeta>) {
+        this.meta = {
+            ...this.meta,
+            ...patch,
+        };
+    }
+}
+
+class Sound extends BaseSound {
     private buffer: AudioBuffer;
     constructor(
         name: string,
@@ -48,7 +79,7 @@ class Sound {
         type?: SoundFileType,
     ) {
         const store = useConfigStore();
-        this.meta = {
+        super({
             id,
             filename: name,
             start_from: 0,
@@ -57,43 +88,18 @@ class Sound {
             gain,
             play_mode: store.defaultPlayMode,
             type: type ?? SoundFileType.SFX,
-        };
+        });
         this.buffer = buffer;
-    }
-    getPlayInfo(): PlaybackInfo {
-        const store = useConfigStore();
-        return {
-            id: this.meta.id,
-            filename: this.meta.filename,
-            buffer: this.buffer,
-            start_from: this.meta.start_from,
-            end_at: this.meta.end_at,
-            play_mode: this.meta.play_mode ?? store.defaultPlayMode,
-            gain: this.meta.gain,
-            type: this.meta.type,
-        };
-    }
-    getInfo() {
-        return this.meta;
     }
     get_duration() {
         return this.buffer.duration;
     }
-    trim(start: number, end: number) {
-        this.meta.start_from = start;
-        this.meta.end_at = end;
-    }
-    set_mode(mode: SFXPlayMode) {
-        this.meta.play_mode = mode;
+    getPlayInfo(): PlaybackInfo {
+        return { ...super.getPlayInfo(), buffer: this.buffer };
     }
     get_mode(): SFXPlayMode {
-        return this.meta.play_mode ?? SFXPlayMode.OverLap;
-    }
-    update_meta(patch: Partial<SoundMeta>) {
-        this.meta = {
-            ...this.meta,
-            ...patch,
-        };
+        const store = useConfigStore();
+        return super.getPlayInfo().play_mode ?? store.defaultPlayMode;
     }
 }
 
