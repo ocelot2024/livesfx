@@ -132,7 +132,7 @@ export class Engine {
         window.removeEventListener("pointerdown", this.resume_ctx);
     }
     get_library() {
-        return this.library.get_library();
+        return this.library.get_sfx_library();
     }
     get_duration(id: string) {
         return this.library.get_duration(id);

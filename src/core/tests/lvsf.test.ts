@@ -2,7 +2,11 @@ import { describe, expect, test } from "vitest";
 import { LVSFFile } from "../files/lvsf";
 import { LVSF_MAGIC_BYTE } from "../constants";
 import { EngineError } from "../types/error_types";
-import { SFXPlayMode, type SoundMeta } from "../audioEngine/sounds";
+import {
+    SFXPlayMode,
+    SoundFileType,
+    type SoundMeta,
+} from "../audioEngine/sounds";
 
 const HEADER_SIZE = 16;
 
@@ -50,11 +54,13 @@ const soundA: SoundMeta = {
     filename: "効果音A.wav",
     start_from: 0.5,
     end_at: 3.25,
+    type: SoundFileType.SFX,
 };
 const soundB: SoundMeta = {
     id: "sound-b",
     filename: "雷鳴.wav",
     start_from: 0,
+    type: SoundFileType.SFX,
     end_at: 10,
 };
 const bytesA = new Uint8Array([1, 2, 3, 4, 5]);
@@ -225,18 +231,26 @@ describe("LVSFFile.parse - play_mode round trip", () => {
                 id: "s-overlap",
                 filename: "a.wav",
                 play_mode: SFXPlayMode.OverLap,
+                type: SoundFileType.SFX,
             },
             {
                 id: "s-restart",
                 filename: "b.wav",
                 play_mode: SFXPlayMode.Restart,
+                type: SoundFileType.SFX,
             },
             {
                 id: "s-ignore",
                 filename: "c.wav",
                 play_mode: SFXPlayMode.Ignore,
+                type: SoundFileType.SFX,
             },
-            { id: "s-stop", filename: "d.wav", play_mode: SFXPlayMode.Stop },
+            {
+                id: "s-stop",
+                filename: "d.wav",
+                play_mode: SFXPlayMode.Stop,
+                type: SoundFileType.SFX,
+            },
         ];
         for (const sound of sounds) {
             writer.addFile(new Uint8Array([1]).buffer as ArrayBuffer, sound);
@@ -258,7 +272,11 @@ describe("LVSFFile.parse - play_mode round trip", () => {
 
     test("a sound saved without play_mode round trips with the field absent (not coerced to 0)", async () => {
         const writer = new LVSFFile();
-        const sound: SoundMeta = { id: "s-none", filename: "e.wav" };
+        const sound: SoundMeta = {
+            id: "s-none",
+            filename: "e.wav",
+            type: SoundFileType.SFX,
+        };
         writer.addFile(new Uint8Array([1]).buffer as ArrayBuffer, sound);
         const file = toFile(writer.export(), "no-playmode.lvsf");
 

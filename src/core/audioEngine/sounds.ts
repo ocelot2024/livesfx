@@ -10,6 +10,13 @@ export enum SFXPlayMode {
     Stop,
 }
 
+export const SoundFileType = {
+    SFX: "sfx",
+    BGM: "bgm",
+} as const;
+
+export type SoundFileType = (typeof SoundFileType)[keyof typeof SoundFileType];
+
 export interface SoundMeta {
     id: string;
     filename: string;
@@ -18,6 +25,7 @@ export interface SoundMeta {
     play_mode?: SFXPlayMode;
     group?: string;
     gain?: number;
+    type: SoundFileType;
 }
 
 export interface SoundFile extends SoundMeta {
@@ -37,6 +45,7 @@ class Sound {
         buffer: AudioBuffer,
         parent: string,
         gain: number,
+        type?: SoundFileType,
     ) {
         const store = useConfigStore();
         this.meta = {
@@ -47,6 +56,7 @@ class Sound {
             group: parent,
             gain,
             play_mode: store.defaultPlayMode,
+            type: type ?? SoundFileType.SFX,
         };
         this.buffer = buffer;
     }
@@ -60,6 +70,7 @@ class Sound {
             end_at: this.meta.end_at,
             play_mode: this.meta.play_mode ?? store.defaultPlayMode,
             gain: this.meta.gain,
+            type: this.meta.type,
         };
     }
     getInfo() {
@@ -93,8 +104,14 @@ export class SoundLibrary {
         this.sounds = {};
         this.ctx = ctx;
     }
-    add(name: string, id: string, audiobuffer: AudioBuffer, parent: string) {
-        const sound = new Sound(name, id, audiobuffer, parent, 1);
+    add(
+        name: string,
+        id: string,
+        audiobuffer: AudioBuffer,
+        parent: string,
+        type?: SoundFileType,
+    ) {
+        const sound = new Sound(name, id, audiobuffer, parent, 1, type);
         this.sounds[id] = sound;
         return id;
     }
@@ -130,16 +147,28 @@ export class SoundLibrary {
         if (!sound) return undefined;
         return compute_peaks(sound.getPlayInfo().buffer, buckets);
     }
-    get_library() {
+    get_sfx_library() {
         let frag: Record<string, SoundMeta> = {};
         for (const i in this.sounds) {
             if (!this.sounds[i]) continue;
             const info = this.sounds[i].getInfo();
+            if (info.type !== SoundFileType.SFX) continue;
             frag[i] = {
                 ...info,
             };
         }
         return { ...frag };
+    }
+    get_bgm_library() {
+        let frag: Record<string, SoundMeta> = {};
+        for (const i in this.sounds) {
+            if (!this.sounds[i]) continue;
+            const info = this.sounds[i].getInfo();
+            if (info.type !== SoundFileType.BGM) continue;
+            frag[i] = {
+                ...info,
+            };
+        }
     }
     trim(id: string, start: number, end: number) {
         if (id in this.sounds) {

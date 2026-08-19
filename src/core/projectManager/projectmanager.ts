@@ -5,7 +5,11 @@ import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
 import projectStorageManager from "./projectStorageManager";
-import type { SFXPlayMode, SoundFile } from "../audioEngine/sounds";
+import {
+    SoundFileType,
+    type SFXPlayMode,
+    type SoundFile,
+} from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
 import projectStateManager from "./projectStateManager";
 import { useConfigStore } from "../store/configstore";
@@ -155,6 +159,7 @@ export class ProjectManager extends EventTarget {
                     id: id.value,
                     file: bin,
                     filename: audiofile.name,
+                    type: SoundFileType.SFX,
                 });
             }
             if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
