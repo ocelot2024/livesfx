@@ -10,7 +10,7 @@ window.addEventListener("load", async () => {
     await ProjectEngine.init();
     const app = createApp(App);
     const pinia = createPinia();
-    pinia.use(createPersistPlugin(["config"]));
+    pinia.use(createPersistPlugin(["config", "ui_state"]));
     app.use(pinia);
     app.mount("#app");
 });

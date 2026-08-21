@@ -23,5 +23,7 @@ export const useConfigStore = defineStore("config", {
         dragThreshold: 8,
         swapInnerRatio: 1,
         swapCooldownMs: 160,
+
+        memoryLastTab: false,
     }),
 });

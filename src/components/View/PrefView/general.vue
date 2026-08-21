@@ -52,6 +52,9 @@ function resetSettings() {
                 <SettingsRow label="入れ替えのクールダウン">
                     <input type="number" min="0" step="10" v-model.number="store.swapCooldownMs">
                 </SettingsRow>
+                <SettingsRow label="最後に開いていたタブの記憶">
+                    <Toggle v-model="store.memoryLastTab" />
+                </SettingsRow>
             </SettingsSection>
             <SettingsSection title="情報">
                 <div style="text-align:  center; padding: 8px;">

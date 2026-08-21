@@ -12,12 +12,16 @@ import { defineAsyncComponent, ref } from 'vue';
 import Modal from './components/Modal.vue';
 import PreferencesView from './components/View/PreferencesView.vue';
 import { useConfigStore } from './core/store/configstore.ts';
+import { useUiState } from './core/store/ui_state.ts';
+import { storeToRefs } from 'pinia';
 
 const BGMView = defineAsyncComponent({
     loader: () => import('./components/View/BGMView.vue')
 })
 
-const store = useEngineState();
+const engine_store = useEngineState();
+const ui_store = useUiState();
+const config_store = useConfigStore();
 
 const menu: MenuList[] = [
     {
@@ -54,12 +58,12 @@ const message: Record<EngineProcState, string> = {
 
 const configstore = useConfigStore();
 const toggle_ui_mode = () => {
-    if (store.ui_mode == "live") {
+    if (engine_store.ui_mode == "live") {
         const will = configstore.enterEditModeConfirm ? confirm('編集モードに入りますか?') : true;
         if (!will) return;
-        store.ui_mode = "edit"
+        engine_store.ui_mode = "edit"
     } else {
-        store.ui_mode = "live";
+        engine_store.ui_mode = "live";
     }
 }
 const tabitems: TabItem[] = [{
@@ -73,7 +77,11 @@ const tabitems: TabItem[] = [{
     label: "ミキサー"
 }]
 
-const selectedView = ref("pad");
+const { tab } = storeToRefs(ui_store)
+const selectedView = config_store.memoryLastTab
+    ? tab
+    : ref("pad")
+
 const showPrefView = ref<boolean>(false);
 </script>
 
@@ -87,15 +95,15 @@ const showPrefView = ref<boolean>(false);
     <footer>
         <div class="flex" style="justify-content: space-between;">
             <button @click="ProjectEngine.stop_all_sfx()">すべて停止</button>
-            <button @click="toggle_ui_mode()">{{ store.ui_mode == "live" ? "編集" : "完了" }}</button>
+            <button @click="toggle_ui_mode()">{{ engine_store.ui_mode == "live" ? "編集" : "完了" }}</button>
         </div>
     </footer>
 
     <NotifCentre />
-    <div class="full" v-if="store.EngineState !== EngineProcState.Idle">
+    <div class="full" v-if="engine_store.EngineState !== EngineProcState.Idle">
         <div class="spinner_container">
             <Spinner />
-            <p>{{ message[store.EngineState] }}</p>
+            <p>{{ message[engine_store.EngineState] }}</p>
         </div>
     </div>
     <Modal :show="showPrefView" @close="showPrefView = false">
