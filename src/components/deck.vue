@@ -31,8 +31,8 @@ const thumbColour = ref(calcColour(50))
     <div style="padding: 12px;">
         <div class="container">
             <div class="grid">
-                <DeckPlayer colour="indigo" />
-                <DeckPlayer colour="yellow" />
+                <DeckPlayer colour="indigo" :deck_info="store.deck[0]" />
+                <DeckPlayer colour="yellow" :deck_info="store.deck[1]" />
             </div>
             <br>
             <input ref="crossfader" type="range" style="width: 100%;" :style="{ '--thumb-colour': thumbColour }"

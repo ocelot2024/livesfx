@@ -1,11 +1,16 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { ProjectEngine } from "..";
-import { type SoundMeta } from "../audioEngine/sounds";
+import { type BGMFile, type SoundMeta } from "../audioEngine/sounds";
 import { EngineEvent } from "../types/types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { generateUUID } from "../util/util";
+
+export interface BGMPlayer {
+    playing: boolean;
+    meta: BGMFile | null;
+}
 
 export const useEngineState = defineStore("engine", () => {
     const sfx_library = ref<SoundMeta[]>([]);
@@ -13,6 +18,11 @@ export const useEngineState = defineStore("engine", () => {
     const ui_mode = ref<"live" | "edit">("live");
     const notif_queue = ref<Notificatin[]>([]);
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
+
+    const deck = ref<[BGMPlayer, BGMPlayer]>([
+        { playing: false, meta: null },
+        { playing: false, meta: null },
+    ]);
 
     let timer: number | null;
 
@@ -81,6 +91,7 @@ export const useEngineState = defineStore("engine", () => {
         bgm_library,
         notif_queue,
         EngineState,
+        deck,
     };
 });
 

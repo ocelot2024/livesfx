@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { BGMPlayer } from '@/core/store/enginestore';
 import { useTemplateRef } from 'vue';
 
-const props = defineProps<{ colour: string }>()
+const props = defineProps<{ colour: string, deck_info: BGMPlayer }>()
 
 const seek = useTemplateRef('seekbar');
 
