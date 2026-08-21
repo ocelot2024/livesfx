@@ -8,7 +8,8 @@ import { EngineError, EngineException } from "../types/error_types";
 import { generateUUID } from "../util/util";
 
 export const useEngineState = defineStore("engine", () => {
-    const library = ref<SoundMeta[]>([]);
+    const sfx_library = ref<SoundMeta[]>([]);
+    const bgm_library = ref<SoundMeta[]>([]);
     const ui_mode = ref<"live" | "edit">("live");
     const notif_queue = ref<Notificatin[]>([]);
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
@@ -16,13 +17,20 @@ export const useEngineState = defineStore("engine", () => {
     let timer: number | null;
 
     ProjectEngine.addEventListener(EngineEvent.ChangedLibrary, () => {
-        const sounds: Record<string, SoundMeta> = ProjectEngine.get_library();
-        library.value = Object.values(sounds);
+        const sounds: Record<string, SoundMeta> =
+            ProjectEngine.get_sfx_library();
+        const musics: Record<string, SoundMeta> =
+            ProjectEngine.get_bgm_library();
+        sfx_library.value = Object.values(sounds);
+        bgm_library.value = Object.values(musics);
     });
     ProjectEngine.addEventListener(EngineEvent.Initialised, () => {
-        console.log(ProjectEngine.get_library());
-        const sounds: Record<string, SoundMeta> = ProjectEngine.get_library();
-        library.value = Object.values(sounds);
+        const sounds: Record<string, SoundMeta> =
+            ProjectEngine.get_sfx_library();
+        const musics: Record<string, SoundMeta> =
+            ProjectEngine.get_bgm_library();
+        sfx_library.value = Object.values(sounds);
+        bgm_library.value = Object.values(musics);
     });
 
     ProjectEngine.addEventListener(EngineEvent.Proccessing, (e) => {
@@ -69,7 +77,8 @@ export const useEngineState = defineStore("engine", () => {
     });
     return {
         ui_mode,
-        library,
+        sfx_library,
+        bgm_library,
         notif_queue,
         EngineState,
     };

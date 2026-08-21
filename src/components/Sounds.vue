@@ -13,10 +13,10 @@ const editor = defineAsyncComponent({
     loader: () => import('./View/SoundEditor.vue'),
 })
 
-const order = ref<string[]>(store.library.map(s => s.id));
+const order = ref<string[]>(store.sfx_library.map(s => s.id));
 
 watch(
-    () => store.library.map(s => s.id),
+    () => store.sfx_library.map(s => s.id),
     (ids) => {
         if (dragState.id !== null) return;
         order.value = ids;
@@ -24,8 +24,8 @@ watch(
 );
 
 const soundsById = computed(() => {
-    const map = new Map<string, typeof store.library[number]>();
-    for (const s of store.library) map.set(s.id, s);
+    const map = new Map<string, typeof store.sfx_library[number]>();
+    for (const s of store.sfx_library) map.set(s.id, s);
     return map;
 });
 
@@ -154,7 +154,7 @@ const finishDrag = async (committed: boolean) => {
     const wasActive = dragState.active;
 
     if (!committed || id === null) {
-        order.value = store.library.map(s => s.id);
+        order.value = store.sfx_library.map(s => s.id);
         resetDragState();
         return;
     }
@@ -165,7 +165,7 @@ const finishDrag = async (committed: boolean) => {
     if (wasActive && finalIndex !== -1) {
         const result = await ProjectEngine.move_sound(id, finalIndex);
         if (!result.ok) {
-            order.value = store.library.map(s => s.id);
+            order.value = store.sfx_library.map(s => s.id);
             console.error('move_sound failed, reverted order:', result.value);
         }
     }
@@ -255,7 +255,7 @@ const onClick = async (id: string) => {
         </Teleport>
 
         <Modal :show="selectedSound !== undefined" @close="selectedSound = undefined"
-            :title="store.library.find(v => v.id == selectedSound)?.filename">
+            :title="store.sfx_library.find(v => v.id == selectedSound)?.filename">
             <editor :sound-id="selectedSound" />
         </Modal>
     </div>

@@ -10,7 +10,7 @@ const engine = ProjectEngine;
 
 const groups = computed(() =>
     [...new Set(
-        store.library
+        store.sfx_library
             .map(v => v.group)
             .filter((g): g is string => !!g)
     )]

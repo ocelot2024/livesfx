@@ -1,5 +1,10 @@
 import { AudioMixer } from "./mixer";
-import { SFXPlayMode, SoundLibrary } from "./sounds";
+import {
+    SFXPlayMode,
+    SoundFileType,
+    SoundLibrary,
+    type SoundMeta,
+} from "./sounds";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
@@ -45,11 +50,27 @@ export class Engine {
         const sound_id = id ?? generateUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
         const groupname = group ?? "SFX";
-        this.library.add(name, sound_id, audiobuffer, groupname);
+        this.library.add(
+            {
+                filename: name,
+                id: sound_id,
+                type: SoundFileType.SFX,
+                group: groupname,
+            },
+            audiobuffer,
+        );
         const result = this.mixer.create_channel(sound_id, name, groupname);
         if (!result.ok) return Err(AudioEngineError.ChannelCreationFailed);
         this.mixer.set_gain(result.value, gain ?? 1);
         return Ok(result.value);
+    }
+    add_bgm(name: string, file: Blob, id?: string): Result<string, string> {
+        const bgm_id = id ?? generateUUID();
+        this.library.add(
+            { filename: name, id: bgm_id, type: SoundFileType.BGM },
+            file,
+        );
+        return Ok(bgm_id);
     }
     trim(id: string, start: number, end: number) {
         this.library.trim(id, start, end);
@@ -131,8 +152,11 @@ export class Engine {
         window.removeEventListener("touchend", this.resume_ctx);
         window.removeEventListener("pointerdown", this.resume_ctx);
     }
-    get_library() {
+    get_sfx_library() {
         return this.library.get_sfx_library();
+    }
+    get_bgm_library() {
+        return this.library.get_bgm_library();
     }
     get_duration(id: string) {
         return this.library.get_duration(id);

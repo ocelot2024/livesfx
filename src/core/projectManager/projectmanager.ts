@@ -8,7 +8,8 @@ import projectStorageManager from "./projectStorageManager";
 import {
     SoundFileType,
     type SFXPlayMode,
-    type SoundFile,
+    type SFXFile,
+    type BGMFile,
 } from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
 import projectStateManager from "./projectStateManager";
@@ -111,7 +112,7 @@ export class ProjectManager extends EventTarget {
         this.AudioEngine = new Engine();
         await this.init();
         this.render_title(info.value.filename);
-        const frag: SoundFile[] = [];
+        const frag: SFXFile[] = [];
         let load_failed = false;
         for (const sound_info of info.value.sounds) {
             const blob = lvsf_manager.get_sound_data(sound_info.id);
@@ -128,12 +129,74 @@ export class ProjectManager extends EventTarget {
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
         return Ok();
     }
-    async add_sfx(sounds?: SoundFile[]) {
+    async add_bgm(musics?: BGMFile[]) {
         if (!this.storageManager.is_initialised()) {
             this.error(EngineError.StorageNotReady);
             return;
         }
-        let files: SoundFile[] = [];
+        let files: BGMFile[] = [];
+        if (!musics) {
+            const audiofiles = await openFilePicker({
+                accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
+            });
+            this.proc_event(EngineProcState.Loading);
+            if (!audiofiles.some) {
+                this.fin_proc();
+                return;
+            }
+
+            let add_failed = false;
+            for (const music of audiofiles.value) {
+                const blob = music;
+                const id = this.AudioEngine.add_bgm(blob.name, blob);
+                if (!id.ok) {
+                    add_failed = true;
+                    continue;
+                }
+                files.push({
+                    id: id.value,
+                    file: blob,
+                    filename: blob.name,
+                    type: SoundFileType.BGM,
+                });
+            }
+            if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
+        } else {
+            this.proc_event(EngineProcState.Loading);
+            files = musics;
+            for (const sound of files) {
+                const result = this.AudioEngine.add_bgm(
+                    sound.filename,
+                    sound.file,
+                    sound.id,
+                );
+                if (!result.ok) {
+                    this.error(result.value);
+                    continue;
+                }
+            }
+        }
+        this.proc_event(EngineProcState.Writing);
+
+        const save_result = await this.storageManager.save_sound_cache(
+            await Promise.all(
+                files.map(async (v) => ({
+                    ...v,
+                    file: await v.file.arrayBuffer(),
+                })),
+            ),
+        );
+        if (!save_result.ok) this.error(save_result.value);
+        this.fin_proc();
+        this.stateManager.markAsChanged();
+        console.log(this.AudioEngine.get_bgm_library());
+    }
+    async add_sfx(sounds?: SFXFile[]) {
+        if (!this.storageManager.is_initialised()) {
+            this.error(EngineError.StorageNotReady);
+            return;
+        }
+        let files: SFXFile[] = [];
         if (!sounds) {
             const audios = await openFilePicker({
                 accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
@@ -202,8 +265,11 @@ export class ProjectManager extends EventTarget {
     stop(source_id: string) {
         this.AudioEngine.stop(source_id);
     }
-    get_library() {
-        return this.AudioEngine.get_library();
+    get_sfx_library() {
+        return this.AudioEngine.get_sfx_library();
+    }
+    get_bgm_library() {
+        return this.AudioEngine.get_bgm_library();
     }
     get_duration(id: string) {
         return this.AudioEngine.get_duration(id);
@@ -232,7 +298,7 @@ export class ProjectManager extends EventTarget {
         }
         this.proc_event(EngineProcState.Proccessing);
         const lvsffile = new LVSFFile();
-        const lib = this.get_library();
+        const lib = this.get_sfx_library();
         const files = await this.storageManager.load_sound_cache();
 
         if (!files.ok) {

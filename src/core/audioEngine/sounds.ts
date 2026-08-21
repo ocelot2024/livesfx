@@ -28,8 +28,12 @@ export interface SoundMeta {
     type: SoundFileType;
 }
 
-export interface SoundFile extends SoundMeta {
+export interface SFXFile extends SoundMeta {
     file: ArrayBuffer;
+}
+
+export interface BGMFile extends SoundMeta {
+    file: Blob;
 }
 
 export interface PlaybackInfo extends SoundMeta {
@@ -38,12 +42,15 @@ export interface PlaybackInfo extends SoundMeta {
 
 abstract class BaseSound {
     private meta: SoundMeta;
+
     constructor(option: SoundMeta) {
         this.meta = { ...option };
     }
-    getInfo() {
+
+    getInfo(): SoundMeta {
         return this.meta;
     }
+
     getPlayInfo(): SoundMeta {
         const store = useConfigStore();
 
@@ -52,6 +59,9 @@ abstract class BaseSound {
             play_mode: this.meta.play_mode ?? store.defaultPlayMode,
         };
     }
+
+    abstract get_duration(): number;
+
     trim(start: number, end: number) {
         this.meta.start_from = start;
         this.meta.end_at = end;
@@ -60,6 +70,7 @@ abstract class BaseSound {
     set_mode(mode: SFXPlayMode) {
         this.meta.play_mode = mode;
     }
+
     update_meta(patch: Partial<SoundMeta>) {
         this.meta = {
             ...this.meta,
@@ -70,25 +81,9 @@ abstract class BaseSound {
 
 class Sound extends BaseSound {
     private buffer: AudioBuffer;
-    constructor(
-        name: string,
-        id: string,
-        buffer: AudioBuffer,
-        parent: string,
-        gain: number,
-        type?: SoundFileType,
-    ) {
+    constructor(option: SoundMeta, buffer: AudioBuffer) {
         const store = useConfigStore();
-        super({
-            id,
-            filename: name,
-            start_from: 0,
-            end_at: buffer.duration,
-            group: parent,
-            gain,
-            play_mode: store.defaultPlayMode,
-            type: type ?? SoundFileType.SFX,
-        });
+        super(option);
         this.buffer = buffer;
     }
     get_duration() {
@@ -103,23 +98,52 @@ class Sound extends BaseSound {
     }
 }
 
+class BGM extends BaseSound {
+    private source: Blob;
+    private duration?: number;
+    constructor(option: SoundMeta, file: Blob) {
+        super({ ...option, type: SoundFileType.BGM });
+        this.source = file;
+
+        const audio = document.createElement("audio");
+        const url = URL.createObjectURL(file);
+
+        audio.onloadedmetadata = () => {
+            this.duration = audio.duration;
+            URL.revokeObjectURL(url);
+        };
+
+        audio.src = url;
+    }
+    get_duration() {
+        return this.duration ?? 0;
+    }
+    getPlayInfo(): { source: Blob } & SoundMeta {
+        return { ...super.getPlayInfo(), source: this.source };
+    }
+}
+
 export class SoundLibrary {
     private sounds: Record<string, Sound>;
+    private musics: Record<string, BGM>;
     private ctx: AudioContext;
     constructor(ctx: AudioContext) {
         this.sounds = {};
+        this.musics = {};
         this.ctx = ctx;
     }
-    add(
-        name: string,
-        id: string,
-        audiobuffer: AudioBuffer,
-        parent: string,
-        type?: SoundFileType,
-    ) {
-        const sound = new Sound(name, id, audiobuffer, parent, 1, type);
-        this.sounds[id] = sound;
-        return id;
+    add(meta: SoundMeta, file: AudioBuffer | Blob) {
+        if (meta.type === SoundFileType.SFX || meta.type === undefined) {
+            const sound = new Sound(meta, file as AudioBuffer);
+            this.sounds[meta.id] = sound;
+            console.log(this.sounds);
+            return meta.id;
+        } else {
+            console.log("Adding BGM");
+            const bgm = new BGM(meta, file as Blob);
+            this.musics[meta.id] = bgm;
+            return meta.id;
+        }
     }
     remove(id: string) {
         delete this.sounds[id];
@@ -167,14 +191,16 @@ export class SoundLibrary {
     }
     get_bgm_library() {
         let frag: Record<string, SoundMeta> = {};
-        for (const i in this.sounds) {
-            if (!this.sounds[i]) continue;
-            const info = this.sounds[i].getInfo();
+        for (const i in this.musics) {
+            console.log(this.musics);
+            if (!this.musics[i]) continue;
+            const info = this.musics[i].getInfo();
             if (info.type !== SoundFileType.BGM) continue;
             frag[i] = {
                 ...info,
             };
         }
+        return { ...frag };
     }
     trim(id: string, start: number, end: number) {
         if (id in this.sounds) {

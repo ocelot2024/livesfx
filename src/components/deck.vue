@@ -4,7 +4,10 @@ import DeckPlayer from './deckPlayer.vue';
 import Settinglist from './settinglist.vue';
 import SettingsRow from './settingsRow.vue';
 import SettingsSection from './settingsSection.vue';
+import { useEngineState } from '@/core/store/enginestore.ts';
+import { ProjectEngine } from '@/core/index.ts';
 
+const store = useEngineState();
 
 const calcColour = (v: number) => {
     const t = v / 100
@@ -39,8 +42,12 @@ const thumbColour = ref(calcColour(50))
         padding: 12px 0; margin: 12px; border-radius: 12px;">
             <Settinglist>
                 <SettingsSection title="曲一覧">
-                    <SettingsRow label="蛍の光">
-                        <div class="flex"><button>Aに</button><button>Bに</button></div>
+                    <div v-if="store.bgm_library.length == 0"
+                        style="background-color: var(--gray-5); width: 100%; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;">
+                        <p>曲がまだありません。</p>
+                        <button @click="ProjectEngine.add_bgm()">曲を追加する</button>
+                    </div>
+                    <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id">
                     </SettingsRow>
                 </SettingsSection>
             </Settinglist>
