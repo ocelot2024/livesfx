@@ -1,4 +1,4 @@
-import { Engine } from "../audioEngine/audioengine";
+import { Engine, PlayerEvent } from "../audioEngine/audioengine";
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import { openFilePicker, LVSFFile } from "../files/fileUtil";
 import { EngineProcState } from "../store/enginestore_type";
@@ -63,6 +63,7 @@ export class ProjectManager extends EventTarget {
     async init() {
         const result = await this.storageManager.initialise_storage();
         if (!result.ok) this.warn(EngineError.CouldNotCleanUpDB);
+        this.bindAudioEngineEvents();
         this.projectname = "名称未設定";
         this.render_title(this.projectname);
         this.AudioEngine.createChannel("SFX");
@@ -349,5 +350,40 @@ export class ProjectManager extends EventTarget {
         this.stateManager.markAsChanged();
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
         return Ok();
+    }
+
+    private bindAudioEngineEvents() {
+        for (const event of Object.values(PlayerEvent)) {
+            this.AudioEngine.addEventListener(event, (e) => {
+                this.dispatchEvent(
+                    new CustomEvent(event, {
+                        detail: (e as CustomEvent).detail,
+                    }),
+                );
+            });
+        }
+    }
+    get_bgm_info(id: "deckA" | "deckB") {
+        return this.AudioEngine.get_bgm_info(id);
+    }
+
+    load_bgm(id: "deckA" | "deckB", file: BGMFile) {
+        this.AudioEngine.load_bgm(id, file);
+    }
+
+    play_bgm(id: "deckA" | "deckB") {
+        return this.AudioEngine.play_bgm(id);
+    }
+
+    pause_bgm(id: "deckA" | "deckB") {
+        this.AudioEngine.pause_bgm(id);
+    }
+
+    stop_bgm(id: "deckA" | "deckB") {
+        this.AudioEngine.stop_bgm(id);
+    }
+
+    seek_bgm(id: "deckA" | "deckB", time: number) {
+        this.AudioEngine.seek_bgm(id, time);
     }
 }

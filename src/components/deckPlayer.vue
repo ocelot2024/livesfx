@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { BGMPlayer } from '@/core/store/enginestore';
+import type { BGMPlayerInfo } from '@/core/store/enginestore';
 import { useTemplateRef } from 'vue';
 
-const props = defineProps<{ colour: string, deck_info: BGMPlayer }>()
+const props = defineProps<{ colour: string, deck_info: BGMPlayerInfo }>()
 
 const seek = useTemplateRef('seekbar');
 
@@ -30,6 +30,11 @@ const handleDrafStart = (e: PointerEvent) => {
     document.addEventListener('pointermove', handleDrag);
     document.addEventListener('pointerup', handleDragEnd)
 }
+
+const toggle_play = () => {
+    props.deck_info.playing = !props.deck_info.playing
+}
+
 </script>
 <template>
     <div class="playercard" :style="{ borderBottom: `3px solid var(--${props.colour})` }">
@@ -40,7 +45,7 @@ const handleDrafStart = (e: PointerEvent) => {
                     <button style="background-color: transparent; border: 0;">X</button>
                 </div>
                 <div class="flex player">
-                    <button>▶</button>
+                    <button @click="toggle_play()">{{ props.deck_info.playing ? "■" : "▶" }}</button>
                     <progress @pointerdown="handleDrafStart" value="0" max="100" ref="seekbar"></progress>
                     <small>MM:SS</small>
                 </div>

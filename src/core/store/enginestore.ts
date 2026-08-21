@@ -7,9 +7,9 @@ import { EngineProcState, type Notificatin } from "./enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { generateUUID } from "../util/util";
 
-export interface BGMPlayer {
+export interface BGMPlayerInfo {
     playing: boolean;
-    meta: BGMFile | null;
+    meta: SoundMeta | null;
 }
 
 export const useEngineState = defineStore("engine", () => {
@@ -19,7 +19,7 @@ export const useEngineState = defineStore("engine", () => {
     const notif_queue = ref<Notificatin[]>([]);
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
 
-    const deck = ref<[BGMPlayer, BGMPlayer]>([
+    const deck = ref<[BGMPlayerInfo, BGMPlayerInfo]>([
         { playing: false, meta: null },
         { playing: false, meta: null },
     ]);

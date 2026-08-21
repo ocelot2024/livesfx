@@ -3,32 +3,201 @@ import {
     SFXPlayMode,
     SoundFileType,
     SoundLibrary,
+    type BGMFile,
     type SoundMeta,
 } from "./sounds";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
+import type { BGMPlayerInfo } from "../store/enginestore";
 
 export type PlayResult =
     | { played: true; soundID: string; sourceID: string }
     | { played: false };
 
-export class Engine {
+export const PlayerEvent = {
+    play: "play",
+    pause: "pause",
+    stop: "stop",
+    load: "load",
+    unload: "unload",
+    seek: "seek",
+    ended: "ended",
+};
+export type PlayerEvent = (typeof PlayerEvent)[keyof typeof PlayerEvent];
+
+class Deck extends EventTarget {
+    player: HTMLAudioElement;
+    info: BGMFile | null;
+    blobURL?: string;
+
+    constructor() {
+        super();
+        this.player = document.createElement("audio");
+        this.info = null;
+
+        this.player.addEventListener("play", () => {
+            this.dispatchEvent(new Event(PlayerEvent.play));
+        });
+
+        this.player.addEventListener("pause", () => {
+            this.dispatchEvent(new Event(PlayerEvent.pause));
+        });
+
+        this.player.addEventListener("ended", () => {
+            this.dispatchEvent(new Event(PlayerEvent.ended));
+        });
+    }
+
+    async play() {
+        if (!this.info) return;
+
+        await this.player.play();
+    }
+
+    pause() {
+        if (!this.info) return;
+
+        this.player.pause();
+    }
+
+    stop() {
+        if (!this.info) return;
+
+        this.player.pause();
+        this.player.currentTime = 0;
+    }
+
+    load(file: BGMFile) {
+        this.unload();
+
+        this.info = file;
+        this.blobURL = URL.createObjectURL(file.file);
+        this.player.src = this.blobURL;
+
+        this.dispatchEvent(new Event(PlayerEvent.load));
+    }
+
+    unload() {
+        this.player.pause();
+        this.player.removeAttribute("src");
+        this.player.load();
+
+        if (this.blobURL) {
+            URL.revokeObjectURL(this.blobURL);
+            this.blobURL = undefined;
+        }
+
+        this.info = null;
+
+        this.dispatchEvent(new Event(PlayerEvent.unload));
+    }
+
+    seek(time: number) {
+        this.player.currentTime = time;
+        this.dispatchEvent(new Event(PlayerEvent.seek));
+    }
+
+    get playing() {
+        return !this.player.paused;
+    }
+
+    get current_time() {
+        return this.player.currentTime;
+    }
+
+    get duration() {
+        return this.player.duration;
+    }
+
+    get_info(): BGMPlayerInfo {
+        return {
+            playing: this.playing,
+            meta: this.info,
+        };
+    }
+}
+
+class BGMPlayer extends EventTarget {
+    private deckA: Deck;
+    private deckB: Deck;
+
+    constructor() {
+        super();
+
+        this.deckA = new Deck();
+        this.deckB = new Deck();
+
+        this.bindDeckEvents(this.deckA, "A");
+        this.bindDeckEvents(this.deckB, "B");
+    }
+
+    private bindDeckEvents(deck: Deck, id: "A" | "B") {
+        for (const event of Object.values(PlayerEvent)) {
+            deck.addEventListener(event, () => {
+                this.dispatchEvent(
+                    new CustomEvent(event, {
+                        detail: { deck: id },
+                    }),
+                );
+            });
+        }
+    }
+
+    get_info(id: "deckA" | "deckB") {
+        return this[id].get_info();
+    }
+
+    load(id: "deckA" | "deckB", file: BGMFile) {
+        this[id].load(file);
+    }
+
+    play(id: "deckA" | "deckB") {
+        return this[id].play();
+    }
+
+    pause(id: "deckA" | "deckB") {
+        this[id].pause();
+    }
+
+    stop(id: "deckA" | "deckB") {
+        this[id].stop();
+    }
+
+    seek(id: "deckA" | "deckB", time: number) {
+        this[id].seek(time);
+    }
+}
+
+export class Engine extends EventTarget {
     private mixer: AudioMixer;
     private library: SoundLibrary;
     private ctx = new window.AudioContext();
     private playing: Record<string, AudioBufferSourceNode>;
     private playing_id: { source_id: string; sfx_id: string }[];
+    private player: BGMPlayer;
     constructor() {
+        super();
         this.playing = {};
         this.playing_id = [];
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
+        this.player = new BGMPlayer();
 
         window.addEventListener("click", this.resume_ctx);
         window.addEventListener("touchstart", this.resume_ctx);
         window.addEventListener("touchend", this.resume_ctx);
         window.addEventListener("pointerdown", this.resume_ctx);
+
+        for (const event of Object.values(PlayerEvent)) {
+            this.player.addEventListener(event, (e) => {
+                this.dispatchEvent(
+                    new CustomEvent(event, {
+                        detail: (e as CustomEvent).detail,
+                    }),
+                );
+            });
+        }
     }
 
     private resume_ctx = async () => {
@@ -196,5 +365,28 @@ export class Engine {
     }
     move_sound(id: string, toIndex: number): Result<void, string> {
         return this.library.move(id, toIndex);
+    }
+
+    load_bgm(id: "deckA" | "deckB", file: BGMFile) {
+        this.player.load(id, file);
+    }
+
+    play_bgm(id: "deckA" | "deckB") {
+        this.player.play(id);
+    }
+
+    pause_bgm(id: "deckA" | "deckB") {
+        this.player.pause(id);
+    }
+
+    stop_bgm(id: "deckA" | "deckB") {
+        this.player.stop(id);
+    }
+
+    seek_bgm(id: "deckA" | "deckB", time: number) {
+        this.player.seek(id, time);
+    }
+    get_bgm_info(id: "deckA" | "deckB") {
+        return this.player.get_info(id);
     }
 }
