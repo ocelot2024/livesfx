@@ -13,10 +13,8 @@ const dragging = ref(false)
 
 const config = useConfigStore()
 
-// 0dBは基準点として固定。それ以外(最大db/最小db/カーブ/ユニティ位置)は環境設定で変更できる
 const unityDb = 0
 
-// gain(0〜) <-> dB
 const gainToDb = (g: number) => (g <= 0 ? -Infinity : 20 * Math.log10(g))
 const dbToGain = (db: number) => (db <= config.faderMinDb ? 0 : Math.pow(10, db / 20))
 

@@ -237,16 +237,13 @@ export class Engine extends EventTarget {
         const children = this.mixer.group_children(name);
         const result = this.mixer.delete_group(name);
         if (!result.ok) return result;
-        // グループに属していたSFXは未分類(グループなし)に戻す
+
         for (const channel of children) {
             if (channel.id) this.library.set_group(channel.id, undefined);
         }
         return Ok();
     }
-    move_channel_to_group(
-        id: string,
-        newGroup?: string,
-    ): Result<void, string> {
+    move_channel_to_group(id: string, newGroup?: string): Result<void, string> {
         const result = this.mixer.move_channel(id, newGroup);
         if (!result.ok) return result;
         this.library.set_group(id, newGroup);

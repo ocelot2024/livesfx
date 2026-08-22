@@ -13,7 +13,6 @@ const groups = computed(() =>
         ...store.sfx_library
             .map(v => v.group)
             .filter((g): g is string => !!g),
-        // SFXに1つも属していないグループ(BGMなど)もミキサーに表示する
         ...engine.get_group_names(),
     ])]
 )

@@ -13,16 +13,13 @@ export default class {
 
         try {
             await new Promise<void>((resolve, reject) => {
-                //MP3やWavとかを一時的に補完するようなので一回全部消す。ID衝突があるとは思えないけどあった時の処理が煩雑
                 const request = indexedDB.deleteDatabase("fileCache");
                 request.onsuccess = () => resolve();
                 request.onerror = () => reject();
                 request.onblocked = () => reject();
             });
         } catch (_) {
-            //今はこれだけで十分だからeに中身も与えずここでこれに収束させてる
-            //DBの初期化に失敗した時点で音声を追加できない。
-            //今後LocalStorageなどへのフォールバックも考える
+            // LocalStorageとか回避策はおいおい
             return Err(StorageError.InitialisingindexedDBFailed);
         }
 

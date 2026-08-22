@@ -122,10 +122,7 @@ export class AudioMixer {
         delete found.target[id];
         return Ok();
     }
-    // チャンネルを別のグループへ移動する。newGroupを省略するとマスター直下(未分類)へ。
-    // 既存のChannelインスタンスは作り直す(接続をdisconnectしてから同じidで再生成する)。
-    // 注意: この操作の瞬間に再生中の音があると、そのAudioBufferSourceNodeは
-    // 古いチャンネルに繋がったままになるため無音になる(編集操作中の再生は想定していないため許容)。
+
     move_channel(id: string, newGroup?: string): Result<void, string> {
         const found = this.channel_finder(id);
         if (!found) return Err(EngineError.ChannelNotFound);
@@ -146,8 +143,7 @@ export class AudioMixer {
         this.set_gain(id, gain);
         return Ok();
     }
-    // グループを削除する。所属していたチャンネルは全て未分類(マスター直下)へ退避してから
-    // グループバス自体を破棄する。存在しないグループの場合はErr。
+
     delete_group(name: string): Result<void, string> {
         const group = this.groups[name];
         if (!group) return Err(EngineError.GroupNotFound);
@@ -170,7 +166,6 @@ export class AudioMixer {
         return Ok();
     }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
-        // グループとマスターのゲインを先に検査して返す。
         // TODO UIでグループゲインの調整をできるように
         const group = this.resolve_group(id);
         if (group) {

@@ -10,7 +10,6 @@ import Tab, { type TabItem } from "./components/Tab.vue";
 import MixerView from "./components/View/MixerView.vue";
 import { defineAsyncComponent, ref } from 'vue';
 import Modal from './components/Modal.vue';
-import PreferencesView from './components/View/PreferencesView.vue';
 import { useConfigStore } from './core/store/configstore.ts';
 import { useUiState } from './core/store/ui_state.ts';
 import { storeToRefs } from 'pinia';
@@ -83,6 +82,7 @@ const selectedView = config_store.memoryLastTab
     : ref("pad")
 
 const showPrefView = ref<boolean>(false);
+const prefView = defineAsyncComponent({ loader: () => import('./components/View/PreferencesView.vue'), loadingComponent: Spinner })
 </script>
 
 <template>
@@ -107,7 +107,7 @@ const showPrefView = ref<boolean>(false);
         </div>
     </div>
     <Modal :show="showPrefView" @close="showPrefView = false">
-        <PreferencesView />
+        <prefView />
     </Modal>
 </template>
 

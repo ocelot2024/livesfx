@@ -24,10 +24,7 @@ const calcColour = (v: number) => {
 const crossfade = useTemplateRef("crossfader")
 const thumbColour = ref(calcColour(50))
 
-// 等パワー則(equal-power law)でクロスフェード。
-// 中央(50)でA/Bとも -3dB になり、リニア則で起きる中央での聴感音量低下を避ける。
-// 現状deckA/deckBの出力ゲインをクロスフェーダーが直接制御している。
-// 将来デッキ単体の音量つまみを追加する場合は、このゲインと掛け合わせる形にする必要がある(現状は未実装なのでYAGNIで直接制御)。
+
 const applyCrossfade = (position: number) => {
     const p = Math.min(Math.max(position, 0), 100) / 100
     const theta = p * (Math.PI / 2)

@@ -6,7 +6,7 @@ const props = defineProps<Notificatin>()
 </script>
 <template>
     <div class="notification-container">
-        <!--実装が一通り終わったらいいアイコン素材を探して追加する。優先ではない-->
+        <!--実装が一通り終わったらアイコン追加-->
         <div class="icon"></div>
         <section>
             <h2>{{ props.title }}</h2>

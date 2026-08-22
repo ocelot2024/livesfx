@@ -151,7 +151,6 @@ const onGridPointerMove = (e: PointerEvent) => {
     const hoveredEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-sound-id]');
     const hoveredId = hoveredEl?.getAttribute('data-sound-id');
     if (!hoveredEl || !hoveredId || hoveredId === draggedId) return;
-    // グループをまたいだ並べ替えは行わない(所属変更は編集画面のグループ選択で行う)。
     if (groupOf(hoveredId) !== groupOf(draggedId)) return;
 
     const fromIndex = order.value.indexOf(draggedId);
@@ -303,7 +302,8 @@ const deleteGroup = (name: string) => {
             <button @click="openCreateGroup">＋ 新しいグループ</button>
         </div>
         <div v-for="groupName in groupNames" :key="groupName" class="group-section">
-            <div class="group-header" v-if="groupedOrder.get(groupName)?.length || (store.ui_mode === 'edit' && groupName !== UNGROUPED)">
+            <div class="group-header"
+                v-if="groupedOrder.get(groupName)?.length || (store.ui_mode === 'edit' && groupName !== UNGROUPED)">
                 <h4>{{ groupLabel(groupName) }}</h4>
                 <button v-if="groupName !== UNGROUPED && store.ui_mode === 'edit'" class="delete-group"
                     @click="deleteGroup(groupName)">グループを削除</button>
@@ -468,4 +468,3 @@ button:active .card {
     }
 }
 </style>
-
