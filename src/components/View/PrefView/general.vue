@@ -60,7 +60,7 @@ function resetSettings() {
                 <div style="text-align:  center; padding: 8px;">
                     <img src="@/img/logo.png">
                     <h2>LiveSFX</h2>
-                    <small>0.1.0</small>
+                    <small>0.1.1</small>
                 </div>
                 <SettingsRow label="ライセンス一覧" chevron @click="showLicense = true" />
             </SettingsSection>
