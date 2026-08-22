@@ -1,2 +1,4 @@
 allowBuilds:
-  sharp: false
+    sharp: false
+packages:
+    - .
