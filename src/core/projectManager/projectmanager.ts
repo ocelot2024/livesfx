@@ -113,7 +113,8 @@ export class ProjectManager extends EventTarget {
         this.AudioEngine = new Engine();
         await this.init();
         this.render_title(info.value.filename);
-        const frag: SFXFile[] = [];
+        const sfx_frag: SFXFile[] = [];
+        const bgm_frag: BGMFile[] = [];
         let load_failed = false;
         for (const sound_info of info.value.sounds) {
             const blob = lvsf_manager.get_sound_data(sound_info.id);
@@ -121,10 +122,18 @@ export class ProjectManager extends EventTarget {
                 load_failed = true;
                 continue;
             }
-            frag.push({ ...sound_info, file: await blob.value.arrayBuffer() });
+            if (sound_info.type === SoundFileType.BGM) {
+                bgm_frag.push({ ...sound_info, file: blob.value });
+            } else {
+                sfx_frag.push({
+                    ...sound_info,
+                    file: await blob.value.arrayBuffer(),
+                });
+            }
         }
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
-        await this.add_sfx(frag);
+        await this.add_sfx(sfx_frag);
+        await this.add_bgm(bgm_frag);
         this.fin_proc();
         this.stateManager.markAsSaved();
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));
@@ -299,7 +308,8 @@ export class ProjectManager extends EventTarget {
         }
         this.proc_event(EngineProcState.Proccessing);
         const lvsffile = new LVSFFile();
-        const lib = this.get_sfx_library();
+        const sfx_lib = this.get_sfx_library();
+        const bgm_lib = this.get_bgm_library();
         const files = await this.storageManager.load_sound_cache();
 
         if (!files.ok) {
@@ -307,18 +317,26 @@ export class ProjectManager extends EventTarget {
             this.fin_proc();
             return;
         }
-
-        const fileMap = Object.fromEntries(
+        const sfx_filesMap = Object.fromEntries(
             files.value.map(({ id, file }) => [id, file]),
         );
+        const bgm_filesMap = await this.AudioEngine.get_all_bgm_arraybuffer();
+        const fileMap = Object.assign({}, sfx_filesMap, bgm_filesMap);
 
         let missing = false;
-        for (const id in lib) {
-            if (!fileMap[id] || !lib[id]) {
+        for (const id in sfx_lib) {
+            if (!fileMap[id] || !sfx_lib[id]) {
                 missing = true;
                 continue;
             }
-            lvsffile.addFile(fileMap[id], lib[id]);
+            lvsffile.addFile(fileMap[id], sfx_lib[id]);
+        }
+        for (const id in bgm_lib) {
+            if (!fileMap[id] || !bgm_lib[id]) {
+                missing = true;
+                continue;
+            }
+            lvsffile.addFile(fileMap[id], bgm_lib[id]);
         }
         if (missing) this.warn(EngineError.MissingCachedAudioForExport);
 

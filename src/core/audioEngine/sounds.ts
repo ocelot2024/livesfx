@@ -181,6 +181,16 @@ export class SoundLibrary {
             return this.musics[id]?.getPlayInfo();
         }
     }
+    async get_all_bgm_arraybuffer(): Promise<Record<string, ArrayBuffer>> {
+        const result: Record<string, ArrayBuffer> = {};
+        await Promise.all(
+            Object.entries(this.musics).map(async ([id, bgm]) => {
+                if (!bgm) return;
+                result[id] = await bgm.getPlayInfo().source.arrayBuffer();
+            }),
+        );
+        return result;
+    }
     get_waveform(id: string, buckets: number): WaveformPeaks | undefined {
         const sound = this.sounds[id];
         if (!sound) return undefined;
