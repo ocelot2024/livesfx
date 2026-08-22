@@ -9,11 +9,13 @@ const store = useEngineState();
 const engine = ProjectEngine;
 
 const groups = computed(() =>
-    [...new Set(
-        store.sfx_library
+    [...new Set([
+        ...store.sfx_library
             .map(v => v.group)
-            .filter((g): g is string => !!g)
-    )]
+            .filter((g): g is string => !!g),
+        // SFXに1つも属していないグループ(BGMなど)もミキサーに表示する
+        ...engine.get_group_names(),
+    ])]
 )
 
 const set_gain = (e: number, id?: string) => {
@@ -37,6 +39,9 @@ const get_gain = (id?: string) => {
                 <p>{{ groupName }}</p>
             </div>
             <div class="groupContainer flex" :key="groupName">
+                <ChannelComponent channel-name="グループ" :id="groupName" class="groupFader"
+                    @update:volume="(e: number) => set_gain(e, groupName)" :initial_gain="get_gain(groupName)" />
+                <div class="divider"></div>
                 <ChannelComponent v-for="value in engine.get_group_children(groupName)" :channel-name="value.name"
                     :id="value.id ?? ''" @update:volume="(e: number) => set_gain(e, value.id)"
                     :initial_gain="get_gain(value.id)" />
@@ -72,5 +77,16 @@ const get_gain = (id?: string) => {
 
 .groupName {
     text-align: center;
+}
+
+.groupFader {
+    opacity: 0.85;
+}
+
+.divider {
+    width: 1px;
+    align-self: stretch;
+    background-color: var(--gray-3);
+    margin: 12px 0;
 }
 </style>

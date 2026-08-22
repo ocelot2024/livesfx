@@ -233,6 +233,25 @@ export class Engine extends EventTarget {
         const result = this.mixer.createGroup(name);
         return result.ok ? Ok(name) : Err(result.value);
     }
+    delete_group(name: string): Result<void, string> {
+        const children = this.mixer.group_children(name);
+        const result = this.mixer.delete_group(name);
+        if (!result.ok) return result;
+        // グループに属していたSFXは未分類(グループなし)に戻す
+        for (const channel of children) {
+            if (channel.id) this.library.set_group(channel.id, undefined);
+        }
+        return Ok();
+    }
+    move_channel_to_group(
+        id: string,
+        newGroup?: string,
+    ): Result<void, string> {
+        const result = this.mixer.move_channel(id, newGroup);
+        if (!result.ok) return result;
+        this.library.set_group(id, newGroup);
+        return Ok();
+    }
     async add_sfx(
         name: string,
         file: ArrayBuffer,
@@ -382,6 +401,9 @@ export class Engine extends EventTarget {
     }
     get_group_children(parent: string) {
         return this.mixer.group_children(parent);
+    }
+    get_group_names(): string[] {
+        return this.mixer.get_group_names();
     }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
         this.library.set_gain(id, gain);

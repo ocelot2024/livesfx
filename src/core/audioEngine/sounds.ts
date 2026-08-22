@@ -234,6 +234,9 @@ export class SoundLibrary {
     set_gain(id: string, gain: number) {
         this.sounds[id]?.update_meta({ gain: gain });
     }
+    set_group(id: string, group?: string) {
+        this.sounds[id]?.update_meta({ group });
+    }
     move(id: string, toIndex: number): Result<void, string> {
         const keys = Object.keys(this.sounds);
         const fromIndex = keys.indexOf(id);

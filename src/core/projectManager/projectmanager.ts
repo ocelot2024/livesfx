@@ -353,6 +353,39 @@ export class ProjectManager extends EventTarget {
     get_group_children(parent: string) {
         return this.AudioEngine.get_group_children(parent);
     }
+    get_group_names(): string[] {
+        return this.AudioEngine.get_group_names();
+    }
+    create_group(name: string): Result<string, string> {
+        const result = this.AudioEngine.createChannel(name);
+        if (!result.ok) {
+            this.error(result.value);
+            return result;
+        }
+        this.stateManager.markAsChanged();
+        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        return result;
+    }
+    delete_group(name: string): Result<void, string> {
+        const result = this.AudioEngine.delete_group(name);
+        if (!result.ok) {
+            this.error(result.value);
+            return result;
+        }
+        this.stateManager.markAsChanged();
+        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        return result;
+    }
+    move_sound_to_group(id: string, newGroup?: string): Result<void, string> {
+        const result = this.AudioEngine.move_channel_to_group(id, newGroup);
+        if (!result.ok) {
+            this.error(result.value);
+            return result;
+        }
+        this.stateManager.markAsChanged();
+        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        return result;
+    }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
         return this.AudioEngine.set_gain(id, gain);
     }

@@ -109,6 +109,9 @@ export class AudioMixer {
         if (!group) return [];
         return Object.values(group.children).map((V) => V.channel);
     }
+    get_group_names(): string[] {
+        return Object.keys(this.groups);
+    }
     delete_channel(id: string): Result<void, string> {
         const found = this.channel_finder(id);
         if (!found) return Err(EngineError.ChannelNotFound);
@@ -117,6 +120,45 @@ export class AudioMixer {
         channel.inputGain.disconnect();
         channel.output.disconnect();
         delete found.target[id];
+        return Ok();
+    }
+    // チャンネルを別のグループへ移動する。newGroupを省略するとマスター直下(未分類)へ。
+    // 既存のChannelインスタンスは作り直す(接続をdisconnectしてから同じidで再生成する)。
+    // 注意: この操作の瞬間に再生中の音があると、そのAudioBufferSourceNodeは
+    // 古いチャンネルに繋がったままになるため無音になる(編集操作中の再生は想定していないため許容)。
+    move_channel(id: string, newGroup?: string): Result<void, string> {
+        const found = this.channel_finder(id);
+        if (!found) return Err(EngineError.ChannelNotFound);
+        const entry = found.target[id];
+        if (!entry) return Err(EngineError.ChannelNotFound);
+        if (entry.belongs_to === (newGroup ?? MIXER_MASTER_CHANNEL_ID))
+            return Ok();
+
+        const name = entry.channel.name;
+        const gain = entry.channel.output.gain.value;
+
+        entry.channel.inputGain.disconnect();
+        entry.channel.output.disconnect();
+        delete found.target[id];
+
+        const created = this.create_channel(id, name, newGroup);
+        if (!created.ok) return Err(created.value);
+        this.set_gain(id, gain);
+        return Ok();
+    }
+    // グループを削除する。所属していたチャンネルは全て未分類(マスター直下)へ退避してから
+    // グループバス自体を破棄する。存在しないグループの場合はErr。
+    delete_group(name: string): Result<void, string> {
+        const group = this.groups[name];
+        if (!group) return Err(EngineError.GroupNotFound);
+
+        for (const id of Object.keys(group.children)) {
+            this.move_channel(id);
+        }
+
+        group.grouping_channel.inputGain.disconnect();
+        group.grouping_channel.output.disconnect();
+        delete this.groups[name];
         return Ok();
     }
     input(id: string, source: AudioNode): Result<void, string> {

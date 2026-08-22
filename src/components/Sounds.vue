@@ -5,6 +5,8 @@ import { useEngineState } from '../core/store/enginestore.ts';
 import { useConfigStore } from '../core/store/configstore.ts';
 import Modal from './Modal.vue';
 
+const UNGROUPED = '__ungrouped__';
+
 const selectedSound = ref();
 const store = useEngineState();
 const config = useConfigStore();
@@ -26,6 +28,27 @@ watch(
 const soundsById = computed(() => {
     const map = new Map<string, typeof store.sfx_library[number]>();
     for (const s of store.sfx_library) map.set(s.id, s);
+    return map;
+});
+
+// 表示中の全グループ名(SFXが1つも属していない空のグループも含む)。
+// 未分類は末尾に固定。
+const groupNames = computed(() => {
+    const names = ProjectEngine.get_group_names().filter(n => n !== 'BGM');
+    return [...names, UNGROUPED];
+});
+
+const groupOf = (id: string) => soundsById.value.get(id)?.group || UNGROUPED;
+
+// order(グローバルな並び順)をグループごとに振り分けて表示する。
+const groupedOrder = computed(() => {
+    const map = new Map<string, string[]>();
+    for (const name of groupNames.value) map.set(name, []);
+    for (const id of order.value) {
+        const g = groupOf(id);
+        if (!map.has(g)) map.set(g, []);
+        map.get(g)!.push(id);
+    }
     return map;
 });
 
@@ -128,6 +151,8 @@ const onGridPointerMove = (e: PointerEvent) => {
     const hoveredEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-sound-id]');
     const hoveredId = hoveredEl?.getAttribute('data-sound-id');
     if (!hoveredEl || !hoveredId || hoveredId === draggedId) return;
+    // グループをまたいだ並べ替えは行わない(所属変更は編集画面のグループ選択で行う)。
+    if (groupOf(hoveredId) !== groupOf(draggedId)) return;
 
     const fromIndex = order.value.indexOf(draggedId);
     const toIndex = order.value.indexOf(hoveredId);
@@ -232,21 +257,71 @@ const onClick = async (id: string) => {
         selectedSound.value = id;
     }
 }
+
+// --- グループ管理 ---
+const showCreateGroup = ref(false);
+const newGroupName = ref('');
+const createGroupError = ref('');
+
+const openCreateGroup = () => {
+    newGroupName.value = '';
+    createGroupError.value = '';
+    showCreateGroup.value = true;
+}
+
+const submitCreateGroup = () => {
+    const name = newGroupName.value.trim();
+    if (!name) {
+        createGroupError.value = 'グループ名を入力してください';
+        return;
+    }
+    if (name === UNGROUPED || groupNames.value.includes(name)) {
+        createGroupError.value = 'そのグループ名は既に使われています';
+        return;
+    }
+    const result = ProjectEngine.create_group(name);
+    if (!result.ok) {
+        createGroupError.value = result.value;
+        return;
+    }
+    showCreateGroup.value = false;
+}
+
+const groupLabel = (name: string) => name === UNGROUPED ? '未分類' : name;
+
+const deleteGroup = (name: string) => {
+    if (name === UNGROUPED) return;
+    if (!confirm(`グループ「${name}」を削除しますか?中の音は未分類に移動します。`)) return;
+    const result = ProjectEngine.delete_group(name);
+    if (!result.ok) console.error('delete_group failed:', result.value);
+}
 </script>
 
 <template>
     <div>
-        <div class="grid" @pointerdown="onGridPointerDown" @pointermove="onGridPointerMove" @pointerup="onGridPointerUp"
-            @pointercancel="onGridPointerCancel" @lostpointercapture="onGridLostPointerCapture">
-            <button v-for="id in order" :key="id" :data-sound-id="id" :ref="(el) => setCardRef(id, el as Element)"
-                @click="onClick(id)" :class="{ 'edit-mode': store.ui_mode === 'edit' }">
-                <div class="card" :class="{
-                    vibrate: store.ui_mode === 'edit' && dragState.id !== id,
-                    'is-dragging-source': dragState.id === id,
-                }">
-                    <h3>{{ soundsById.get(id)?.filename }}</h3>
-                </div>
-            </button>
+        <div class="group-toolbar" v-if="store.ui_mode === 'edit'">
+            <button @click="openCreateGroup">＋ 新しいグループ</button>
+        </div>
+        <div v-for="groupName in groupNames" :key="groupName" class="group-section">
+            <div class="group-header" v-if="groupedOrder.get(groupName)?.length || (store.ui_mode === 'edit' && groupName !== UNGROUPED)">
+                <h4>{{ groupLabel(groupName) }}</h4>
+                <button v-if="groupName !== UNGROUPED && store.ui_mode === 'edit'" class="delete-group"
+                    @click="deleteGroup(groupName)">グループを削除</button>
+            </div>
+            <div class="grid" @pointerdown="onGridPointerDown" @pointermove="onGridPointerMove"
+                @pointerup="onGridPointerUp" @pointercancel="onGridPointerCancel"
+                @lostpointercapture="onGridLostPointerCapture">
+                <button v-for="id in groupedOrder.get(groupName)" :key="id" :data-sound-id="id"
+                    :ref="(el) => setCardRef(id, el as Element)" @click="onClick(id)"
+                    :class="{ 'edit-mode': store.ui_mode === 'edit' }">
+                    <div class="card" :class="{
+                        vibrate: store.ui_mode === 'edit' && dragState.id !== id,
+                        'is-dragging-source': dragState.id === id,
+                    }">
+                        <h3>{{ soundsById.get(id)?.filename }}</h3>
+                    </div>
+                </button>
+            </div>
         </div>
         <Teleport to="body">
             <div v-if="dragState.active && dragState.id" class="drag-ghost card" :style="ghostStyle">
@@ -258,10 +333,63 @@ const onClick = async (id: string) => {
             :title="store.sfx_library.find(v => v.id == selectedSound)?.filename">
             <editor :sound-id="selectedSound" />
         </Modal>
+
+        <Modal :show="showCreateGroup" @close="showCreateGroup = false" title="新しいグループ">
+            <div class="create-group-form">
+                <input type="text" v-model="newGroupName" placeholder="グループ名" @keydown.enter="submitCreateGroup">
+                <p v-if="createGroupError" class="error">{{ createGroupError }}</p>
+                <button @click="submitCreateGroup">作成</button>
+            </div>
+        </Modal>
     </div>
 </template>
 
 <style scoped>
+.group-toolbar {
+    padding: 12px 32px 0;
+}
+
+.group-section {
+    margin-bottom: 8px;
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 32px;
+}
+
+.group-header h4 {
+    flex: 1;
+    color: var(--label-boring);
+}
+
+.delete-group {
+    font-size: 12px;
+    color: var(--label-danger);
+    background: transparent;
+    border: none;
+}
+
+.create-group-form {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 220px;
+}
+
+.create-group-form input {
+    padding: 8px;
+}
+
+.create-group-form .error {
+    color: var(--label-danger);
+    font-size: 13px;
+    margin: 0;
+}
+
 .grid button {
     background-color: transparent;
     border: none;
@@ -340,3 +468,4 @@ button:active .card {
     }
 }
 </style>
+

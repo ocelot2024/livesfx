@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, useTemplateRef } from 'vue';
+import { ref, computed, useTemplateRef, onMounted } from 'vue';
 import DeckPlayer from './deckPlayer.vue';
 import Settinglist from './settinglist.vue';
 import SettingsRow from './settingsRow.vue';
@@ -21,11 +21,33 @@ const calcColour = (v: number) => {
 
     return `rgb(${r}, ${g}, ${b})`
 }
-const update = () => {
-    thumbColour.value = calcColour(crossfade.value?.value as unknown as number ?? 50)
-}
 const crossfade = useTemplateRef("crossfader")
 const thumbColour = ref(calcColour(50))
+
+// 等パワー則(equal-power law)でクロスフェード。
+// 中央(50)でA/Bとも -3dB になり、リニア則で起きる中央での聴感音量低下を避ける。
+// 現状deckA/deckBの出力ゲインをクロスフェーダーが直接制御している。
+// 将来デッキ単体の音量つまみを追加する場合は、このゲインと掛け合わせる形にする必要がある(現状は未実装なのでYAGNIで直接制御)。
+const applyCrossfade = (position: number) => {
+    const p = Math.min(Math.max(position, 0), 100) / 100
+    const theta = p * (Math.PI / 2)
+    const gainA = Math.cos(theta)
+    const gainB = Math.sin(theta)
+
+    ProjectEngine.set_gain("deckA", gainA)
+    ProjectEngine.set_gain("deckB", gainB)
+}
+
+const update = () => {
+    const position = (crossfade.value?.value as unknown as number) ?? 50
+    thumbColour.value = calcColour(position)
+    applyCrossfade(Number(position))
+}
+
+onMounted(() => {
+    if (crossfade.value) crossfade.value.value = "50"
+    applyCrossfade(50)
+})
 
 const load_to_deck = (deckId: "deckA" | "deckB", bgmId: string) => {
     ProjectEngine.load_bgm_to_deck(deckId, bgmId);

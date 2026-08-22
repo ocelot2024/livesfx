@@ -25,6 +25,16 @@ let playResetTimer: number | null = null;
 
 const playbackOption = ref<SFXPlayMode>(SFXPlayMode.OverLap);
 
+const UNGROUPED = '';
+const NEW_GROUP = '__new__';
+const selectedGroup = ref<string>(UNGROUPED);
+const newGroupName = ref('');
+const groupError = ref('');
+
+const groupOptions = computed(() =>
+    ProjectEngine.get_group_names().filter(g => g !== 'BGM')
+);
+
 const format_time = (seconds: number) => {
     if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
     const m = Math.floor(seconds / 60);
@@ -89,6 +99,9 @@ const load_sound = () => {
     duration.value = d;
     trimStart.value = meta?.start_from ?? 0;
     trimEnd.value = meta?.end_at ?? d;
+    selectedGroup.value = meta?.group ?? UNGROUPED;
+    newGroupName.value = '';
+    groupError.value = '';
     draw();
 };
 
@@ -179,6 +192,35 @@ const emit = defineEmits(['saved'])
 const save = () => {
     ProjectEngine.trim(props.soundId, trimStart.value, trimEnd.value);
     ProjectEngine.set_sfx_playmode(props.soundId, playbackOption.value);
+
+    let targetGroup: string | undefined = selectedGroup.value || undefined;
+    if (selectedGroup.value === NEW_GROUP) {
+        const name = newGroupName.value.trim();
+        if (!name) {
+            groupError.value = 'グループ名を入力してください';
+            return;
+        }
+        if (groupOptions.value.includes(name)) {
+            groupError.value = 'そのグループ名は既に使われています';
+            return;
+        }
+        const created = ProjectEngine.create_group(name);
+        if (!created.ok) {
+            groupError.value = created.value;
+            return;
+        }
+        targetGroup = name;
+    }
+
+    const currentMeta = ProjectEngine.get_soundinfo(props.soundId);
+    if ((currentMeta?.group ?? undefined) !== targetGroup) {
+        const result = ProjectEngine.move_sound_to_group(props.soundId, targetGroup);
+        if (!result.ok) {
+            groupError.value = result.value;
+            return;
+        }
+    }
+
     emit('saved');
 }
 </script>
@@ -222,6 +264,17 @@ const save = () => {
                     <option :value="SFXPlayMode.Ignore">無視する</option>
                     <option :value="SFXPlayMode.Stop">とめる</option>
                 </select>
+            </div>
+            <div>
+                <label for="GroupOption">グループ</label>
+                <select name="GroupOption" v-model="selectedGroup">
+                    <option :value="UNGROUPED">未分類</option>
+                    <option v-for="g in groupOptions" :key="g" :value="g">{{ g }}</option>
+                    <option :value="NEW_GROUP">＋ 新規グループを作成...</option>
+                </select>
+                <input v-if="selectedGroup === NEW_GROUP" type="text" v-model="newGroupName" placeholder="グループ名"
+                    class="new-group-input">
+                <p v-if="groupError" class="group-error">{{ groupError }}</p>
             </div>
         </section>
         <button @click="save()">変更を保存</button>
@@ -360,5 +413,18 @@ const save = () => {
 
 .sep {
     color: var(--gray-2);
+}
+
+.new-group-input {
+    margin-top: 8px;
+    padding: 6px 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.group-error {
+    color: var(--label-danger);
+    font-size: 13px;
+    margin: 6px 0 0;
 }
 </style>

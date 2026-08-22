@@ -81,6 +81,36 @@ describe("AudioMixer.createGroup", () => {
     });
 });
 
+describe("AudioMixer.get_group_names", () => {
+    test("returns an empty list when no groups exist", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        expect(mixer.get_group_names()).toEqual([]);
+    });
+
+    test("lists explicitly-created groups", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.createGroup("SFX");
+        mixer.createGroup("BGM");
+        expect(mixer.get_group_names().sort()).toEqual(["BGM", "SFX"]);
+    });
+
+    test("also lists groups that were implicitly created via create_channel", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.create_channel("deckA", "deckA", "BGM");
+        expect(mixer.get_group_names()).toEqual(["BGM"]);
+    });
+
+    test("never includes MASTER, which is tracked separately from groups", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.createGroup("SFX");
+        expect(mixer.get_group_names()).not.toContain(MIXER_MASTER_CHANNEL_ID);
+    });
+});
+
 describe("AudioMixer.create_channel", () => {
     test("creates a channel directly under master when no parent is given", () => {
         const { ctx } = makeFakeContext();
@@ -217,5 +247,93 @@ describe("AudioMixer.set_gain / get_gain", () => {
         const mixer = new AudioMixer(ctx);
         const result = mixer.set_gain("ghost", 0.5);
         expect(result.ok).toBe(false);
+    });
+});
+
+describe("AudioMixer.move_channel", () => {
+    test("moves a master-level channel into a group", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.create_channel("sound-1", "sound-1");
+        const result = mixer.move_channel("sound-1", "SFX");
+        expect(result.ok).toBe(true);
+        expect(mixer.group_children("SFX").map((c) => c.id)).toContain(
+            "sound-1",
+        );
+    });
+
+    test("moves a channel from one group to another", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.createGroup("A");
+        mixer.createGroup("B");
+        mixer.create_channel("sound-1", "sound-1", "A");
+        const result = mixer.move_channel("sound-1", "B");
+        expect(result.ok).toBe(true);
+        expect(mixer.group_children("A").map((c) => c.id)).not.toContain(
+            "sound-1",
+        );
+        expect(mixer.group_children("B").map((c) => c.id)).toContain(
+            "sound-1",
+        );
+    });
+
+    test("moving a grouped channel with no destination puts it back at master level", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.create_channel("sound-1", "sound-1", "SFX");
+        const result = mixer.move_channel("sound-1");
+        expect(result.ok).toBe(true);
+        expect(mixer.group_children("SFX").map((c) => c.id)).not.toContain(
+            "sound-1",
+        );
+        // still reachable/controllable at master level
+        expect(mixer.set_gain("sound-1", 0.4).ok).toBe(true);
+    });
+
+    test("preserves the channel's gain across the move", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.create_channel("sound-1", "sound-1");
+        mixer.set_gain("sound-1", 0.42);
+        mixer.move_channel("sound-1", "SFX");
+        expect(mixer.get_gain("sound-1")).toEqual({ ok: true, value: 0.42 });
+    });
+
+    test("returns Err for an id that doesn't exist", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        const result = mixer.move_channel("ghost", "SFX");
+        expect(result.ok).toBe(false);
+    });
+});
+
+describe("AudioMixer.delete_group", () => {
+    test("returns Err for a group that doesn't exist", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        const result = mixer.delete_group("ghost");
+        expect(result.ok).toBe(false);
+        if (!result.ok) expect(result.value).toBe(EngineError.GroupNotFound);
+    });
+
+    test("removes the group from get_group_names", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.createGroup("SFX");
+        mixer.delete_group("SFX");
+        expect(mixer.get_group_names()).not.toContain("SFX");
+    });
+
+    test("relocates children to master level instead of destroying them", () => {
+        const { ctx } = makeFakeContext();
+        const mixer = new AudioMixer(ctx);
+        mixer.create_channel("sound-1", "sound-1", "SFX");
+        mixer.delete_group("SFX");
+        // still controllable -> means it survived at master level
+        expect(mixer.set_gain("sound-1", 0.6)).toEqual({
+            ok: true,
+            value: 0.6,
+        });
     });
 });
