@@ -121,6 +121,9 @@ class BGM extends BaseSound {
     getPlayInfo(): { source: Blob } & SoundMeta {
         return { ...super.getPlayInfo(), source: this.source };
     }
+    play() {
+        this;
+    }
 }
 
 export class SoundLibrary {
@@ -146,6 +149,7 @@ export class SoundLibrary {
         }
     }
     remove(id: string) {
+        delete this.musics[id];
         delete this.sounds[id];
     }
     get_PlayInfo(id: string) {
