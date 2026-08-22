@@ -23,6 +23,7 @@ export const PlayerEvent = {
     unload: "unload",
     seek: "seek",
     ended: "ended",
+    timeupdate: "timeupdate",
 };
 export type PlayerEvent = (typeof PlayerEvent)[keyof typeof PlayerEvent];
 
@@ -46,6 +47,10 @@ class Deck extends EventTarget {
 
         this.player.addEventListener("ended", () => {
             this.dispatchEvent(new Event(PlayerEvent.ended));
+        });
+
+        this.player.addEventListener("timeupdate", () => {
+            this.dispatchEvent(new Event(PlayerEvent.timeupdate));
         });
     }
 
@@ -114,6 +119,8 @@ class Deck extends EventTarget {
         return {
             playing: this.playing,
             meta: this.info,
+            current_time: this.current_time,
+            duration: Number.isFinite(this.duration) ? this.duration : 0,
         };
     }
 }
@@ -166,6 +173,10 @@ class BGMPlayer extends EventTarget {
 
     seek(id: "deckA" | "deckB", time: number) {
         this[id].seek(time);
+    }
+
+    unload(id: "deckA" | "deckB") {
+        this[id].unload();
     }
 
     get_deck_elm(id: "deckA" | "deckB"): HTMLAudioElement {
@@ -383,6 +394,16 @@ export class Engine extends EventTarget {
     load_bgm(id: "deckA" | "deckB", file: BGMFile) {
         this.player.load(id, file);
     }
+    load_bgm_to_deck(
+        id: "deckA" | "deckB",
+        bgmId: string,
+    ): Result<void, AudioEngineError> {
+        const info = this.library.get_bgm_playinfo(bgmId);
+        if (!info) return Err(AudioEngineError.SoundNotFound);
+        const { source, ...meta } = info;
+        this.player.load(id, { ...meta, file: source });
+        return Ok();
+    }
 
     play_bgm(id: "deckA" | "deckB") {
         this.player.play(id);
@@ -398,6 +419,9 @@ export class Engine extends EventTarget {
 
     seek_bgm(id: "deckA" | "deckB", time: number) {
         this.player.seek(id, time);
+    }
+    unload_bgm(id: "deckA" | "deckB") {
+        this.player.unload(id);
     }
     get_bgm_info(id: "deckA" | "deckB") {
         return this.player.get_info(id);

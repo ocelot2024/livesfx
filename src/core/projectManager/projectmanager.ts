@@ -371,6 +371,15 @@ export class ProjectManager extends EventTarget {
         this.AudioEngine.load_bgm(id, file);
     }
 
+    load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
+        const result = this.AudioEngine.load_bgm_to_deck(id, bgmId);
+        if (!result.ok) {
+            this.error(result.value);
+            return result;
+        }
+        return result;
+    }
+
     play_bgm(id: "deckA" | "deckB") {
         return this.AudioEngine.play_bgm(id);
     }
@@ -385,5 +394,9 @@ export class ProjectManager extends EventTarget {
 
     seek_bgm(id: "deckA" | "deckB", time: number) {
         this.AudioEngine.seek_bgm(id, time);
+    }
+
+    eject_bgm(id: "deckA" | "deckB") {
+        this.AudioEngine.unload_bgm(id);
     }
 }

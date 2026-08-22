@@ -176,6 +176,11 @@ export class SoundLibrary {
     get_duration(id: string) {
         return this.sounds[id]?.get_duration();
     }
+    get_bgm_playinfo(id: string) {
+        if (id in this.musics) {
+            return this.musics[id]?.getPlayInfo();
+        }
+    }
     get_waveform(id: string, buckets: number): WaveformPeaks | undefined {
         const sound = this.sounds[id];
         if (!sound) return undefined;

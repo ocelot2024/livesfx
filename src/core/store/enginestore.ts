@@ -6,10 +6,13 @@ import { EngineEvent } from "../types/types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { generateUUID } from "../util/util";
+import { PlayerEvent } from "../audioEngine/audioengine";
 
 export interface BGMPlayerInfo {
     playing: boolean;
     meta: SoundMeta | null;
+    current_time: number;
+    duration: number;
 }
 
 export const useEngineState = defineStore("engine", () => {
@@ -20,8 +23,8 @@ export const useEngineState = defineStore("engine", () => {
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
 
     const deck = ref<[BGMPlayerInfo, BGMPlayerInfo]>([
-        { playing: false, meta: null },
-        { playing: false, meta: null },
+        { playing: false, meta: null, current_time: 0, duration: 0 },
+        { playing: false, meta: null, current_time: 0, duration: 0 },
     ]);
 
     let timer: number | null;
@@ -85,6 +88,19 @@ export const useEngineState = defineStore("engine", () => {
             }
         }, 1000);
     });
+
+    const deckKey = (id: "A" | "B"): "deckA" | "deckB" =>
+        id === "A" ? "deckA" : "deckB";
+    const deckIndex = (id: "A" | "B") => (id === "A" ? 0 : 1);
+
+    for (const event of Object.values(PlayerEvent)) {
+        ProjectEngine.addEventListener(event, (e) => {
+            const detail = (e as CustomEvent<{ deck?: "A" | "B" }>).detail;
+            const id = detail?.deck;
+            if (!id) return;
+            deck.value[deckIndex(id)] = ProjectEngine.get_bgm_info(deckKey(id));
+        });
+    }
     return {
         ui_mode,
         sfx_library,

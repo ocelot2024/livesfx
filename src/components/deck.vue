@@ -26,13 +26,17 @@ const update = () => {
 }
 const crossfade = useTemplateRef("crossfader")
 const thumbColour = ref(calcColour(50))
+
+const load_to_deck = (deckId: "deckA" | "deckB", bgmId: string) => {
+    ProjectEngine.load_bgm_to_deck(deckId, bgmId);
+}
 </script>
 <template>
     <div style="padding: 12px;">
         <div class="container">
             <div class="grid">
-                <DeckPlayer colour="indigo" :deck_info="store.deck[0]" />
-                <DeckPlayer colour="yellow" :deck_info="store.deck[1]" />
+                <DeckPlayer deck-id="deckA" colour="indigo" :deck_info="store.deck[0]" />
+                <DeckPlayer deck-id="deckB" colour="yellow" :deck_info="store.deck[1]" />
             </div>
             <br>
             <input ref="crossfader" type="range" style="width: 100%;" :style="{ '--thumb-colour': thumbColour }"
@@ -48,6 +52,10 @@ const thumbColour = ref(calcColour(50))
                         <button @click="ProjectEngine.add_bgm()">曲を追加する</button>
                     </div>
                     <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id">
+                        <div class="row-actions">
+                            <button @click="load_to_deck('deckA', value.id)">A</button>
+                            <button @click="load_to_deck('deckB', value.id)">B</button>
+                        </div>
                     </SettingsRow>
                 </SettingsSection>
             </Settinglist>
@@ -72,6 +80,15 @@ const thumbColour = ref(calcColour(50))
 .flex>button {
     flex: 1;
     width: 4rem;
+}
+
+.row-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.row-actions>button {
+    width: 2rem;
 }
 
 input[type="range"] {
