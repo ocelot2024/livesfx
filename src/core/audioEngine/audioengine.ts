@@ -167,6 +167,10 @@ class BGMPlayer extends EventTarget {
     seek(id: "deckA" | "deckB", time: number) {
         this[id].seek(time);
     }
+
+    get_deck_elm(id: "deckA" | "deckB"): HTMLAudioElement {
+        return this[id].player;
+    }
 }
 
 export class Engine extends EventTarget {
@@ -183,6 +187,15 @@ export class Engine extends EventTarget {
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
         this.player = new BGMPlayer();
+
+        this.mixer.connect_media_elem(
+            this.player.get_deck_elm("deckA"),
+            "deckA",
+        );
+        this.mixer.connect_media_elem(
+            this.player.get_deck_elm("deckB"),
+            "deckB",
+        );
 
         window.addEventListener("click", this.resume_ctx);
         window.addEventListener("touchstart", this.resume_ctx);

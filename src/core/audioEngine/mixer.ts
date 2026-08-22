@@ -149,4 +149,24 @@ export class AudioMixer {
         if (!target) return Err(AudioMixerError.ChannelNotFound);
         return Ok(target.channel.output.gain.value);
     }
+    connect_media_elem(
+        element: HTMLMediaElement,
+        deckId: "deckA" | "deckB",
+    ): Result<void, string> {
+        const sourceNode = new MediaElementAudioSourceNode(this.ctx, {
+            mediaElement: element,
+        });
+
+        const created = this.create_channel(deckId, deckId, "BGM");
+        if (!created.ok) return Err(created.value);
+
+        const found = this.channel_finder(deckId);
+        if (!found) return Err(EngineError.ChannelNotFound);
+
+        const target = found.target[deckId];
+        if (!target) return Err(EngineError.ChannelNotFound);
+
+        sourceNode.connect(target.channel.inputGain);
+        return Ok();
+    }
 }
