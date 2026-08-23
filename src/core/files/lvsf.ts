@@ -22,9 +22,21 @@ export class LVSFFile {
         this.soundMap = {};
         this.files = new Map<string, ArrayBuffer>();
     }
-    addFile(file: ArrayBuffer, sound: SoundMeta) {
-        this.soundMap[sound.id] = sound;
-        this.files.set(sound.id, file);
+    addFile(
+        files: Record<string, ArrayBuffer>,
+        metas: Record<string, SoundMeta>,
+    ) {
+        let missing = false;
+        for (const id in files) {
+            const meta = metas[id];
+            const file = files[id];
+            if (!meta || !file) {
+                missing = true;
+                continue;
+            }
+            this.soundMap[id] = meta;
+            this.files.set(id, file);
+        }
     }
     export() {
         let offset = 0;

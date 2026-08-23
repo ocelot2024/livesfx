@@ -1,4 +1,3 @@
-import { LVSFFile } from "./lvsf";
 import { None, Some, type Option } from "../types/types";
 
 export const openFilePicker = ({
@@ -33,5 +32,3 @@ export interface LVSFSoundFileMeta {
     size: number;
     id: string;
 }
-
-export { LVSFFile };
