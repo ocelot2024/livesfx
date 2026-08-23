@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { AudioMixer, MIXER_MASTER_CHANNEL_ID } from "../audioEngine/mixer";
 import { EngineError } from "../types/error_types";
+import { FakeNode, makeFakeContext } from "./fakeaudio";
 
 /**
  * AudioMixer takes its AudioContext through the constructor, so we can
@@ -8,39 +9,9 @@ import { EngineError } from "../types/error_types";
  * (createGain, destination) and records connect/disconnect calls. This
  * verifies the routing *logic* (grouping, parenting, id collisions,
  * cleanup) without touching the real Web Audio API or jsdom.
+ * (FakeNode/makeFakeContext live in ./testUtils/fakeAudio so audioengine
+ * tests can reuse the same primitives.)
  */
-class FakeNode {
-    readonly label: string;
-    connectedTo: FakeNode[] = [];
-    disconnectCount = 0;
-    gain = { value: 1 };
-    constructor(label: string) {
-        this.label = label;
-    }
-    connect(target: FakeNode) {
-        this.connectedTo.push(target);
-        return target;
-    }
-    disconnect() {
-        this.disconnectCount++;
-        this.connectedTo = [];
-    }
-}
-
-let nodeCounter = 0;
-function makeFakeContext() {
-    const destination = new FakeNode("destination");
-    const created: FakeNode[] = [];
-    const ctx = {
-        destination,
-        createGain: () => {
-            const node = new FakeNode(`gain-${nodeCounter++}`);
-            created.push(node);
-            return node as unknown as GainNode;
-        },
-    };
-    return { ctx: ctx as unknown as AudioContext, destination, created };
-}
 
 describe("AudioMixer - construction", () => {
     test("wires the master channel's inputGain -> output -> ctx.destination chain", () => {
@@ -273,9 +244,7 @@ describe("AudioMixer.move_channel", () => {
         expect(mixer.group_children("A").map((c) => c.id)).not.toContain(
             "sound-1",
         );
-        expect(mixer.group_children("B").map((c) => c.id)).toContain(
-            "sound-1",
-        );
+        expect(mixer.group_children("B").map((c) => c.id)).toContain("sound-1");
     });
 
     test("moving a grouped channel with no destination puts it back at master level", () => {
