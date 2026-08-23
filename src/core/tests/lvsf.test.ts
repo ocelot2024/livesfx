@@ -68,8 +68,16 @@ const bytesB = new Uint8Array([9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 255]);
 
 function buildTwoSoundWriter(): LVSFFile {
     const writer = new LVSFFile();
-    writer.addFile(bytesA.buffer as ArrayBuffer, soundA);
-    writer.addFile(bytesB.buffer as ArrayBuffer, soundB);
+    writer.addFile(
+        {
+            [soundA.id]: bytesA.buffer as ArrayBuffer,
+            [soundB.id]: bytesB.buffer as ArrayBuffer,
+        },
+        {
+            [soundA.id]: soundA,
+            [soundB.id]: soundB,
+        },
+    );
     return writer;
 }
 
@@ -84,7 +92,10 @@ describe("LVSFFile.export", () => {
 
     test("encodes the JSON body byte length (not the JS string length) into the header", async () => {
         const writer = new LVSFFile();
-        writer.addFile(bytesA.buffer as ArrayBuffer, soundA);
+        writer.addFile(
+            { [soundA.id]: bytesA.buffer as ArrayBuffer },
+            { [soundA.id]: soundA },
+        );
         const blob = writer.export();
 
         const buffer = await blob.arrayBuffer();
@@ -175,7 +186,10 @@ describe("LVSFFile.parse - round trip", () => {
 
     test("round trip survives a single sound too (degenerate multi-file case)", async () => {
         const writer = new LVSFFile();
-        writer.addFile(bytesA.buffer as ArrayBuffer, soundA);
+        writer.addFile(
+            { [soundA.id]: bytesA.buffer as ArrayBuffer },
+            { [soundA.id]: soundA },
+        );
         const file = toFile(writer.export(), "one-sound.lvsf");
 
         const reader = new LVSFFile();
@@ -253,7 +267,10 @@ describe("LVSFFile.parse - play_mode round trip", () => {
             },
         ];
         for (const sound of sounds) {
-            writer.addFile(new Uint8Array([1]).buffer as ArrayBuffer, sound);
+            writer.addFile(
+                { [sound.id]: new Uint8Array([1]).buffer as ArrayBuffer },
+                { [sound.id]: sound },
+            );
         }
         const file = toFile(writer.export(), "playmodes.lvsf");
 
@@ -277,7 +294,10 @@ describe("LVSFFile.parse - play_mode round trip", () => {
             filename: "e.wav",
             type: SoundFileType.SFX,
         };
-        writer.addFile(new Uint8Array([1]).buffer as ArrayBuffer, sound);
+        writer.addFile(
+            { [sound.id]: new Uint8Array([1]).buffer as ArrayBuffer },
+            { [sound.id]: sound },
+        );
         const file = toFile(writer.export(), "no-playmode.lvsf");
 
         const reader = new LVSFFile();
