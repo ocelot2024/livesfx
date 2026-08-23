@@ -1,26 +1,35 @@
 import { createApp } from "vue";
-import { createPinia } from "pinia";
+import { createPinia, type Pinia } from "pinia";
 import App from "./App.vue";
 import "./style/main.css";
 import { ProjectEngine } from "./core/index.ts";
 import { registerSW } from "virtual:pwa-register";
 import { createPersistPlugin } from "./core/store/persist.ts";
+import { useUpdateStore } from "./core/store/updatestore.ts";
+
+let pinia: Pinia | null = null;
+let pendingRegistration: ServiceWorkerRegistration | undefined;
 
 window.addEventListener("load", async () => {
     await ProjectEngine.init();
     const app = createApp(App);
-    const pinia = createPinia();
+    pinia = createPinia();
     pinia.use(createPersistPlugin(["config", "ui_state"]));
     app.use(pinia);
     app.mount("#app");
+
+    useUpdateStore(pinia).setRegistration(pendingRegistration);
 });
 
 const updateSW = registerSW({
     onNeedRefresh() {
-        //あとでアプリ内通知に変更
-        const will = confirm("更新があります。再起動して更新しますか？");
-        if (will) updateSW(true);
-        return;
+        if (!pinia) return;
+        useUpdateStore(pinia).notifyUpdateAvailable(() => updateSW(true));
+    },
+    onRegisteredSW(_swUrl, registration) {
+        pendingRegistration = registration;
+        if (!pinia) return;
+        useUpdateStore(pinia).setRegistration(registration);
     },
     onOfflineReady() {
         console.log("Ready to Offline");

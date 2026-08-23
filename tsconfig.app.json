@@ -6,6 +6,9 @@
     // Extra safety for array and object lookups, but may have false positives.
     "noUncheckedIndexedAccess": true,
 
+    // src/core/changelog.json を型付きで import するため
+    "resolveJsonModule": true,
+
     // Path mapping for cleaner imports.
     "paths": {
       "@/*": ["./src/*"]

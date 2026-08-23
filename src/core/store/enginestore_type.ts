@@ -4,6 +4,7 @@ export interface Notificatin {
     type: NotificationType;
     title?: string;
     message?: string;
+    onClick?: () => void;
 }
 
 export const EngineProcState = {

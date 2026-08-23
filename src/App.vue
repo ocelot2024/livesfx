@@ -10,6 +10,7 @@ import Tab, { type TabItem } from "./components/Tab.vue";
 import MixerView from "./components/View/MixerView.vue";
 import { defineAsyncComponent, ref } from 'vue';
 import Modal from './components/Modal.vue';
+import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
 import { useUiState } from './core/store/ui_state.ts';
 import { storeToRefs } from 'pinia';
@@ -109,6 +110,7 @@ const prefView = defineAsyncComponent({ loader: () => import('./components/View/
     <Modal :show="showPrefView" @close="showPrefView = false">
         <prefView />
     </Modal>
+    <UpdateModal />
 </template>
 
 <style scoped>

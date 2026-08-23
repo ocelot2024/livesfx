@@ -39,3 +39,6 @@ __screenshots__/
 *.timestamp-*-*.mjs
 dev-dist/workbox-*.js
 dev-dist/sw.js
+
+# vite.config.ts の versionInfoPlugin が src/core/changelog.json から生成するビルド成果物
+public/version.json

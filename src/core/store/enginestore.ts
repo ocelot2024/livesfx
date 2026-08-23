@@ -93,6 +93,13 @@ export const useEngineState = defineStore("engine", () => {
         id === "A" ? "deckA" : "deckB";
     const deckIndex = (id: "A" | "B") => (id === "A" ? 0 : 1);
 
+    const dismissNotif = (id: string) => {
+        const index = notif_queue.value.findIndex((v) => id === v.id);
+        if (index !== -1) {
+            notif_queue.value.splice(index, 1);
+        }
+    };
+
     for (const event of Object.values(PlayerEvent)) {
         ProjectEngine.addEventListener(event, (e) => {
             const detail = (e as CustomEvent<{ deck?: "A" | "B" }>).detail;
@@ -108,6 +115,7 @@ export const useEngineState = defineStore("engine", () => {
         notif_queue,
         EngineState,
         deck,
+        dismissNotif,
     };
 });
 
