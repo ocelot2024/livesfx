@@ -14,6 +14,11 @@ import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
 import { useUiState } from './core/store/ui_state.ts';
 import { storeToRefs } from 'pinia';
+import { AnalysisTrackEvent } from './tracker.ts';
+
+const track = (event: string, data?: Record<string, string | number | boolean>) => {
+    umami.track(event, data);
+};
 
 const BGMView = defineAsyncComponent({
     loader: () => import('./components/View/BGMView.vue')
@@ -22,18 +27,23 @@ const BGMView = defineAsyncComponent({
 const engine_store = useEngineState();
 const ui_store = useUiState();
 const config_store = useConfigStore();
-
 const menu: MenuList[] = [
     {
         label: "ファイル",
         id: "file",
         children: [
-            { label: "新規", id: "new", handle: () => { ProjectEngine.start_with_blank() } },
-            { label: "名前を付けて保存", id: "save", handle: () => { ProjectEngine.export() } },
-            { label: "開く", id: "open", handle: () => { ProjectEngine.start_from_file(); } },
+            {
+                label: "新規", id: "new", handle: () => {
+                    ProjectEngine.start_with_blank();
+                    track(AnalysisTrackEvent.StartWithBlank)
+                }
+            },
+            { label: "名前を付けて保存", id: "save", handle: () => { ProjectEngine.export(); track(AnalysisTrackEvent.ExportProject); } },
+            { label: "開く", id: "open", handle: () => { ProjectEngine.start_from_file(); track(AnalysisTrackEvent.StartFromFile) } },
             {
                 label: "環境設定", id: "pref", handle: () => {
                     showPrefView.value = true;
+                    track(AnalysisTrackEvent.OpenPref)
                 }
             }
         ]
@@ -42,8 +52,8 @@ const menu: MenuList[] = [
         label: "編集",
         id: "edit",
         children: [
-            { "label": "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sfx(); } },
-            { "label": "BGMの追加", id: "add_bgm", handle: () => { ProjectEngine.add_bgm(); } }
+            { "label": "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sfx(); track(AnalysisTrackEvent.AddSfx) } },
+            { "label": "BGMの追加", id: "add_bgm", handle: () => { ProjectEngine.add_bgm(); track(AnalysisTrackEvent.AddBgm) } }
         ]
     }
 ]
@@ -62,8 +72,10 @@ const toggle_ui_mode = () => {
         const will = configstore.enterEditModeConfirm ? confirm('編集モードに入りますか?') : true;
         if (!will) return;
         engine_store.ui_mode = "edit"
+        track(AnalysisTrackEvent.EnterEditMode)
     } else {
         engine_store.ui_mode = "live";
+        track(AnalysisTrackEvent.ExitEditMode)
     }
 }
 const tabitems: TabItem[] = [{
