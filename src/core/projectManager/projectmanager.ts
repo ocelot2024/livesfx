@@ -9,6 +9,7 @@ import {
     type SFXPlayMode,
     type SFXFile,
     type BGMFile,
+    type SoundMeta,
 } from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
 import projectStateManager from "./projectStateManager";
@@ -315,6 +316,13 @@ export class ProjectManager extends EventTarget {
         const lvsffile = new LVSFFile();
         const sfx_lib = this.get_sfx_library();
         const bgm_lib = this.get_bgm_library();
+
+        const library: Record<string, SoundMeta> = Object.assign(
+            {},
+            sfx_lib,
+            bgm_lib,
+        );
+
         const files = await this.storageManager.load_sound_cache();
 
         if (!files.ok) {
@@ -322,27 +330,14 @@ export class ProjectManager extends EventTarget {
             this.fin_proc();
             return;
         }
-        const sfx_filesMap = Object.fromEntries(
+        const sfx_filesMap: Record<string, ArrayBuffer> = Object.fromEntries(
             files.value.map(({ id, file }) => [id, file]),
         );
         const bgm_filesMap = await this.AudioEngine.get_all_bgm_arraybuffer();
         const fileMap = Object.assign({}, sfx_filesMap, bgm_filesMap);
 
         let missing = false;
-        for (const id in sfx_lib) {
-            if (!fileMap[id] || !sfx_lib[id]) {
-                missing = true;
-                continue;
-            }
-            lvsffile.addFile(fileMap[id], sfx_lib[id]);
-        }
-        for (const id in bgm_lib) {
-            if (!fileMap[id] || !bgm_lib[id]) {
-                missing = true;
-                continue;
-            }
-            lvsffile.addFile(fileMap[id], bgm_lib[id]);
-        }
+        lvsffile.addFile(fileMap, library);
         if (missing) this.warn(EngineError.MissingCachedAudioForExport);
 
         const blob = lvsffile.export();
