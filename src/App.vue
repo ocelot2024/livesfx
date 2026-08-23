@@ -7,21 +7,26 @@ import Spinner from "./components/Spinner.vue";
 import { EngineProcState } from "./core/store/enginestore_type.ts";
 import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
-import MixerView from "./components/View/MixerView.vue";
 import { defineAsyncComponent, ref } from 'vue';
 import Modal from './components/Modal.vue';
 import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
 import { useUiState } from './core/store/ui_state.ts';
 import { storeToRefs } from 'pinia';
-import { AnalysisTrackEvent } from './tracker.ts';
+import { AnalysisTrackEvent, track } from './tracker.ts';
 
-const track = (event: string, data?: Record<string, string | number | boolean>) => {
-    umami.track(event, data);
-};
 
+const MixerView = defineAsyncComponent({
+    loader: () => import('./components/View/MixerView.vue'),
+    loadingComponent: Spinner
+})
 const BGMView = defineAsyncComponent({
-    loader: () => import('./components/View/BGMView.vue')
+    loader: () => import('./components/View/BGMView.vue'),
+    loadingComponent: Spinner
+})
+const prefView = defineAsyncComponent({
+    loader: () => import('./components/View/PreferencesView.vue'),
+    loadingComponent: Spinner
 })
 
 const engine_store = useEngineState();
@@ -95,7 +100,6 @@ const selectedView = config_store.memoryLastTab
     : ref("pad")
 
 const showPrefView = ref<boolean>(false);
-const prefView = defineAsyncComponent({ loader: () => import('./components/View/PreferencesView.vue'), loadingComponent: Spinner })
 </script>
 
 <template>
