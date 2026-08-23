@@ -1,6 +1,5 @@
 import { Engine, PlayerEvent } from "../audioEngine/audioengine";
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
-import { openFilePicker, LVSFFile } from "../files/fileUtil";
 import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
@@ -60,11 +59,15 @@ export class ProjectManager extends EventTarget {
             }),
         );
     }
-    async init() {
+    async init(filename?: string) {
+        if (this.AudioEngine) {
+            await this.AudioEngine.dispose();
+            this.AudioEngine = new Engine();
+        }
         const result = await this.storageManager.initialise_storage();
         if (!result.ok) this.warn(EngineError.CouldNotCleanUpDB);
         this.bindAudioEngineEvents();
-        this.projectname = "名称未設定";
+        this.projectname = filename ?? "名称未設定";
         this.render_title(this.projectname);
         this.AudioEngine.createChannel("SFX");
         this.stateManager.init();
@@ -97,6 +100,8 @@ export class ProjectManager extends EventTarget {
     }
     async start_from_file(): Promise<Result<void, string>> {
         if (!this.stateManager.leaveConfirm()) return Ok();
+        const { LVSFFile } = await import("../files/lvsf");
+        const { openFilePicker } = await import("../files/fileUtil");
         const filelist = await openFilePicker({
             multiple: false,
             accept: "." + PROJECT_FILE_EX,
@@ -109,10 +114,7 @@ export class ProjectManager extends EventTarget {
             this.error(EngineError.InvalidLVSFFile);
             return Err(info.value);
         }
-        await this.AudioEngine.dispose();
-        this.AudioEngine = new Engine();
-        await this.init();
-        this.render_title(info.value.filename);
+        await this.init(info.value.filename);
         const sfx_frag: SFXFile[] = [];
         const bgm_frag: BGMFile[] = [];
         let load_failed = false;
@@ -146,6 +148,7 @@ export class ProjectManager extends EventTarget {
         }
         let files: BGMFile[] = [];
         if (!musics) {
+            const { openFilePicker } = await import("../files/fileUtil");
             const audiofiles = await openFilePicker({
                 accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
             });
@@ -208,6 +211,7 @@ export class ProjectManager extends EventTarget {
         }
         let files: SFXFile[] = [];
         if (!sounds) {
+            const { openFilePicker } = await import("../files/fileUtil");
             const audios = await openFilePicker({
                 accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
             });
@@ -307,6 +311,7 @@ export class ProjectManager extends EventTarget {
             return;
         }
         this.proc_event(EngineProcState.Proccessing);
+        const { LVSFFile } = await import("../files/lvsf");
         const lvsffile = new LVSFFile();
         const sfx_lib = this.get_sfx_library();
         const bgm_lib = this.get_bgm_library();
