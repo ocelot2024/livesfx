@@ -87,30 +87,32 @@ const prefView = defineAsyncComponent({ loader: () => import('./components/View/
 </script>
 
 <template>
-    <AppBar v-bind:items="menu" />
-    <Tab :tabs="tabitems" v-model="selectedView" />
-    <PadView v-show="selectedView === 'pad'" />
-    <BGMView v-show="selectedView === 'bgm'" />
-    <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
-    <MixerView v-if="selectedView === 'mixer'" />
-    <footer>
-        <div class="flex" style="justify-content: space-between;">
-            <button @click="ProjectEngine.stop_all_sfx()">すべて停止</button>
-            <button @click="toggle_ui_mode()">{{ engine_store.ui_mode == "live" ? "編集" : "完了" }}</button>
-        </div>
-    </footer>
+    <main>
+        <AppBar v-bind:items="menu" />
+        <Tab :tabs="tabitems" v-model="selectedView" />
+        <PadView v-show="selectedView === 'pad'" />
+        <BGMView v-show="selectedView === 'bgm'" />
+        <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
+        <MixerView v-if="selectedView === 'mixer'" />
+        <footer>
+            <div class="flex" style="justify-content: space-between;">
+                <button @click="ProjectEngine.stop_all_sfx()">すべて停止</button>
+                <button @click="toggle_ui_mode()">{{ engine_store.ui_mode == "live" ? "編集" : "完了" }}</button>
+            </div>
+        </footer>
 
-    <NotifCentre />
-    <div class="full" v-if="engine_store.EngineState !== EngineProcState.Idle">
-        <div class="spinner_container">
-            <Spinner />
-            <p>{{ message[engine_store.EngineState] }}</p>
+        <NotifCentre />
+        <div class="full" v-if="engine_store.EngineState !== EngineProcState.Idle">
+            <div class="spinner_container">
+                <Spinner />
+                <p>{{ message[engine_store.EngineState] }}</p>
+            </div>
         </div>
-    </div>
-    <Modal :show="showPrefView" @close="showPrefView = false">
-        <prefView />
-    </Modal>
-    <UpdateModal />
+        <Modal :show="showPrefView" @close="showPrefView = false">
+            <prefView />
+        </Modal>
+        <UpdateModal />
+    </main>
 </template>
 
 <style scoped>
