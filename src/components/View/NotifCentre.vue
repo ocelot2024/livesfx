@@ -6,7 +6,7 @@ const store = useEngineState();
 </script>
 <template>
     <div class="notif_list">
-        <Notif v-for="(value, index) in store.notif_queue" :key="value.id" v-bind="value" />
+        <Notif v-for="(value) in store.notif_queue" :key="value.id" v-bind="value" />
     </div>
 </template>
 <style scoped>
@@ -14,7 +14,7 @@ const store = useEngineState();
     position: fixed;
     width: 15rem;
     right: 12px;
-    top: 12px;
+    top: 64px;
     display: flex;
     gap: 12px;
     flex-direction: column;
