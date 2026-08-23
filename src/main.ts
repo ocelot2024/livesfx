@@ -10,16 +10,14 @@ import { useUpdateStore } from "./core/store/updatestore.ts";
 let pinia: Pinia | null = null;
 let pendingRegistration: ServiceWorkerRegistration | undefined;
 
-window.addEventListener("load", async () => {
-    await ProjectEngine.init();
-    const app = createApp(App);
-    pinia = createPinia();
-    pinia.use(createPersistPlugin(["config", "ui_state"]));
-    app.use(pinia);
-    app.mount("#app");
+await ProjectEngine.init();
+const app = createApp(App);
+pinia = createPinia();
+pinia.use(createPersistPlugin(["config", "ui_state"]));
+app.use(pinia);
+app.mount("#app");
 
-    useUpdateStore(pinia).setRegistration(pendingRegistration);
-});
+useUpdateStore(pinia).setRegistration(pendingRegistration);
 
 const updateSW = registerSW({
     onNeedRefresh() {
