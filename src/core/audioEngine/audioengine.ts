@@ -249,13 +249,14 @@ export class Engine extends EventTarget {
         this.library.set_group(id, newGroup);
         return Ok();
     }
-    async add_sfx(
-        name: string,
-        file: ArrayBuffer,
-        id?: string,
-        group?: string,
-        gain?: number,
-    ): Promise<Result<string, string>> {
+    async add_sfx(option: {
+        name: string;
+        file: ArrayBuffer;
+        id?: string;
+        group?: string;
+        gain?: number;
+    }): Promise<Result<string, string>> {
+        const { id, file, group, name, gain } = option;
         const sound_id = id ?? generateUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
         const groupname = group ?? "SFX";

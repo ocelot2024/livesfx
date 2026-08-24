@@ -226,10 +226,10 @@ export class ProjectManager extends EventTarget {
             let add_failed = false;
             for (const audiofile of audios.value) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
-                const id = await this.AudioEngine.add_sfx(
-                    audiofile.name,
-                    bin.slice(0),
-                );
+                const id = await this.AudioEngine.add_sfx({
+                    name: audiofile.name,
+                    file: bin.slice(0),
+                });
                 if (!id.ok) {
                     add_failed = true;
                     continue;
@@ -246,13 +246,13 @@ export class ProjectManager extends EventTarget {
             this.proc_event(EngineProcState.Loading);
             files = sounds;
             for (const sound of files) {
-                const result = await this.AudioEngine.add_sfx(
-                    sound.filename,
-                    sound.file.slice(0),
-                    sound.id,
-                    sound.group,
-                    sound.gain,
-                );
+                const result = await this.AudioEngine.add_sfx({
+                    name: sound.filename,
+                    file: sound.file.slice(0),
+                    id: sound.id,
+                    group: sound.group,
+                    gain: sound.gain,
+                });
                 if (!result.ok) {
                     this.error(result.value);
                     continue;

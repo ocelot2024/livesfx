@@ -1,8 +1,8 @@
+import { AUDIO_MIME_TYPES } from "../constants";
 import { useConfigStore } from "../store/configstore";
-import { EngineException } from "../types/error_types";
+import { EngineError, EngineException } from "../types/error_types";
 import { Ok, Err, type Result } from "../types/types";
 import { compute_peaks, type WaveformPeaks } from "../util/waveform";
-
 export enum SFXPlayMode {
     OverLap,
     Restart,
@@ -26,6 +26,7 @@ export interface SoundMeta {
     group?: string;
     gain?: number;
     type: SoundFileType;
+    mime?: AUDIO_MIME_TYPES;
 }
 
 export interface SFXFile extends SoundMeta {
@@ -45,6 +46,15 @@ abstract class BaseSound {
 
     constructor(option: SoundMeta) {
         this.meta = { ...option };
+        if (!option.mime) {
+            const dotpos = this.meta.filename.lastIndexOf(".");
+            if (dotpos < 0) {
+                throw new Error(EngineError.UnknownSound);
+            } else {
+                const ex = this.meta.filename.slice(dotpos + 1);
+                this.meta.mime = AUDIO_MIME_TYPES[ex];
+            }
+        }
     }
 
     getInfo(): SoundMeta {
