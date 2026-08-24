@@ -10,6 +10,7 @@ export enum EngineError {
     PartialSoundLoadFailed = "partial_sound_load_failed",
     PartialSoundAddFailed = "partial_sound_add_failed",
     MissingCachedAudioForExport = "missing_cache_audio_for_export",
+    UnknownSound = "unknown_sound",
 }
 
 export enum EngineException {

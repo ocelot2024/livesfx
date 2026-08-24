@@ -10,6 +10,23 @@ import { EngineError } from "../types/error_types";
 import { LVSF_MAGIC_BYTE, HEADER_SIZE, PROJECT_FILE_EX } from "../constants";
 import { type SoundMeta } from "../audioEngine/sounds";
 
+const AUDIO_MIME_TYPES: Record<string, string> = {
+    mp3: "audio/mpeg",
+    m4a: "audio/mp4",
+    aac: "audio/aac",
+    wav: "audio/wav",
+    aif: "audio/aiff",
+    aiff: "audio/aiff",
+    aifc: "audio/aiff",
+    mp4: "audio/mp4",
+    m4b: "audio/mp4",
+    m4p: "audio/mp4",
+    amr: "audio/amr",
+    "3gp": "audio/3gpp",
+    "3gpp": "audio/3gpp",
+    "3g2": "audio/3gpp2",
+};
+
 export class LVSFFile {
     prj_info?: lvsf_prj_internal_meta;
     lvsf?: File;
@@ -134,10 +151,19 @@ export class LVSFFile {
         if (!this.json_size || !this.lvsf || !this.prj_info)
             return Err(EngineError.NoProjectFile);
         const data = this.prj_info.files.find((value) => value.id == id);
-        if (!data) return Err(EngineError.SoundNotExist);
+        const filename = this.prj_info.sounds.find((v) => v.id == id)?.filename;
+        const dot_pos = filename?.lastIndexOf(".");
+        if (!data || !filename) return Err(EngineError.SoundNotExist);
+        const ext =
+            dot_pos !== undefined && dot_pos >= 0
+                ? filename.slice(dot_pos + 1)
+                : "";
+        const mime = AUDIO_MIME_TYPES[ext];
+        if (!mime) return Err(EngineError.UnknownSound);
         const audio = this.lvsf.slice(
             data.offset + this.json_size + HEADER_SIZE,
             data.size + data.offset + this.json_size + HEADER_SIZE,
+            mime,
         );
         return Ok(audio);
     }
