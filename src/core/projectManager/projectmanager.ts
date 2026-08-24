@@ -65,13 +65,15 @@ export class ProjectManager extends EventTarget {
             await this.AudioEngine.dispose();
             this.AudioEngine = new Engine();
         }
-        const result = await this.storageManager.initialise_storage();
-        if (!result.ok) this.warn(EngineError.CouldNotCleanUpDB);
+        const result = this.storageManager.initialise_storage().then((r) => {
+            if (!r.ok) this.warn(EngineError.CouldNotCleanUpDB);
+        });
         this.bindAudioEngineEvents();
         this.projectname = filename ?? "名称未設定";
         this.render_title(this.projectname);
         this.AudioEngine.createChannel("SFX");
         this.stateManager.init();
+        await result;
     }
     private proc_event(state: EngineProcState) {
         this.dispatchEvent(
