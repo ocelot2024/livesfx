@@ -255,8 +255,9 @@ export class Engine extends EventTarget {
         id?: string;
         group?: string;
         gain?: number;
+        mime?: string;
     }): Promise<Result<string, string>> {
-        const { id, file, group, name, gain } = option;
+        const { id, file, group, name, gain, mime } = option;
         const sound_id = id ?? generateUUID();
         const audiobuffer = await this.ctx.decodeAudioData(file);
         const groupname = group ?? "SFX";
@@ -266,6 +267,7 @@ export class Engine extends EventTarget {
                 id: sound_id,
                 type: SoundFileType.SFX,
                 group: groupname,
+                mime: mime,
             },
             audiobuffer,
         );
@@ -274,10 +276,16 @@ export class Engine extends EventTarget {
         this.mixer.set_gain(result.value, gain ?? 1);
         return Ok(result.value);
     }
-    add_bgm(name: string, file: Blob, id?: string): Result<string, string> {
+    add_bgm(option: {
+        name: string;
+        file: Blob;
+        id?: string;
+        mime?: string;
+    }): Result<string, string> {
+        const { id, name, file, mime } = option;
         const bgm_id = id ?? generateUUID();
         this.library.add(
-            { filename: name, id: bgm_id, type: SoundFileType.BGM },
+            { filename: name, id: bgm_id, type: SoundFileType.BGM, mime },
             file,
         );
         return Ok(bgm_id);

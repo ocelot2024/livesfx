@@ -341,7 +341,10 @@ describe("Engine BGM deck control", () => {
 
     test("load -> play -> pause round-trips through the real Deck/BGMPlayer event chain", () => {
         const { engine } = setupEngine();
-        const added = engine.add_bgm("set1.mp3", dummyBgmBlob());
+        const added = engine.add_bgm({
+            name: "set1.mp3",
+            file: dummyBgmBlob(),
+        });
         expect(added.ok).toBe(true);
         if (!added.ok) return;
 
@@ -367,8 +370,8 @@ describe("Engine BGM deck control", () => {
 
     test("deckA and deckB are independent", () => {
         const { engine } = setupEngine();
-        const a = engine.add_bgm("a.mp3", dummyBgmBlob());
-        const b = engine.add_bgm("b.mp3", dummyBgmBlob());
+        const a = engine.add_bgm({ name: "a.mp3", file: dummyBgmBlob() });
+        const b = engine.add_bgm({ name: "b.mp3", file: dummyBgmBlob() });
         if (!a.ok || !b.ok) throw new Error("setup failed");
         engine.load_bgm_to_deck("deckA", a.value);
         engine.load_bgm_to_deck("deckB", b.value);
@@ -382,7 +385,10 @@ describe("Engine BGM deck control", () => {
 
     test("seek_bgm updates current_time", () => {
         const { engine } = setupEngine();
-        const added = engine.add_bgm("set1.mp3", dummyBgmBlob());
+        const added = engine.add_bgm({
+            name: "set1.mp3",
+            file: dummyBgmBlob(),
+        });
         if (!added.ok) throw new Error("setup failed");
         engine.load_bgm_to_deck("deckA", added.value);
         engine.seek_bgm("deckA", 42);
@@ -391,7 +397,10 @@ describe("Engine BGM deck control", () => {
 
     test("unload_bgm clears the deck's metadata", () => {
         const { engine } = setupEngine();
-        const added = engine.add_bgm("set1.mp3", dummyBgmBlob());
+        const added = engine.add_bgm({
+            name: "set1.mp3",
+            file: dummyBgmBlob(),
+        });
         if (!added.ok) throw new Error("setup failed");
         engine.load_bgm_to_deck("deckA", added.value);
         engine.unload_bgm("deckA");
@@ -400,7 +409,10 @@ describe("Engine BGM deck control", () => {
 
     test("duration normalises to 0 before metadata has loaded (NaN -> 0)", () => {
         const { engine } = setupEngine();
-        const added = engine.add_bgm("set1.mp3", dummyBgmBlob());
+        const added = engine.add_bgm({
+            name: "set1.mp3",
+            file: dummyBgmBlob(),
+        });
         if (!added.ok) throw new Error("setup failed");
         engine.load_bgm_to_deck("deckA", added.value);
         expect(engine.get_bgm_info("deckA").duration).toBe(0);

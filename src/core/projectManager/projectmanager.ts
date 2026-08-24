@@ -164,7 +164,11 @@ export class ProjectManager extends EventTarget {
             let add_failed = false;
             for (const music of audiofiles.value) {
                 const blob = music;
-                const id = this.AudioEngine.add_bgm(blob.name, blob);
+                const id = this.AudioEngine.add_bgm({
+                    name: blob.name,
+                    file: blob,
+                    mime: blob.type,
+                });
                 if (!id.ok) {
                     add_failed = true;
                     continue;
@@ -181,11 +185,12 @@ export class ProjectManager extends EventTarget {
             this.proc_event(EngineProcState.Loading);
             files = musics;
             for (const sound of files) {
-                const result = this.AudioEngine.add_bgm(
-                    sound.filename,
-                    sound.file,
-                    sound.id,
-                );
+                const result = this.AudioEngine.add_bgm({
+                    name: sound.filename,
+                    file: sound.file,
+                    id: sound.id,
+                    mime: sound.mime,
+                });
                 if (!result.ok) {
                     this.error(result.value);
                     continue;
@@ -226,9 +231,11 @@ export class ProjectManager extends EventTarget {
             let add_failed = false;
             for (const audiofile of audios.value) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
+                const mime = audiofile.type;
                 const id = await this.AudioEngine.add_sfx({
                     name: audiofile.name,
                     file: bin.slice(0),
+                    mime,
                 });
                 if (!id.ok) {
                     add_failed = true;
@@ -252,6 +259,7 @@ export class ProjectManager extends EventTarget {
                     id: sound.id,
                     group: sound.group,
                     gain: sound.gain,
+                    mime: sound.mime,
                 });
                 if (!result.ok) {
                     this.error(result.value);
