@@ -119,11 +119,15 @@ const resetDragState = () => {
 
 const onGridPointerDown = (e: PointerEvent) => {
     if (store.ui_mode !== 'edit') return;
+    if (dragState.id !== null) return;
+
     const cardEl = (e.target as HTMLElement)?.closest('[data-sound-id]');
     if (!cardEl) return;
     const id = cardEl.getAttribute('data-sound-id');
-    if (!id) return; e.currentTarget as HTMLElement;
-    cardEl.setPointerCapture(e.pointerId);
+    if (!id) return;
+
+    const gridEl = e.currentTarget as HTMLElement;
+    gridEl.setPointerCapture(e.pointerId);
 
     dragState.id = id;
     dragState.active = false;
@@ -301,16 +305,6 @@ const deleteGroup = (name: string) => {
     if (!result.ok) console.error('delete_group failed:', result.value);
 }
 
-watch(
-    () => store.sfx_library.map(s => ({
-        id: s.id,
-        filename: s.filename
-    })),
-    (v) => {
-        console.log("library changed", structuredClone(v));
-    },
-    { deep: true }
-);
 </script>
 
 <template>
