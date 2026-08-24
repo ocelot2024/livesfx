@@ -59,7 +59,10 @@ describe("Engine construction", () => {
 describe("Engine.add_sfx / get_sfx_library", () => {
     test("decodes the buffer, stores it, and creates a mixer channel under the default SFX group", async () => {
         const { engine, ctx } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         expect(result.ok).toBe(true);
         expect(ctx.decodeCalls).toHaveLength(1);
         if (!result.ok) return;
@@ -73,13 +76,13 @@ describe("Engine.add_sfx / get_sfx_library", () => {
 
     test("respects an explicit group and initial gain", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx(
-            "riser.wav",
-            dummySfxBuffer(),
-            undefined,
-            "Ambience",
-            0.5,
-        );
+        const result = await engine.add_sfx({
+            name: "riser.wav",
+            file: dummySfxBuffer(),
+            id: undefined,
+            group: "Ambience",
+            gain: 0.5,
+        });
         expect(result.ok).toBe(true);
         if (!result.ok) return;
         expect(engine.get_gain(result.value)).toEqual({
@@ -94,7 +97,10 @@ describe("Engine.add_sfx / get_sfx_library", () => {
 
 describe("Engine.play - SFXPlayMode branching", () => {
     async function addSfx(engine: Engine, mode: SFXPlayMode) {
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         engine.set_sfx_play_mode(result.value, mode);
         return result.value;
@@ -102,7 +108,10 @@ describe("Engine.play - SFXPlayMode branching", () => {
 
     test("OverLap (default): the same sound can be started multiple times concurrently", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         const first = await engine.play(result.value);
         const second = await engine.play(result.value);
@@ -184,7 +193,10 @@ describe("Engine.play - SFXPlayMode branching", () => {
 describe("Engine.play - trimming", () => {
     test("passes explicit start/end options straight to the source node", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         await engine.play(result.value, { start: 0.2, end: 0.8 });
         const node = FakeAudioBufferSourceNode.instances[0];
@@ -194,7 +206,10 @@ describe("Engine.play - trimming", () => {
 
     test("falls back to a persisted trim when no options are given", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         engine.trim(result.value, 0.1, 0.4);
         await engine.play(result.value);
@@ -204,7 +219,10 @@ describe("Engine.play - trimming", () => {
 
     test("plays the full buffer when neither options nor a persisted trim exist", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         await engine.play(result.value);
         const node = FakeAudioBufferSourceNode.instances[0];
@@ -215,7 +233,10 @@ describe("Engine.play - trimming", () => {
 describe("Engine ctx resume (iOS suspended/interrupted handling)", () => {
     test("resumes a suspended context before playing", async () => {
         const { engine, ctx } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         ctx.state = "suspended";
         await engine.play(result.value);
@@ -225,7 +246,10 @@ describe("Engine ctx resume (iOS suspended/interrupted handling)", () => {
 
     test("also resumes from the non-standard iOS 'interrupted' state", async () => {
         const { engine, ctx } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         ctx.state = "interrupted";
         await engine.play(result.value);
@@ -234,7 +258,10 @@ describe("Engine ctx resume (iOS suspended/interrupted handling)", () => {
 
     test("does not call resume() when already running", async () => {
         const { engine, ctx } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         await engine.play(result.value);
         expect(ctx.resumeCallCount).toBe(0);
@@ -244,7 +271,10 @@ describe("Engine ctx resume (iOS suspended/interrupted handling)", () => {
 describe("Engine.discard_sound", () => {
     test("removes the sound from the library and its mixer channel", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         engine.discard_sound(result.value);
         expect(engine.get_sfx_library()[result.value]).toBeUndefined();
@@ -255,7 +285,10 @@ describe("Engine.discard_sound", () => {
 
     test("stops any in-flight playback of that sound first", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         await engine.play(result.value);
         const node = FakeAudioBufferSourceNode.instances[0];
@@ -267,7 +300,10 @@ describe("Engine.discard_sound", () => {
 describe("Engine group management", () => {
     test("move_channel_to_group moves the mixer channel and updates library metadata", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         const moved = engine.move_channel_to_group(result.value, "Drums");
         expect(moved.ok).toBe(true);
@@ -279,12 +315,12 @@ describe("Engine group management", () => {
 
     test("delete_group relocates its children instead of destroying them", async () => {
         const { engine } = setupEngine();
-        const result = await engine.add_sfx(
-            "kick.wav",
-            dummySfxBuffer(),
-            undefined,
-            "Drums",
-        );
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+            id: undefined,
+            group: "Drums",
+        });
         if (!result.ok) throw new Error("setup failed");
         const deleted = engine.delete_group("Drums");
         expect(deleted.ok).toBe(true);
@@ -374,7 +410,10 @@ describe("Engine BGM deck control", () => {
 describe("Engine.dispose", () => {
     test("closes the audio context and stops all playing sfx", async () => {
         const { engine, ctx } = setupEngine();
-        const result = await engine.add_sfx("kick.wav", dummySfxBuffer());
+        const result = await engine.add_sfx({
+            name: "kick.wav",
+            file: dummySfxBuffer(),
+        });
         if (!result.ok) throw new Error("setup failed");
         await engine.play(result.value);
         const node = FakeAudioBufferSourceNode.instances[0];
