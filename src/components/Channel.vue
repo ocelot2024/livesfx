@@ -15,6 +15,8 @@ const config = useConfigStore()
 
 const unityDb = 0
 
+const channelName = ref(props.channelName.slice(0, props.channelName.lastIndexOf('.') < 0 ? undefined : props.channelName.lastIndexOf('.')))
+
 const gainToDb = (g: number) => (g <= 0 ? -Infinity : 20 * Math.log10(g))
 const dbToGain = (db: number) => (db <= config.faderMinDb ? 0 : Math.pow(10, db / 20))
 
@@ -117,7 +119,7 @@ onUnmounted(() => {
             <span class="faderValue">{{ displayDb }}</span>
         </div>
         <div class="channeltitle">
-            <p>{{ channelName }}</p>
+            {{ channelName }}
         </div>
     </div>
 </template>
@@ -244,11 +246,13 @@ onUnmounted(() => {
     background-color: var(--gray-1);
     border-radius: 6px;
     text-align: center;
+    width: 100%;
     text-wrap-mode: nowrap;
-
-    * {
-        padding: 1px 12px;
-    }
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 1px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .channel {
