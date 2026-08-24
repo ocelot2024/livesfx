@@ -94,4 +94,13 @@ header {
 .v-leave-from .dialog {
     transform: scale(1);
 }
+
+@media (max-width: 1080px) {
+    .dialog {
+        max-width: 100vw;
+        height: 800px;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+}
 </style>
