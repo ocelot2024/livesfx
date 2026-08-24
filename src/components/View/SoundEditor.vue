@@ -3,6 +3,9 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { ProjectEngine } from '../../core/index.ts';
 import { useEngineState } from '../../core/store/enginestore.ts';
 import { SFXPlayMode } from '@/core/audioEngine/sounds.ts';
+import SettingsSection from '../settingsSection.vue';
+import Settinglist from '../settinglist.vue';
+import SettingsRow from '../settingsRow.vue';
 
 const props = defineProps<{ soundId: string }>();
 
@@ -227,56 +230,50 @@ const save = () => {
 
 <template>
     <div class="editor">
-        <strong>トリミング</strong>
-        <section class="waveform-panel">
-            <div class="waveform" ref="waveformEl">
-                <canvas ref="canvas"></canvas>
+        <Settinglist>
+            <SettingsSection title="トリミング">
+                <div class="waveform" ref="waveformEl">
+                    <canvas ref="canvas"></canvas>
 
-                <div class="trim-mask" :style="{ left: '0%', width: startPct + '%' }" />
-                <div class="trim-mask" :style="{ left: endPct + '%', width: (100 - endPct) + '%' }" />
+                    <div class="trim-mask" :style="{ left: '0%', width: startPct + '%' }" />
+                    <div class="trim-mask" :style="{ left: endPct + '%', width: (100 - endPct) + '%' }" />
 
-                <div class="handle" :style="{ left: startPct + '%' }" @pointerdown="start_drag('start', $event)"
-                    @pointermove="on_drag_move" @pointerup="end_drag" @pointercancel="end_drag" />
-                <div class="handle" :style="{ left: endPct + '%' }" @pointerdown="start_drag('end', $event)"
-                    @pointermove="on_drag_move" @pointerup="end_drag" @pointercancel="end_drag" />
-            </div>
-
-            <div class="transport">
-                <button class="play-button" @click="toggle_play">{{ isPlaying ? "■" : "▶" }}</button>
-                <span class="time">{{ timeLabel }}</span>
-
-                <div class="trim-readout">
-                    <input class="trim-time" type="number" min="0" :max="trimEnd - MIN_GAP" step="0.01"
-                        v-model.number="trimStart" @change="clamp_trim">
-                    <span class="sep">–</span>
-                    <input class="trim-time" type="number" :min="trimStart + MIN_GAP" :max="duration" step="0.01"
-                        v-model.number="trimEnd" @change="clamp_trim">
+                    <div class="handle" :style="{ left: startPct + '%' }" @pointerdown="start_drag('start', $event)"
+                        @pointermove="on_drag_move" @pointerup="end_drag" @pointercancel="end_drag" />
+                    <div class="handle" :style="{ left: endPct + '%' }" @pointerdown="start_drag('end', $event)"
+                        @pointermove="on_drag_move" @pointerup="end_drag" @pointercancel="end_drag" />
                 </div>
-            </div>
-        </section>
-        <strong>その他 </strong>
-        <section>
-            <div>
-                <label for="PlayBackOption">再生中に再生ボタンを押したときの動作</label>
-                <select name="PlaybackOption" v-model="playbackOption">
-                    <option :value="SFXPlayMode.OverLap">上書き再生</option>
-                    <option :value="SFXPlayMode.Restart">再生しなおす</option>
-                    <option :value="SFXPlayMode.Ignore">無視する</option>
-                    <option :value="SFXPlayMode.Stop">とめる</option>
-                </select>
-            </div>
-            <div>
-                <label for="GroupOption">グループ</label>
-                <select name="GroupOption" v-model="selectedGroup">
-                    <option :value="UNGROUPED">未分類</option>
-                    <option v-for="g in groupOptions" :key="g" :value="g">{{ g }}</option>
-                    <option :value="NEW_GROUP">＋ 新規グループを作成...</option>
-                </select>
-                <input v-if="selectedGroup === NEW_GROUP" type="text" v-model="newGroupName" placeholder="グループ名"
-                    class="new-group-input">
-                <p v-if="groupError" class="group-error">{{ groupError }}</p>
-            </div>
-        </section>
+
+                <div class="transport">
+                    <button class="play-button" @click="toggle_play">{{ isPlaying ? "■" : "▶" }}</button>
+                    <span class="time">{{ timeLabel }}</span>
+
+                    <div class="trim-readout">
+                        <input class="trim-time" type="number" min="0" :max="trimEnd - MIN_GAP" step="0.01"
+                            v-model.number="trimStart" @change="clamp_trim">
+                        <span class="sep">–</span>
+                        <input class="trim-time" type="number" :min="trimStart + MIN_GAP" :max="duration" step="0.01"
+                            v-model.number="trimEnd" @change="clamp_trim">
+                    </div>
+                </div>
+            </SettingsSection>
+            <SettingsSection title="その他">
+                <SettingsRow label="再生中に再生ボタンを押したときの動作">
+                    <select name="PlaybackOption" v-model="playbackOption">
+                        <option :value="SFXPlayMode.OverLap">上書き再生</option>
+                        <option :value="SFXPlayMode.Restart">再生しなおす</option>
+                        <option :value="SFXPlayMode.Ignore">無視する</option>
+                        <option :value="SFXPlayMode.Stop">とめる</option>
+                    </select>
+                </SettingsRow>
+                <SettingsRow label="グループ">
+                    <select name="GroupOption" v-model="selectedGroup">
+                        <option :value="UNGROUPED">未分類</option>
+                        <option v-for="g in groupOptions" :key="g" :value="g">{{ g }}</option>
+                    </select>
+                </SettingsRow>
+            </SettingsSection>
+        </Settinglist>
         <button @click="save()">変更を保存</button>
     </div>
 </template>
@@ -295,16 +292,8 @@ const save = () => {
     font-weight: 600;
 }
 
-.waveform-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-    border-radius: 16px;
-    background: var(--gray-5);
-}
-
 .waveform {
+    padding: 12px;
     position: relative;
     min-height: 12rem;
     border-radius: 10px;
