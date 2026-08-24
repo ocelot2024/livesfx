@@ -282,10 +282,15 @@ export class Engine extends EventTarget {
         id?: string;
         mime?: string;
     }): Result<string, string> {
-        const { id, name, file, mime } = option;
+        let { id, name, file, mime } = option;
         const bgm_id = id ?? generateUUID();
         this.library.add(
-            { filename: name, id: bgm_id, type: SoundFileType.BGM, mime },
+            {
+                filename: name,
+                id: bgm_id,
+                type: SoundFileType.BGM,
+                mime: mime ?? file.type,
+            },
             file,
         );
         return Ok(bgm_id);
