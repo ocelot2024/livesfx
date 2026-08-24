@@ -5,7 +5,7 @@ import { useEngineState } from '../core/store/enginestore.ts';
 import { useConfigStore } from '../core/store/configstore.ts';
 import Modal from './Modal.vue';
 
-const UNGROUPED = '__ungrouped__';
+import { UNGROUPED } from '@/core/constants.ts';
 
 const selectedSound = ref();
 const store = useEngineState();
@@ -39,10 +39,7 @@ const soundsById = computed(() => {
     return map;
 });
 
-const groupNames = computed(() => {
-    const names = ProjectEngine.get_group_names().filter(n => n !== 'BGM');
-    return [...names, UNGROUPED];
-});
+const groupNames = computed(() => store.groupNames.filter(v => v !== "BGM"))
 
 const dragOverrideGroup = ref<string | null>(null);
 

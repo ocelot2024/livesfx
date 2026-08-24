@@ -7,6 +7,7 @@ import { EngineProcState, type Notificatin } from "./enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { generateUUID } from "../util/util";
 import { PlayerEvent } from "../audioEngine/audioengine";
+import { UNGROUPED } from "../constants";
 
 export interface BGMPlayerInfo {
     playing: boolean;
@@ -21,6 +22,7 @@ export const useEngineState = defineStore("engine", () => {
     const ui_mode = ref<"live" | "edit">("live");
     const notif_queue = ref<Notificatin[]>([]);
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
+    const groupNames = ref<string[]>([]);
 
     const deck = ref<[BGMPlayerInfo, BGMPlayerInfo]>([
         { playing: false, meta: null, current_time: 0, duration: 0 },
@@ -36,6 +38,7 @@ export const useEngineState = defineStore("engine", () => {
             ProjectEngine.get_bgm_library();
         sfx_library.value = Object.values(sounds);
         bgm_library.value = Object.values(musics);
+        groupNames.value = [...ProjectEngine.get_group_names(), UNGROUPED];
     });
     ProjectEngine.addEventListener(EngineEvent.Initialised, () => {
         const sounds: Record<string, SoundMeta> =
@@ -116,6 +119,7 @@ export const useEngineState = defineStore("engine", () => {
         EngineState,
         deck,
         dismissNotif,
+        groupNames,
     };
 });
 

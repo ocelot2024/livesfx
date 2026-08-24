@@ -18,3 +18,4 @@ export const AUDIO_MIME_TYPES: Record<string, string> = {
     "3g2": "audio/3gpp2",
 } as const;
 export type AUDIO_MIME_TYPES = keyof typeof AUDIO_MIME_TYPES;
+export const UNGROUPED = "__ungrouped__";
