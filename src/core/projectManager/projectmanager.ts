@@ -15,6 +15,8 @@ import type { AudioMixerError } from "../types/err";
 import projectStateManager from "./projectStateManager";
 import { useConfigStore } from "../store/configstore";
 
+import { openFilePicker } from "../files/fileUtil";
+
 export class ProjectManager extends EventTarget {
     private projectname: string;
 
@@ -104,7 +106,6 @@ export class ProjectManager extends EventTarget {
     async start_from_file(): Promise<Result<void, string>> {
         if (!this.stateManager.leaveConfirm()) return Ok();
         const { LVSFFile } = await import("../files/lvsf");
-        const { openFilePicker } = await import("../files/fileUtil");
         const filelist = await openFilePicker({
             multiple: false,
             accept: "." + PROJECT_FILE_EX,
@@ -151,7 +152,6 @@ export class ProjectManager extends EventTarget {
         }
         let files: BGMFile[] = [];
         if (!musics) {
-            const { openFilePicker } = await import("../files/fileUtil");
             const audiofiles = await openFilePicker({
                 accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
             });
@@ -214,7 +214,6 @@ export class ProjectManager extends EventTarget {
         }
         let files: SFXFile[] = [];
         if (!sounds) {
-            const { openFilePicker } = await import("../files/fileUtil");
             const audios = await openFilePicker({
                 accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
             });

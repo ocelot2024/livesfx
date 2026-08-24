@@ -34,8 +34,8 @@ const closeMenu = () => {
     openId.value = null
 }
 
-const handleItemClick = (item: MenuItem) => {
-    item.handle()
+const handleItemClick = async (item: MenuItem) => {
+    await item.handle()
     closeMenu()
 }
 
