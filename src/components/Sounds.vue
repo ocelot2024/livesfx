@@ -331,7 +331,7 @@ const deleteGroup = (name: string) => {
 
         <Modal :show="selectedSound !== undefined" @close="selectedSound = undefined"
             :title="store.sfx_library.find(v => v.id == selectedSound)?.filename">
-            <editor :sound-id="selectedSound" />
+            <editor @saved="selectedSound = undefined" :sound-id="selectedSound" />
         </Modal>
 
         <Modal :show="showCreateGroup" @close="showCreateGroup = false" title="新しいグループ">
