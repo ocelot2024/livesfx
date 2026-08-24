@@ -461,5 +461,6 @@ export class ProjectManager extends EventTarget {
     }
     rename(id: string, name: string) {
         this.AudioEngine.rename(id, name);
+        this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
     }
 }

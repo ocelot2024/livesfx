@@ -26,13 +26,19 @@ watch(
 );
 
 const soundsById = computed(() => {
-    const map = new Map<string, typeof store.sfx_library[number]>();
-    for (const s of store.sfx_library) map.set(s.id, s);
+    const map = new Map();
+
+    for (const s of store.sfx_library) {
+        map.set(s.id, {
+            filename: s.filename,
+            group: s.group,
+            sound: s,
+        });
+    }
+
     return map;
 });
 
-// 表示中の全グループ名(SFXが1つも属していない空のグループも含む)。
-// 未分類は末尾に固定。
 const groupNames = computed(() => {
     const names = ProjectEngine.get_group_names().filter(n => n !== 'BGM');
     return [...names, UNGROUPED];
@@ -294,6 +300,17 @@ const deleteGroup = (name: string) => {
     const result = ProjectEngine.delete_group(name);
     if (!result.ok) console.error('delete_group failed:', result.value);
 }
+
+watch(
+    () => store.sfx_library.map(s => ({
+        id: s.id,
+        filename: s.filename
+    })),
+    (v) => {
+        console.log("library changed", structuredClone(v));
+    },
+    { deep: true }
+);
 </script>
 
 <template>
