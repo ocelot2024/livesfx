@@ -25,7 +25,11 @@ button {
     border: 1px solid var(--gray-4);
     padding: 7px;
 }
-
+button:disabled {
+    background-color: var(--gray-4);
+    color: var(--gray-1);
+    cursor: not-allowed;
+}
 label {
     margin-inline-end: 3rem;
 }
