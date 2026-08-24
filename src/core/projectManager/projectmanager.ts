@@ -459,4 +459,7 @@ export class ProjectManager extends EventTarget {
     eject_bgm(id: "deckA" | "deckB") {
         this.AudioEngine.unload_bgm(id);
     }
+    rename(id: string, name: string) {
+        this.AudioEngine.rename(id, name);
+    }
 }

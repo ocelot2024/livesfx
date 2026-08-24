@@ -462,4 +462,7 @@ export class Engine extends EventTarget {
     get_bgm_info(id: "deckA" | "deckB") {
         return this.player.get_info(id);
     }
+    rename(id: string, name: string) {
+        this.library.rename(id, name);
+    }
 }

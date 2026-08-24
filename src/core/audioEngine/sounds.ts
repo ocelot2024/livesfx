@@ -87,6 +87,9 @@ abstract class BaseSound {
             ...patch,
         };
     }
+    rename(name: string) {
+        this.meta.filename = name;
+    }
 }
 
 class Sound extends BaseSound {
@@ -263,6 +266,12 @@ export class SoundLibrary {
             if (sound) reordered[key] = sound;
         }
         this.sounds = reordered;
+        return Ok();
+    }
+    rename(id: string, name: string): Result<void, string> {
+        const target = this.musics[id] ?? this.sounds[id];
+        if (!target) return Err(EngineError.SoundNotExist);
+        target.rename(name);
         return Ok();
     }
 }

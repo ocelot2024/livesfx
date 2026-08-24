@@ -9,7 +9,7 @@ import SettingsRow from '../settingsRow.vue';
 
 const props = defineProps<{ soundId: string }>();
 
-const store = useEngineState();
+const filename = ref();
 
 const waveformEl = ref<HTMLDivElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
@@ -105,6 +105,7 @@ const load_sound = () => {
     selectedGroup.value = meta?.group ?? UNGROUPED;
     newGroupName.value = '';
     groupError.value = '';
+    filename.value = meta?.filename;
     draw();
 };
 
@@ -191,7 +192,9 @@ onBeforeUnmount(() => {
     stop_preview();
 });
 
-const emit = defineEmits(['saved'])
+const emit = defineEmits(['saved']);
+
+const valid = ref(true)
 const save = () => {
     ProjectEngine.trim(props.soundId, trimStart.value, trimEnd.value);
     ProjectEngine.set_sfx_playmode(props.soundId, playbackOption.value);
@@ -223,6 +226,7 @@ const save = () => {
             return;
         }
     }
+    ProjectEngine.rename(props.soundId, filename.value);
 
     emit('saved');
 }
@@ -258,6 +262,9 @@ const save = () => {
                 </div>
             </SettingsSection>
             <SettingsSection title="その他">
+                <SettingsRow label="なまえ"><input type="text" v-model="filename" minlength="1"
+                        @input="valid = !!filename">
+                </SettingsRow>
                 <SettingsRow label="再生中に再生ボタンを押したときの動作">
                     <select name="PlaybackOption" v-model="playbackOption">
                         <option :value="SFXPlayMode.OverLap">上書き再生</option>
@@ -274,7 +281,7 @@ const save = () => {
                 </SettingsRow>
             </SettingsSection>
         </Settinglist>
-        <button @click="save()">変更を保存</button>
+        <button @click="save()" :disabled="!valid">変更を保存</button>
     </div>
 </template>
 
