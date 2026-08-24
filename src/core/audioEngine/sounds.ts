@@ -82,7 +82,6 @@ abstract class BaseSound {
 class Sound extends BaseSound {
     private buffer: AudioBuffer;
     constructor(option: SoundMeta, buffer: AudioBuffer) {
-        const store = useConfigStore();
         super(option);
         this.buffer = buffer;
     }
