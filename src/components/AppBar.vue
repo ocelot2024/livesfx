@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .app-bar {
-    z-index: 999999;
+    z-index: 9;
     position: relative;
     background-color: var(--blur);
     backdrop-filter: blur(10px);
