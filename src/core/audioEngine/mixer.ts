@@ -3,13 +3,14 @@ import { EngineError } from "../types/error_types";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
 
-type MixerChannels = Record<string, { belongs_to: string; channel: Channel }>;
-
 export const MIXER_MASTER_CHANNEL_ID = "MASTER";
 
-interface MixerGroup {
-    grouping_channel: Channel;
-    children: MixerChannels;
+interface MixerEntry {
+    channel: Channel;
+    // "" only for MASTER itself (it has no parent). Every other entry
+    // (group or leaf channel) belongs directly to MASTER or to a group.
+    belongs_to: string;
+    isGroup: boolean;
 }
 
 export class Channel {
@@ -29,163 +30,171 @@ export class Channel {
 
 export class AudioMixer {
     private ctx: AudioContext;
-    private channels: MixerChannels;
-    private master: Channel;
-    private groups: Record<string, MixerGroup>;
+    // Single flat registry for MASTER, groups, and leaf channels. Group
+    // membership is expressed only through `belongs_to`, so there is no
+    // separate nested structure to keep in sync.
+    private entries: Record<string, MixerEntry>;
+
     constructor(ctx: AudioContext) {
         this.ctx = ctx;
-        this.channels = {};
-        this.master = new Channel(ctx, "MASTER", "MASTER");
-        this.master.output.connect(ctx.destination);
-        this.groups = {};
+        this.entries = {};
+        const master = new Channel(ctx, "MASTER", MIXER_MASTER_CHANNEL_ID);
+        master.output.connect(ctx.destination);
+        this.entries[MIXER_MASTER_CHANNEL_ID] = {
+            channel: master,
+            belongs_to: "",
+            isGroup: true,
+        };
     }
 
-    private resolve_group(id: string): Channel | null {
-        if (id === MIXER_MASTER_CHANNEL_ID) return this.master;
-        if (id in this.groups) return this.groups[id]?.grouping_channel ?? null;
-        return null;
+    private get master(): Channel {
+        return this.entries[MIXER_MASTER_CHANNEL_ID]!.channel;
     }
 
     createGroup(name: string): Result<string, string> {
-        if (name in this.groups) return Err(EngineError.GroupAlreadyExist);
-        this.groups[name] = {
-            grouping_channel: new Channel(this.ctx, name),
-            children: {},
+        if (name in this.entries) return Err(EngineError.GroupAlreadyExist);
+        const channel = new Channel(this.ctx, name, name);
+        channel.output.connect(this.master.inputGain);
+        this.entries[name] = {
+            channel,
+            belongs_to: MIXER_MASTER_CHANNEL_ID,
+            isGroup: true,
         };
-        this.groups[name].grouping_channel.output.connect(
-            this.master.inputGain,
-        );
         return Ok(name);
     }
+
     create_channel(
         id: string,
         name: string,
         parent?: string,
     ): Result<string, string> {
-        if (!parent) {
-            if (id in this.channels) {
-                return this.create_channel(generateUUID(), name);
-            }
-            const channel = new Channel(this.ctx, name);
-            this.channels[id] = {
-                channel,
-                belongs_to: "MASTER",
-            };
-            channel.output.connect(this.master.inputGain);
-            return Ok(id);
-        }
-        let group = this.groups[parent];
-        if (!group) {
-            const result = this.createGroup(parent);
-            if (!result.ok) {
-                return Err(EngineError.GroupNotFound);
-            }
-            group = this.groups[parent];
-        }
-        if (!group) {
-            return Err(EngineError.GroupNotFound);
-        }
-        const target = group.children;
-        if (id in target) {
+        if (id in this.entries) {
             return this.create_channel(generateUUID(), name, parent);
         }
+
+        const parentId = parent ?? MIXER_MASTER_CHANNEL_ID;
+        let parentEntry = this.entries[parentId];
+        if (!parentEntry || !parentEntry.isGroup) {
+            if (parentId === MIXER_MASTER_CHANNEL_ID) {
+                return Err(EngineError.GroupNotFound);
+            }
+            const created = this.createGroup(parentId);
+            if (!created.ok) return Err(EngineError.GroupNotFound);
+            parentEntry = this.entries[parentId];
+        }
+        if (!parentEntry) return Err(EngineError.GroupNotFound);
+
         const channel = new Channel(this.ctx, name, id);
-        target[id] = {
-            channel,
-            belongs_to: parent,
-        };
-        channel.output.connect(group.grouping_channel.inputGain);
+        channel.output.connect(parentEntry.channel.inputGain);
+        this.entries[id] = { channel, belongs_to: parentId, isGroup: false };
         return Ok(id);
     }
-    private channel_finder(id: string): { target: MixerChannels } | null {
-        if (id in this.channels) return { target: this.channels };
-        for (const group of Object.values(this.groups)) {
-            if (id in group.children) return { target: group.children };
-        }
-        return null;
+
+    channel_finder(id: string): { belongs_to: string; channel: Channel } | null {
+        const entry = this.entries[id];
+        if (!entry) return null;
+        return { belongs_to: entry.belongs_to, channel: entry.channel };
     }
+
     group_children(parent: string): Channel[] {
-        const group = this.groups[parent];
-        if (!group) return [];
-        return Object.values(group.children).map((V) => V.channel);
+        return Object.values(this.entries)
+            .filter((e) => !e.isGroup && e.belongs_to === parent)
+            .map((e) => e.channel);
     }
+
     get_group_names(): string[] {
-        return Object.keys(this.groups);
+        return Object.entries(this.entries)
+            .filter(([id, e]) => e.isGroup && id !== MIXER_MASTER_CHANNEL_ID)
+            .map(([id]) => id);
     }
+
     delete_channel(id: string): Result<void, string> {
-        const found = this.channel_finder(id);
-        if (!found) return Err(EngineError.ChannelNotFound);
-        const channel = found.target[id]?.channel ?? null;
-        if (!channel) return Err(EngineError.ChannelNotFound);
-        channel.inputGain.disconnect();
-        channel.output.disconnect();
-        delete found.target[id];
+        const entry = this.entries[id];
+        if (!entry) return Err(EngineError.ChannelNotFound);
+        entry.channel.inputGain.disconnect();
+        entry.channel.output.disconnect();
+        delete this.entries[id];
         return Ok();
     }
 
     move_channel(id: string, newGroup?: string): Result<void, string> {
-        const found = this.channel_finder(id);
-        if (!found) return Err(EngineError.ChannelNotFound);
-        const entry = found.target[id];
-        if (!entry) return Err(EngineError.ChannelNotFound);
-        if (entry.belongs_to === (newGroup ?? MIXER_MASTER_CHANNEL_ID))
-            return Ok();
+        const entry = this.entries[id];
+        if (!entry || entry.isGroup) return Err(EngineError.ChannelNotFound);
+        const target = newGroup ?? MIXER_MASTER_CHANNEL_ID;
+        if (entry.belongs_to === target) return Ok();
 
         const name = entry.channel.name;
         const gain = entry.channel.output.gain.value;
 
         entry.channel.inputGain.disconnect();
         entry.channel.output.disconnect();
-        delete found.target[id];
+        delete this.entries[id];
 
-        const created = this.create_channel(id, name, newGroup);
+        const created = this.create_channel(
+            id,
+            name,
+            target === MIXER_MASTER_CHANNEL_ID ? undefined : target,
+        );
         if (!created.ok) return Err(created.value);
         this.set_gain(id, gain);
         return Ok();
     }
 
+    rename_group(oldName: string, newName: string): Result<void, string> {
+        if (oldName === MIXER_MASTER_CHANNEL_ID) {
+            return Err(EngineError.GroupNotFound);
+        }
+        const entry = this.entries[oldName];
+        if (!entry || !entry.isGroup) return Err(EngineError.GroupNotFound);
+        if (newName in this.entries) return Err(EngineError.GroupAlreadyExist);
+
+        entry.channel.name = newName;
+        entry.channel.id = newName;
+        delete this.entries[oldName];
+        this.entries[newName] = entry;
+
+        for (const e of Object.values(this.entries)) {
+            if (e.belongs_to === oldName) e.belongs_to = newName;
+        }
+        return Ok();
+    }
+
     delete_group(name: string): Result<void, string> {
-        const group = this.groups[name];
-        if (!group) return Err(EngineError.GroupNotFound);
-
-        for (const id of Object.keys(group.children)) {
-            this.move_channel(id);
+        const entry = this.entries[name];
+        if (!entry || !entry.isGroup || name === MIXER_MASTER_CHANNEL_ID) {
+            return Err(EngineError.GroupNotFound);
         }
 
-        group.grouping_channel.inputGain.disconnect();
-        group.grouping_channel.output.disconnect();
-        delete this.groups[name];
+        for (const [id, e] of Object.entries(this.entries)) {
+            if (e.belongs_to === name) this.move_channel(id);
+        }
+
+        entry.channel.inputGain.disconnect();
+        entry.channel.output.disconnect();
+        delete this.entries[name];
         return Ok();
     }
+
     input(id: string, source: AudioNode): Result<void, string> {
-        const found = this.channel_finder(id);
-        if (!found) return Err(EngineError.ChannelNotFound);
-        const target = found.target[id];
-        if (!target) return Err(EngineError.ChannelNotFound);
-        target.channel && source.connect(target.channel.inputGain);
+        const entry = this.entries[id];
+        if (!entry) return Err(EngineError.ChannelNotFound);
+        source.connect(entry.channel.inputGain);
         return Ok();
     }
+
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
-        // TODO UIでグループゲインの調整をできるように
-        const group = this.resolve_group(id);
-        if (group) {
-            group.output.gain.value = gain;
-            return Ok(gain);
-        }
-        const target = this.channel_finder(id)?.target[id];
-        if (!target) return Err(AudioMixerError.ChannelNotFound);
-        target.channel.output.gain.value = gain;
-        return Ok(target.channel.output.gain.value);
+        const entry = this.entries[id];
+        if (!entry) return Err(AudioMixerError.ChannelNotFound);
+        entry.channel.output.gain.value = gain;
+        return Ok(gain);
     }
+
     get_gain(id: string): Result<number, AudioMixerError> {
-        const group = this.resolve_group(id);
-        if (group) {
-            return Ok(group.output.gain.value);
-        }
-        const target = this.channel_finder(id)?.target[id];
-        if (!target) return Err(AudioMixerError.ChannelNotFound);
-        return Ok(target.channel.output.gain.value);
+        const entry = this.entries[id];
+        if (!entry) return Err(AudioMixerError.ChannelNotFound);
+        return Ok(entry.channel.output.gain.value);
     }
+
     connect_media_elem(
         element: HTMLMediaElement,
         deckId: "deckA" | "deckB",
@@ -197,13 +206,10 @@ export class AudioMixer {
         const created = this.create_channel(deckId, deckId, "BGM");
         if (!created.ok) return Err(created.value);
 
-        const found = this.channel_finder(deckId);
-        if (!found) return Err(EngineError.ChannelNotFound);
+        const entry = this.entries[deckId];
+        if (!entry) return Err(EngineError.ChannelNotFound);
 
-        const target = found.target[deckId];
-        if (!target) return Err(EngineError.ChannelNotFound);
-
-        sourceNode.connect(target.channel.inputGain);
+        sourceNode.connect(entry.channel.inputGain);
         return Ok();
     }
 }

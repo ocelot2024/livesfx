@@ -243,6 +243,15 @@ export class Engine extends EventTarget {
         }
         return Ok();
     }
+    rename_group(oldName: string, newName: string): Result<void, string> {
+        const result = this.mixer.rename_group(oldName, newName);
+        if (!result.ok) return result;
+
+        for (const channel of this.mixer.group_children(newName)) {
+            if (channel.id) this.library.set_group(channel.id, newName);
+        }
+        return Ok();
+    }
     move_channel_to_group(id: string, newGroup?: string): Result<void, string> {
         const result = this.mixer.move_channel(id, newGroup);
         if (!result.ok) return result;

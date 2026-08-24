@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useEngineState } from '@/core/store/enginestore';
+import { computed } from 'vue';
 import { ProjectEngine } from '@/core';
-import { Channel, MIXER_MASTER_CHANNEL_ID } from '@/core/audioEngine/mixer.ts';
+import { MIXER_MASTER_CHANNEL_ID } from '@/core/audioEngine/mixer.ts';
 import ChannelComponent from '../Channel.vue';
 
-const store = useEngineState();
 const engine = ProjectEngine;
 
-const groups = computed(() =>
-    [...new Set([
-        ...store.sfx_library
-            .map(v => v.group)
-            .filter((g): g is string => !!g),
-        ...engine.get_group_names(),
-    ])]
-)
+// engine.get_group_names() は自動生成分も含めミキサー上の全グループを
+// 正として返す(SFXの`group`メタとの二重管理を廃止)。
+const groups = computed(() => engine.get_group_names())
 
 const set_gain = (e: number, id?: string) => {
     if (!id) return;

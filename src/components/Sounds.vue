@@ -44,9 +44,15 @@ const groupNames = computed(() => {
     return [...names, UNGROUPED];
 });
 
-const groupOf = (id: string) => soundsById.value.get(id)?.group || UNGROUPED;
+const dragOverrideGroup = ref<string | null>(null);
 
-// order(グローバルな並び順)をグループごとに振り分けて表示する。
+const groupOf = (id: string) => {
+    if (id === dragState.id && dragOverrideGroup.value !== null) {
+        return dragOverrideGroup.value;
+    }
+    return soundsById.value.get(id)?.group || UNGROUPED;
+};
+
 const groupedOrder = computed(() => {
     const map = new Map<string, string[]>();
     for (const name of groupNames.value) map.set(name, []);
@@ -115,6 +121,7 @@ const resetDragState = () => {
     dragState.dx = 0;
     dragState.dy = 0;
     dragOriginRect = null;
+    dragState.hasDragged = false;
 }
 
 const onGridPointerDown = (e: PointerEvent) => {
@@ -126,8 +133,7 @@ const onGridPointerDown = (e: PointerEvent) => {
     const id = cardEl.getAttribute('data-sound-id');
     if (!id) return;
 
-    const gridEl = e.currentTarget as HTMLElement;
-    gridEl.setPointerCapture(e.pointerId);
+
 
     dragState.id = id;
     dragState.active = false;
@@ -152,6 +158,8 @@ const onGridPointerMove = (e: PointerEvent) => {
         if (Math.hypot(dx, dy) < config.dragThreshold) return;
         dragState.active = true;
         dragState.hasDragged = true;
+        const gridEl = e.currentTarget as HTMLElement;
+        gridEl.setPointerCapture(e.pointerId);
     }
 
     e.preventDefault();
@@ -160,35 +168,65 @@ const onGridPointerMove = (e: PointerEvent) => {
 
     const hoveredEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-sound-id]');
     const hoveredId = hoveredEl?.getAttribute('data-sound-id');
-    if (!hoveredEl || !hoveredId || hoveredId === draggedId) return;
-    if (groupOf(hoveredId) !== groupOf(draggedId)) return;
-
-    const fromIndex = order.value.indexOf(draggedId);
-    const toIndex = order.value.indexOf(hoveredId);
-    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
-
     const now = performance.now();
-    if (now - lastSwapAt < config.swapCooldownMs) return;
 
-    const hoveredRect = hoveredEl.getBoundingClientRect();
-    const centerX = hoveredRect.left + hoveredRect.width / 2;
-    const centerY = hoveredRect.top + hoveredRect.height / 2;
-    const halfW = (hoveredRect.width / 2) * config.swapInnerRatio;
-    const halfH = (hoveredRect.height / 2) * config.swapInnerRatio;
-    if (Math.abs(e.clientX - centerX) > halfW || Math.abs(e.clientY - centerY) > halfH) {
+    if (hoveredEl && hoveredId && hoveredId !== draggedId) {
+        const draggedGroup = groupOf(draggedId);
+        const hoveredGroup = groupOf(hoveredId);
+
+        if (hoveredGroup !== draggedGroup) {
+            if (now - lastSwapAt < config.swapCooldownMs) return;
+            const fromIndex = order.value.indexOf(draggedId);
+            const toIndex = order.value.indexOf(hoveredId);
+            if (fromIndex === -1 || toIndex === -1) return;
+
+            lastSwapAt = now;
+            dragOverrideGroup.value = hoveredGroup;
+            reorderWithFlip(fromIndex, toIndex, draggedId);
+            return;
+        }
+
+        const fromIndex = order.value.indexOf(draggedId);
+        const toIndex = order.value.indexOf(hoveredId);
+        if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+        if (now - lastSwapAt < config.swapCooldownMs) return;
+
+        const hoveredRect = hoveredEl.getBoundingClientRect();
+        const centerX = hoveredRect.left + hoveredRect.width / 2;
+        const centerY = hoveredRect.top + hoveredRect.height / 2;
+        const halfW = (hoveredRect.width / 2) * config.swapInnerRatio;
+        const halfH = (hoveredRect.height / 2) * config.swapInnerRatio;
+        if (Math.abs(e.clientX - centerX) > halfW || Math.abs(e.clientY - centerY) > halfH) {
+            return;
+        }
+
+        lastSwapAt = now;
+        reorderWithFlip(fromIndex, toIndex, draggedId);
         return;
     }
 
+
+    const hoveredGridEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-group-name]');
+    const hoveredGroupName = hoveredGridEl?.getAttribute('data-group-name');
+    if (!hoveredGroupName || hoveredGroupName === groupOf(draggedId)) return;
+    if (now - lastSwapAt < config.swapCooldownMs) return;
+
+    const fromIndex = order.value.indexOf(draggedId);
+    if (fromIndex === -1) return;
+
     lastSwapAt = now;
-    reorderWithFlip(fromIndex, toIndex, draggedId);
+    dragOverrideGroup.value = hoveredGroupName;
+    reorderToEnd(fromIndex, draggedId);
 }
 
 const finishDrag = async (committed: boolean) => {
     const id = dragState.id;
     const wasActive = dragState.active;
+    const newGroup = dragOverrideGroup.value;
 
     if (!committed || id === null) {
         order.value = store.sfx_library.map(s => s.id);
+        dragOverrideGroup.value = null;
         resetDragState();
         return;
     }
@@ -197,12 +235,24 @@ const finishDrag = async (committed: boolean) => {
     resetDragState();
 
     if (wasActive && finalIndex !== -1) {
+        if (newGroup !== null) {
+            const groupResult = ProjectEngine.move_sound_to_group(
+                id, newGroup === UNGROUPED ? undefined : newGroup,
+            );
+            if (!groupResult.ok) {
+                order.value = store.sfx_library.map(s => s.id);
+                dragOverrideGroup.value = null;
+                console.error('move_sound_to_group failed, reverted order:', groupResult.value);
+                return;
+            }
+        }
         const result = await ProjectEngine.move_sound(id, finalIndex);
         if (!result.ok) {
             order.value = store.sfx_library.map(s => s.id);
             console.error('move_sound failed, reverted order:', result.value);
         }
     }
+    dragOverrideGroup.value = null;
 }
 
 const onGridPointerUp = async (e: PointerEvent) => {
@@ -230,6 +280,40 @@ const reorderWithFlip = async (fromIndex: number, toIndex: number, draggedId: st
     const next = order.value.slice();
     const [moved] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, moved as string);
+    order.value = next;
+
+    await nextTick();
+
+    if (dragState.id !== draggedId) return;
+
+    for (const [id, el] of cardRefs) {
+        if (id === draggedId) continue;
+        const first = firstRects.get(id);
+        if (!first) continue;
+        const last = el.getBoundingClientRect();
+        const deltaX = first.left - last.left;
+        const deltaY = first.top - last.top;
+        if (deltaX === 0 && deltaY === 0) continue;
+
+        el.style.transition = 'none';
+        el.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        requestAnimationFrame(() => {
+            el.style.transition = 'transform 0.25s ease-out';
+            el.style.transform = '';
+        });
+    }
+}
+
+const reorderToEnd = async (fromIndex: number, draggedId: string) => {
+    const firstRects = new Map<string, DOMRect>();
+    for (const [id, el] of cardRefs) {
+        if (id === draggedId) continue;
+        firstRects.set(id, el.getBoundingClientRect());
+    }
+
+    const next = order.value.slice();
+    next.splice(fromIndex, 1);
+    next.push(draggedId);
     order.value = next;
 
     await nextTick();
@@ -305,6 +389,20 @@ const deleteGroup = (name: string) => {
     if (!result.ok) console.error('delete_group failed:', result.value);
 }
 
+const renameGroup = (name: string) => {
+    if (name === UNGROUPED) return;
+    const input = window.prompt('新しいグループ名', name);
+    if (input === null) return;
+    const trimmed = input.trim();
+    if (!trimmed || trimmed === name) return;
+    if (trimmed === UNGROUPED || groupNames.value.includes(trimmed)) {
+        alert('そのグループ名は既に使われています');
+        return;
+    }
+    const result = ProjectEngine.rename_group(name, trimmed);
+    if (!result.ok) console.error('rename_group failed:', result.value);
+}
+
 </script>
 
 <template>
@@ -316,12 +414,15 @@ const deleteGroup = (name: string) => {
             <div class="group-header"
                 v-if="groupedOrder.get(groupName)?.length || (store.ui_mode === 'edit' && groupName !== UNGROUPED)">
                 <h4>{{ groupLabel(groupName) }}</h4>
-                <button v-if="groupName !== UNGROUPED && store.ui_mode === 'edit'" class="delete-group"
-                    @click="deleteGroup(groupName)">グループを削除</button>
+                <template v-if="groupName !== UNGROUPED && store.ui_mode === 'edit'">
+                    <button class="rename-group" @click="renameGroup(groupName)">名前を変更</button>
+                    <button class="delete-group" @click="deleteGroup(groupName)">グループを削除</button>
+                </template>
             </div>
-            <div class="grid" @pointerdown="onGridPointerDown" @pointermove="onGridPointerMove"
-                @pointerup="onGridPointerUp" @pointercancel="onGridPointerCancel"
-                @lostpointercapture="onGridLostPointerCapture">
+            <div class="grid" :data-group-name="groupName" :class="{
+                'empty-dropzone': store.ui_mode === 'edit' && !groupedOrder.get(groupName)?.length,
+            }" @pointerdown="onGridPointerDown" @pointermove="onGridPointerMove" @pointerup="onGridPointerUp"
+                @pointercancel="onGridPointerCancel" @lostpointercapture="onGridLostPointerCapture">
                 <button v-for="id in groupedOrder.get(groupName)" :key="id" :data-sound-id="id"
                     :ref="(el) => setCardRef(id, el as Element)" @click="onClick(id)"
                     :class="{ 'edit-mode': store.ui_mode === 'edit' }">
@@ -376,11 +477,24 @@ const deleteGroup = (name: string) => {
     color: var(--label-boring);
 }
 
+.rename-group {
+    font-size: 12px;
+    color: var(--label-boring);
+    background: transparent;
+    border: none;
+}
+
 .delete-group {
     font-size: 12px;
     color: var(--label-danger);
     background: transparent;
     border: none;
+}
+
+.empty-dropzone {
+    min-height: 72px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--gray-3);
 }
 
 .create-group-form {

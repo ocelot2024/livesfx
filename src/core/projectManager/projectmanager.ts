@@ -385,6 +385,16 @@ export class ProjectManager extends EventTarget {
         this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
         return result;
     }
+    rename_group(oldName: string, newName: string): Result<void, string> {
+        const result = this.AudioEngine.rename_group(oldName, newName);
+        if (!result.ok) {
+            this.error(result.value);
+            return result;
+        }
+        this.stateManager.markAsChanged();
+        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
+        return result;
+    }
     move_sound_to_group(id: string, newGroup?: string): Result<void, string> {
         const result = this.AudioEngine.move_channel_to_group(id, newGroup);
         if (!result.ok) {
