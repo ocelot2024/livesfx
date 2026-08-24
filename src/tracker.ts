@@ -14,5 +14,7 @@ export type AnalysisTrackEvent =
     (typeof AnalysisTrackEvent)[keyof typeof AnalysisTrackEvent];
 
 export const track = (name: AnalysisTrackEvent) => {
-    umami.track(name);
+    if (window.umami) {
+        umami.track(name);
+    }
 };
