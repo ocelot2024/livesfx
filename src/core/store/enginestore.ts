@@ -144,4 +144,5 @@ const messages: ErrMsgType = {
         "一部の音声キャッシュの保存に失敗しました",
     [EngineError.MissingCachedAudioForExport]:
         "エクスポートするのに必要なキャッシュが欠損しています。",
+    [EngineError.UnknownSound]: "未知のサウンドが追加されました",
 };

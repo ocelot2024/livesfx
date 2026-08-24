@@ -26,5 +26,5 @@
     --label-success: var(--green);
     --label-accent: var(--blue);
     --accent-bg: var(--blue);
-    --accent-fg: var(--gray-6);
+    --accent-fg: #eee;
 }
