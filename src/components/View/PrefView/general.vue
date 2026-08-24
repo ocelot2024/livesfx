@@ -8,8 +8,6 @@ import { useConfigStore } from '@/core/store/configstore.ts';
 import { useUpdateStore } from '@/core/store/updatestore.ts';
 import { defineAsyncComponent, ref } from 'vue';
 
-const alertNotSaved = ref(true)
-
 const store = useConfigStore()
 const updateStore = useUpdateStore()
 
@@ -70,9 +68,8 @@ function resetSettings() {
                     <h2>LiveSFX</h2>
                     <small>v{{ appVersion }}</small>
                 </div>
-                <SettingsRow v-if="updateStore.hasPendingUpdate"
-                    :label="`アップデート (v${updateStore.newVersion?.version})`" chevron
-                    @click="updateStore.showUpdateModal = true" />
+                <SettingsRow v-if="updateStore.hasPendingUpdate" :label="`アップデート (v${updateStore.newVersion?.version})`"
+                    chevron @click="updateStore.showUpdateModal = true" />
                 <SettingsRow v-else-if="updateStore.checking" label="確認中…" />
                 <SettingsRow v-else label="アップデートを確認" chevron @click="updateStore.checkForUpdate()" />
                 <SettingsRow label="更新履歴" chevron @click="showChangelog = true" />
