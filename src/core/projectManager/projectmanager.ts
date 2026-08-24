@@ -460,7 +460,10 @@ export class ProjectManager extends EventTarget {
         this.AudioEngine.unload_bgm(id);
     }
     rename(id: string, name: string) {
-        this.AudioEngine.rename(id, name);
-        this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
+        const res = this.AudioEngine.rename(id, name);
+        if (res.ok) {
+            this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
+        }
+        return Ok();
     }
 }

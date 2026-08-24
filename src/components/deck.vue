@@ -6,6 +6,7 @@ import SettingsRow from './settingsRow.vue';
 import SettingsSection from './settingsSection.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectEngine } from '@/core/index.ts';
+import Modal from './Modal.vue';
 
 const store = useEngineState();
 
@@ -49,6 +50,24 @@ onMounted(() => {
 const load_to_deck = (deckId: "deckA" | "deckB", bgmId: string) => {
     ProjectEngine.load_bgm_to_deck(deckId, bgmId);
 }
+
+const showed_editor = ref(false);
+const target_id = ref()
+const filename = ref();
+
+const show_editor = (id: string) => {
+    const lib = ProjectEngine.get_bgm_library();
+    const targtet = lib[id]
+    if (!targtet) return;
+    target_id.value = targtet.id;
+    filename.value = targtet.filename;
+    showed_editor.value = true;
+}
+const save = () => {
+    if (ProjectEngine.rename(target_id.value, filename.value).ok) {
+        showed_editor.value = false;
+    };
+}
 </script>
 <template>
     <div style="padding: 12px;">
@@ -70,8 +89,9 @@ const load_to_deck = (deckId: "deckA" | "deckB", bgmId: string) => {
                         <p>曲がまだありません。</p>
                         <button @click="ProjectEngine.add_bgm()">曲を追加する</button>
                     </div>
-                    <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id">
-                        <div class="row-actions">
+                    <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id"
+                        :chevron="store.ui_mode == 'edit'" @click="show_editor(value.id)">
+                        <div class="row-actions" v-show="store.ui_mode == 'live'">
                             <button @click="load_to_deck('deckA', value.id)">A</button>
                             <button @click="load_to_deck('deckB', value.id)">B</button>
                         </div>
@@ -79,6 +99,17 @@ const load_to_deck = (deckId: "deckA" | "deckB", bgmId: string) => {
                 </SettingsSection>
             </Settinglist>
         </div>
+
+        <Modal :show="showed_editor" @close="showed_editor = false">
+            <div style="display: flex; flex-direction: column; padding: 20px;">
+                <Settinglist>
+                    <SettingsSection title="その他">
+                        <SettingsRow label="ファイル名"><input type="text" v-model="filename"></SettingsRow>
+                    </SettingsSection>
+                </Settinglist>
+                <button @click="save" :disabled="!filename">変更を保存</button>
+            </div>
+        </Modal>
     </div>
 </template>
 <style scoped>

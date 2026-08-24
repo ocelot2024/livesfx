@@ -463,6 +463,6 @@ export class Engine extends EventTarget {
         return this.player.get_info(id);
     }
     rename(id: string, name: string) {
-        this.library.rename(id, name);
+        return this.library.rename(id, name);
     }
 }
