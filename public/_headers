@@ -1,29 +1,15 @@
 Content-Security-Policy:
-<<<<<<< HEAD
-  default-src 'self';
-  script-src 'self' https://cloud.umami.is;
-  style-src 'self';
-  img-src 'self' data: blob:;
-  font-src 'self';
-  connect-src 'self' https://cloud.umami.is;
-  worker-src 'self' blob:;
-  object-src 'none';
-  base-uri 'self';
-  form-action 'none';
-  frame-ancestors 'none';
-=======
 default-src 'self';
-script-src 'self';
+script-src 'self' https://cloud.umami.is;
 style-src 'self';
 img-src 'self' data: blob:;
 font-src 'self';
-connect-src 'self';
+connect-src 'self' https://cloud.umami.is;
 worker-src 'self' blob:;
 object-src 'none';
 base-uri 'self';
 form-action 'none';
 frame-ancestors 'none';
->>>>>>> b77de93 (lighthouse対策)
 
 X-Frame-Options: DENY
 Referrer-Policy: strict-origin-when-cross-origin
