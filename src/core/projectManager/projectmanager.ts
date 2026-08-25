@@ -21,7 +21,7 @@ import { check_audio_compatibility } from "../util/compatibility";
 export class ProjectManager extends EventTarget {
     private projectname: string;
 
-    private AudioEngine: Engine;
+    private engine: Engine;
 
     private storageManager: projectStorageManager;
     private stateManager: projectStateManager;
@@ -37,7 +37,7 @@ export class ProjectManager extends EventTarget {
                 this.render_title();
             },
         });
-        this.AudioEngine = new Engine();
+        this.engine = new Engine();
         window.addEventListener("beforeunload", (e) => {
             const store = useConfigStore();
             if (this.stateManager.is_dirty() && store.alertBeforeLeave) {
@@ -64,9 +64,9 @@ export class ProjectManager extends EventTarget {
         );
     }
     async init(filename?: string) {
-        if (this.AudioEngine) {
-            await this.AudioEngine.dispose();
-            this.AudioEngine = new Engine();
+        if (this.engine) {
+            await this.engine.dispose();
+            this.engine = new Engine();
         }
         const result = this.storageManager.initialise_storage().then((r) => {
             if (!r.ok) this.warn(EngineError.CouldNotCleanUpDB);
@@ -74,7 +74,7 @@ export class ProjectManager extends EventTarget {
         this.bindAudioEngineEvents();
         this.projectname = filename ?? "名称未設定";
         this.render_title(this.projectname);
-        this.AudioEngine.createChannel("SFX");
+        this.engine.createChannel("SFX");
         this.stateManager.init();
         check_audio_compatibility();
         await result;
@@ -98,8 +98,8 @@ export class ProjectManager extends EventTarget {
     }
     async start_with_blank() {
         if (!this.stateManager.leaveConfirm()) return;
-        await this.AudioEngine.dispose();
-        this.AudioEngine = new Engine();
+        await this.engine.dispose();
+        this.engine = new Engine();
         console.log("restart...");
         await this.init();
         this.stateManager.markAsChanged();
@@ -164,7 +164,7 @@ export class ProjectManager extends EventTarget {
             let add_failed = false;
             for (const music of audiofiles.value) {
                 const blob = music;
-                const id = this.AudioEngine.add_bgm({
+                const id = this.engine.add_bgm({
                     name: blob.name,
                     file: blob,
                     mime: blob.type,
@@ -185,7 +185,7 @@ export class ProjectManager extends EventTarget {
             this.proc_event(EngineProcState.Loading);
             files = musics;
             for (const sound of files) {
-                const result = this.AudioEngine.add_bgm({
+                const result = this.engine.add_bgm({
                     name: sound.filename,
                     file: sound.file,
                     id: sound.id,
@@ -210,7 +210,7 @@ export class ProjectManager extends EventTarget {
         if (!save_result.ok) this.error(save_result.value);
         this.fin_proc();
         this.stateManager.markAsChanged();
-        console.log(this.AudioEngine.get_bgm_library());
+        console.log(this.engine.get_bgm_library());
     }
     async add_sfx(sounds?: SFXFile[]) {
         if (!this.storageManager.is_initialised()) {
@@ -230,7 +230,7 @@ export class ProjectManager extends EventTarget {
             for (const audiofile of audios.value) {
                 const bin: ArrayBuffer = await audiofile.arrayBuffer();
                 const mime = audiofile.type;
-                const id = await this.AudioEngine.add_sfx({
+                const id = await this.engine.add_sfx({
                     name: audiofile.name,
                     file: bin.slice(0),
                     mime,
@@ -251,7 +251,7 @@ export class ProjectManager extends EventTarget {
             this.proc_event(EngineProcState.Loading);
             files = sounds;
             for (const sound of files) {
-                const result = await this.AudioEngine.add_sfx({
+                const result = await this.engine.add_sfx({
                     name: sound.filename,
                     file: sound.file.slice(0),
                     id: sound.id,
@@ -281,36 +281,36 @@ export class ProjectManager extends EventTarget {
         this.stateManager.markAsChanged();
     }
     play(id: string, options?: { start?: number; end?: number }) {
-        const result = this.AudioEngine.play(id, options);
+        const result = this.engine.play(id, options);
         return result;
     }
     stop(source_id: string) {
-        this.AudioEngine.stop(source_id);
+        this.engine.stop(source_id);
     }
     get_sfx_library() {
-        return this.AudioEngine.get_sfx_library();
+        return this.engine.get_sfx_library();
     }
     get_bgm_library() {
-        return this.AudioEngine.get_bgm_library();
+        return this.engine.get_bgm_library();
     }
     get_duration(id: string) {
-        return this.AudioEngine.get_duration(id);
+        return this.engine.get_duration(id);
     }
     get_waveform(id: string, buckets: number) {
-        return this.AudioEngine.get_waveform(id, buckets);
+        return this.engine.get_waveform(id, buckets);
     }
     get_soundinfo(id: string) {
-        return this.AudioEngine.get_soundinfo(id);
+        return this.engine.get_soundinfo(id);
     }
     stop_all_sfx() {
-        return this.AudioEngine.stop_all_sfx();
+        return this.engine.stop_all_sfx();
     }
     trim(id: string, start: number, end: number) {
-        this.AudioEngine.trim(id, start, end);
+        this.engine.trim(id, start, end);
         this.stateManager.markAsChanged();
     }
     set_sfx_playmode(id: string, mode: SFXPlayMode) {
-        this.AudioEngine.set_sfx_play_mode(id, mode);
+        this.engine.set_sfx_play_mode(id, mode);
         this.stateManager.markAsChanged();
     }
     async export() {
@@ -340,7 +340,7 @@ export class ProjectManager extends EventTarget {
         const sfx_filesMap: Record<string, ArrayBuffer> = Object.fromEntries(
             files.value.map(({ id, file }) => [id, file]),
         );
-        const bgm_filesMap = await this.AudioEngine.get_all_bgm_arraybuffer();
+        const bgm_filesMap = await this.engine.get_all_bgm_arraybuffer();
         const fileMap = Object.assign({}, sfx_filesMap, bgm_filesMap);
 
         let missing = false;
@@ -358,13 +358,13 @@ export class ProjectManager extends EventTarget {
         this.fin_proc();
     }
     get_group_children(parent: string) {
-        return this.AudioEngine.get_group_children(parent);
+        return this.engine.get_group_children(parent);
     }
     get_group_names(): string[] {
-        return this.AudioEngine.get_group_names();
+        return this.engine.get_group_names();
     }
     create_group(name: string): Result<string, string> {
-        const result = this.AudioEngine.createChannel(name);
+        const result = this.engine.createChannel(name);
         if (!result.ok) {
             this.error(result.value);
             return result;
@@ -374,7 +374,7 @@ export class ProjectManager extends EventTarget {
         return result;
     }
     delete_group(name: string): Result<void, string> {
-        const result = this.AudioEngine.delete_group(name);
+        const result = this.engine.delete_group(name);
         if (!result.ok) {
             this.error(result.value);
             return result;
@@ -384,7 +384,7 @@ export class ProjectManager extends EventTarget {
         return result;
     }
     rename_group(oldName: string, newName: string): Result<void, string> {
-        const result = this.AudioEngine.rename_group(oldName, newName);
+        const result = this.engine.rename_group(oldName, newName);
         if (!result.ok) {
             this.error(result.value);
             return result;
@@ -394,7 +394,7 @@ export class ProjectManager extends EventTarget {
         return result;
     }
     move_sound_to_group(id: string, newGroup?: string): Result<void, string> {
-        const result = this.AudioEngine.move_channel_to_group(id, newGroup);
+        const result = this.engine.move_channel_to_group(id, newGroup);
         if (!result.ok) {
             this.error(result.value);
             return result;
@@ -404,13 +404,13 @@ export class ProjectManager extends EventTarget {
         return result;
     }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
-        return this.AudioEngine.set_gain(id, gain);
+        return this.engine.set_gain(id, gain);
     }
     get_gain(id: string): Result<number, AudioMixerError> {
-        return this.AudioEngine.get_gain(id);
+        return this.engine.get_gain(id);
     }
     move_sound(id: string, toIndex: number): Result<void, string> {
-        const result = this.AudioEngine.move_sound(id, toIndex);
+        const result = this.engine.move_sound(id, toIndex);
         if (!result.ok) {
             this.error(result.value);
             return result;
@@ -422,7 +422,7 @@ export class ProjectManager extends EventTarget {
 
     private bindAudioEngineEvents() {
         for (const event of Object.values(PlayerEvent)) {
-            this.AudioEngine.addEventListener(event, (e) => {
+            this.engine.addEventListener(event, (e) => {
                 this.dispatchEvent(
                     new CustomEvent(event, {
                         detail: (e as CustomEvent).detail,
@@ -432,15 +432,15 @@ export class ProjectManager extends EventTarget {
         }
     }
     get_bgm_info(id: "deckA" | "deckB") {
-        return this.AudioEngine.get_bgm_info(id);
+        return this.engine.get_bgm_info(id);
     }
 
     load_bgm(id: "deckA" | "deckB", file: BGMFile) {
-        this.AudioEngine.load_bgm(id, file);
+        this.engine.load_bgm(id, file);
     }
 
     load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
-        const result = this.AudioEngine.load_bgm_to_deck(id, bgmId);
+        const result = this.engine.load_bgm_to_deck(id, bgmId);
         if (!result.ok) {
             this.error(result.value);
             return result;
@@ -449,26 +449,26 @@ export class ProjectManager extends EventTarget {
     }
 
     play_bgm(id: "deckA" | "deckB") {
-        return this.AudioEngine.play_bgm(id);
+        return this.engine.play_bgm(id);
     }
 
     pause_bgm(id: "deckA" | "deckB") {
-        this.AudioEngine.pause_bgm(id);
+        this.engine.pause_bgm(id);
     }
 
     stop_bgm(id: "deckA" | "deckB") {
-        this.AudioEngine.stop_bgm(id);
+        this.engine.stop_bgm(id);
     }
 
     seek_bgm(id: "deckA" | "deckB", time: number) {
-        this.AudioEngine.seek_bgm(id, time);
+        this.engine.seek_bgm(id, time);
     }
 
     eject_bgm(id: "deckA" | "deckB") {
-        this.AudioEngine.unload_bgm(id);
+        this.engine.unload_bgm(id);
     }
     rename(id: string, name: string) {
-        const res = this.AudioEngine.rename(id, name);
+        const res = this.engine.rename(id, name);
         if (res.ok) {
             this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
         }
