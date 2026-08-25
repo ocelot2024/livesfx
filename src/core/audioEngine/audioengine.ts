@@ -268,22 +268,26 @@ export class Engine extends EventTarget {
     }): Promise<Result<string, string>> {
         const { id, file, group, name, gain, mime } = option;
         const sound_id = id ?? generateUUID();
-        const audiobuffer = await this.ctx.decodeAudioData(file);
         const groupname = group ?? "SFX";
-        this.library.add(
-            {
-                filename: name,
-                id: sound_id,
-                type: SoundFileType.SFX,
-                group: groupname,
-                mime: mime,
-            },
-            audiobuffer,
-        );
-        const result = this.mixer.create_channel(sound_id, name, groupname);
-        if (!result.ok) return Err(AudioEngineError.ChannelCreationFailed);
-        this.mixer.set_gain(result.value, gain ?? 1);
-        return Ok(result.value);
+        try {
+            const audiobuffer = await this.ctx.decodeAudioData(file);
+            this.library.add(
+                {
+                    filename: name,
+                    id: sound_id,
+                    type: SoundFileType.SFX,
+                    group: groupname,
+                    mime: mime,
+                },
+                audiobuffer,
+            );
+            const result = this.mixer.create_channel(sound_id, name, groupname);
+            if (!result.ok) return Err(AudioEngineError.ChannelCreationFailed);
+            this.mixer.set_gain(result.value, gain ?? 1);
+            return Ok(result.value);
+        } catch (e) {
+            return Err(e as string);
+        }
     }
     add_bgm(option: {
         name: string;
