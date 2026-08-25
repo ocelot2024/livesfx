@@ -16,6 +16,7 @@ import projectStateManager from "./projectStateManager";
 import { useConfigStore } from "../store/configstore";
 
 import { openFilePicker } from "../files/fileUtil";
+import { check_audio_compatibility } from "../util/compatibility";
 
 export class ProjectManager extends EventTarget {
     private projectname: string;
@@ -75,6 +76,7 @@ export class ProjectManager extends EventTarget {
         this.render_title(this.projectname);
         this.AudioEngine.createChannel("SFX");
         this.stateManager.init();
+        check_audio_compatibility();
         await result;
     }
     private proc_event(state: EngineProcState) {
