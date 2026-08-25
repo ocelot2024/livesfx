@@ -3,16 +3,33 @@ export const LVSF_MAGIC_BYTE = "lvsf";
 export const HEADER_SIZE = 16;
 export const AUDIO_MIME_TYPES: Record<string, string> = {
     mp3: "audio/mpeg",
+    mpg: "audio/mpeg",
+    mpeg: "audio/mpeg",
+
     m4a: "audio/mp4",
+    m4b: "audio/mp4",
+    m4p: "audio/mp4",
+    mp4: "audio/mp4",
+
     aac: "audio/aac",
+
     wav: "audio/wav",
+
     aif: "audio/aiff",
     aiff: "audio/aiff",
     aifc: "audio/aiff",
-    mp4: "audio/mp4",
-    m4b: "audio/mp4",
-    m4p: "audio/mp4",
+
+    flac: "audio/flac",
+
+    ogg: "audio/ogg",
+    oga: "audio/ogg",
+    opus: "audio/ogg",
+
+    webm: "audio/webm",
+    weba: "audio/webm",
+
     amr: "audio/amr",
+
     "3gp": "audio/3gpp",
     "3gpp": "audio/3gpp",
     "3g2": "audio/3gpp2",
