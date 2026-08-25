@@ -15,7 +15,7 @@ import type { AudioMixerError } from "../types/err";
 import projectStateManager from "./projectStateManager";
 import { useConfigStore } from "../store/configstore";
 
-import { openFilePicker } from "../files/fileUtil";
+import { openAudioFilePicker, openFilePicker } from "../files/fileUtil";
 import { check_audio_compatibility } from "../util/compatibility";
 
 export class ProjectManager extends EventTarget {
@@ -154,9 +154,7 @@ export class ProjectManager extends EventTarget {
         }
         let files: BGMFile[] = [];
         if (!musics) {
-            const audiofiles = await openFilePicker({
-                accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
-            });
+            const audiofiles = await openAudioFilePicker();
             this.proc_event(EngineProcState.Loading);
             if (!audiofiles.some) {
                 this.fin_proc();
@@ -221,9 +219,7 @@ export class ProjectManager extends EventTarget {
         }
         let files: SFXFile[] = [];
         if (!sounds) {
-            const audios = await openFilePicker({
-                accept: ".mp3,.m4a,.aac,.wav,.aif,.aiff,.aifc,.mp4,.m4b,.m4p,.amr,.3gp,.3gpp,.3g2",
-            });
+            const audios = await openAudioFilePicker();
 
             this.proc_event(EngineProcState.Loading);
             if (!audios.some) {

@@ -1,6 +1,6 @@
 import { AUDIO_MIME_TYPES } from "../constants";
 
-let SupportedMime: Record<AUDIO_MIME_TYPES, boolean> = {};
+export let SupportedMime: Record<AUDIO_MIME_TYPES, boolean> = {};
 
 export const check_audio_compatibility = () => {
     const audio = document.createElement("audio");
