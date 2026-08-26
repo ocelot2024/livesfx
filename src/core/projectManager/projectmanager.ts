@@ -27,7 +27,6 @@ export class ProjectManager extends InternalProjectManager {
         console.log("restart...");
         await this.init();
         this.stateManager.markAsChanged();
-        this.dispatchEvent(new CustomEvent(EngineEvent.Initialised));
     }
     async start_from_file(): Promise<Result<void, string>> {
         if (!this.stateManager.leaveConfirm()) return Ok();
@@ -294,7 +293,6 @@ export class ProjectManager extends InternalProjectManager {
             return result;
         }
         this.stateManager.markAsChanged();
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
         return result;
     }
     delete_group(name: string): Result<void, string> {
@@ -304,7 +302,6 @@ export class ProjectManager extends InternalProjectManager {
             return result;
         }
         this.stateManager.markAsChanged();
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
         return result;
     }
     rename_group(oldName: string, newName: string): Result<void, string> {
@@ -314,7 +311,6 @@ export class ProjectManager extends InternalProjectManager {
             return result;
         }
         this.stateManager.markAsChanged();
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
         return result;
     }
     move_sound_to_group(id: string, newGroup?: string): Result<void, string> {
@@ -324,7 +320,6 @@ export class ProjectManager extends InternalProjectManager {
             return result;
         }
         this.stateManager.markAsChanged();
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
         return result;
     }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
@@ -340,7 +335,6 @@ export class ProjectManager extends InternalProjectManager {
             return result;
         }
         this.stateManager.markAsChanged();
-        this.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
         return Ok();
     }
 
@@ -383,7 +377,7 @@ export class ProjectManager extends InternalProjectManager {
     rename(id: string, name: string) {
         const res = this.engine.rename(id, name);
         if (res.ok) {
-            this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
+            this.stateManager.markAsChanged();
         }
         return Ok();
     }
