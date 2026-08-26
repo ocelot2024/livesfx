@@ -12,7 +12,7 @@ import {
 } from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
 import { start_from_file } from "./projectFileHandler";
-import { openAudioFilePicker, openFilePicker } from "../files/fileUtil";
+import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 
 export class ProjectManager extends InternalProjectManager {
