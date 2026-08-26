@@ -1,3 +1,4 @@
+import { version } from "vue";
 import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
 import { useConfigStore } from "../store/configstore";
 import { EngineProcState } from "../store/enginestore_type";
@@ -6,6 +7,7 @@ import { EngineEvent } from "../types/types";
 import { check_audio_compatibility } from "../util/compatibility";
 import projectStateManager from "./projectStateManager";
 import projectStorageManager from "./projectStorageManager";
+import { isPWA } from "../util/util";
 
 export class InternalProjectManager extends EventTarget {
     protected projectname: string;
@@ -32,6 +34,11 @@ export class InternalProjectManager extends EventTarget {
                 e.preventDefault();
             }
         });
+        if (window.umami)
+            umami.identify({
+                version: __APP_VERSION__,
+                standalone: isPWA() ? "yes" : "no",
+            });
     }
     protected error(type: EngineError | EngineException | string) {
         this.dispatchEvent(
