@@ -7,8 +7,7 @@ import { EngineEvent } from "../types/types";
 import { check_audio_compatibility } from "../util/compatibility";
 import projectStateManager from "./projectStateManager";
 import projectStorageManager from "./projectStorageManager";
-import { isPWA } from "../util/util";
-import {track} from "../../tracker.ts"
+import { initUmami } from "@/tracker";
 
 export class InternalProjectManager extends EventTarget {
     protected projectname: string;
@@ -35,12 +34,7 @@ export class InternalProjectManager extends EventTarget {
                 e.preventDefault();
             }
         });
-        if (window.umami)
-            umami.identify({
-                version: __APP_VERSION__,
-                standalone: isPWA() ? "yes" : "no",
-            });
-            track("ProjectInitialised")
+        initUmami();
     }
     protected error(type: EngineError | EngineException | string) {
         this.dispatchEvent(
