@@ -58,7 +58,7 @@ export class InternalProjectManager extends EventTarget {
             this.projectname +
             " - LiveSFX";
     }
-    protected async init(filename?: string) {
+    async init(filename?: string) {
         if (this.engine) {
             await this.engine.dispose();
             this.engine = new AudioEngine();
