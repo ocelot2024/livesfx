@@ -11,7 +11,7 @@ import {
     type SoundMeta,
 } from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
-
+import { start_from_file } from "./projectFileHandler";
 import { openAudioFilePicker, openFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 
@@ -30,41 +30,16 @@ export class ProjectManager extends InternalProjectManager {
     }
     async start_from_file(): Promise<Result<void, string>> {
         if (!this.stateManager.leaveConfirm()) return Ok();
-        const { LVSFFile } = await import("../files/lvsf");
-        const filelist = await openFilePicker({
-            multiple: false,
-            accept: "." + PROJECT_FILE_EX,
-        });
-        if (!filelist.some) return Ok();
-        if (!filelist.value[0]) return Ok();
-        const lvsf_manager = new LVSFFile();
-        const info = await lvsf_manager.parse(filelist.value[0]);
-        if (!info.ok) {
+        const result = await start_from_file();
+        if (!result.ok) {
             this.error(EngineError.InvalidLVSFFile);
-            return Err(info.value);
+            return Err(result.value);
         }
-        await this.init(info.value.filename);
-        const sfx_frag: SFXFile[] = [];
-        const bgm_frag: BGMFile[] = [];
-        let load_failed = false;
-        for (const sound_info of info.value.sounds) {
-            const blob = lvsf_manager.get_sound_data(sound_info.id);
-            if (!blob.ok) {
-                load_failed = true;
-                continue;
-            }
-            if (sound_info.type === SoundFileType.BGM) {
-                bgm_frag.push({ ...sound_info, file: blob.value });
-            } else {
-                sfx_frag.push({
-                    ...sound_info,
-                    file: await blob.value.arrayBuffer(),
-                });
-            }
-        }
+        const { filename, sfx, bgm, load_failed } = result.value;
+        await this.init(filename);
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
-        await this.add_sfx(sfx_frag);
-        await this.add_bgm(bgm_frag);
+        await this.add_sfx(sfx);
+        await this.add_bgm(bgm);
         this.fin_proc();
         this.stateManager.markAsSaved();
         this.dispatchEvent(new Event(EngineEvent.LoadedPrj));

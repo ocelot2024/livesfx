@@ -1,3 +1,4 @@
+import { PROJECT_FILE_EX } from "../constants";
 import { None, Some, type Option } from "../types/types";
 import {
     check_audio_compatibility,
@@ -39,6 +40,10 @@ export const openAudioFilePicker = (multi?: boolean) => {
         .join(", ");
     console.log(accept);
     return openFilePicker({ multiple: multi ?? true, accept });
+};
+
+export const openLvsfFilePicker = () => {
+    return openFilePicker({ multiple: false, accept: "." + PROJECT_FILE_EX });
 };
 
 export interface LVSFSoundFileMeta {
