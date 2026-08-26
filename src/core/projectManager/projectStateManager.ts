@@ -1,5 +1,6 @@
 import { ProjectManager } from "./projectmanager";
 import { EngineEvent } from "../types/types";
+import type { InternalProjectManager } from "./internalProjectManager";
 
 interface stateManagerHandler {
     onChangedHandler?: Function;
@@ -9,9 +10,9 @@ interface stateManagerHandler {
 export default class {
     private dirty: boolean;
     private handler: stateManagerHandler;
-    private self: ProjectManager;
+    private self: InternalProjectManager;
 
-    constructor(self: ProjectManager, handler?: stateManagerHandler) {
+    constructor(self: InternalProjectManager, handler?: stateManagerHandler) {
         this.self = self;
         this.dirty = false;
         this.handler = handler ?? {};

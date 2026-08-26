@@ -184,7 +184,7 @@ class BGMPlayer extends EventTarget {
     }
 }
 
-export class Engine extends EventTarget {
+export class AudioEngine extends EventTarget {
     private mixer: AudioMixer;
     private library: SoundLibrary;
     private ctx = new window.AudioContext();

@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import { Engine, PlayerEvent } from "../audioEngine/audioengine";
+import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
 import { SFXPlayMode, SoundFileType } from "../audioEngine/sounds";
 import { AudioEngineError } from "../types/err";
 import {
@@ -22,7 +22,7 @@ import {
 
 function setupEngine() {
     installBrowserGlobals(vi);
-    const engine = new Engine();
+    const engine = new AudioEngine();
     const ctx = FakeAudioContext.instances.at(-1);
     if (!ctx) throw new Error("Engine did not construct a FakeAudioContext");
     return { engine, ctx };
@@ -96,7 +96,7 @@ describe("Engine.add_sfx / get_sfx_library", () => {
 });
 
 describe("Engine.play - SFXPlayMode branching", () => {
-    async function addSfx(engine: Engine, mode: SFXPlayMode) {
+    async function addSfx(engine: AudioEngine, mode: SFXPlayMode) {
         const result = await engine.add_sfx({
             name: "kick.wav",
             file: dummySfxBuffer(),

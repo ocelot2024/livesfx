@@ -1,9 +1,8 @@
-import { Engine, PlayerEvent } from "../audioEngine/audioengine";
+import { AudioEngine } from "../audioEngine/audioengine";
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import { EngineProcState } from "../store/enginestore_type";
-import { EngineError, EngineException } from "../types/error_types";
+import { EngineError } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
-import projectStorageManager from "./projectStorageManager";
 import {
     SoundFileType,
     type SFXPlayMode,
@@ -12,94 +11,19 @@ import {
     type SoundMeta,
 } from "../audioEngine/sounds";
 import type { AudioMixerError } from "../types/err";
-import projectStateManager from "./projectStateManager";
-import { useConfigStore } from "../store/configstore";
 
 import { openAudioFilePicker, openFilePicker } from "../files/fileUtil";
-import { check_audio_compatibility } from "../util/compatibility";
+import { InternalProjectManager } from "./internalProjectManager";
 
-export class ProjectManager extends EventTarget {
-    private projectname: string;
-
-    private engine: Engine;
-
-    private storageManager: projectStorageManager;
-    private stateManager: projectStateManager;
+export class ProjectManager extends InternalProjectManager {
     constructor() {
         super();
-        this.projectname = "名称未設定";
-        this.storageManager = new projectStorageManager();
-        this.stateManager = new projectStateManager(this, {
-            onChangedHandler: () => {
-                this.render_title();
-            },
-            onSavedHandler: () => {
-                this.render_title();
-            },
-        });
-        this.engine = new Engine();
-        window.addEventListener("beforeunload", (e) => {
-            const store = useConfigStore();
-            if (this.stateManager.is_dirty() && store.alertBeforeLeave) {
-                e.preventDefault();
-            }
-        });
     }
-    private error(type: EngineError | EngineException | string) {
-        this.dispatchEvent(
-            new CustomEvent(EngineEvent.Error, {
-                detail: {
-                    type: type,
-                },
-            }),
-        );
-    }
-    private warn(type: EngineError) {
-        this.dispatchEvent(
-            new CustomEvent(EngineEvent.Warn, {
-                detail: {
-                    type: type,
-                },
-            }),
-        );
-    }
-    async init(filename?: string) {
-        if (this.engine) {
-            await this.engine.dispose();
-            this.engine = new Engine();
-        }
-        const result = this.storageManager.initialise_storage().then((r) => {
-            if (!r.ok) this.warn(EngineError.CouldNotCleanUpDB);
-        });
-        this.bindAudioEngineEvents();
-        this.projectname = filename ?? "名称未設定";
-        this.render_title(this.projectname);
-        this.engine.createChannel("SFX");
-        this.stateManager.init();
-        check_audio_compatibility();
-        await result;
-    }
-    private proc_event(state: EngineProcState) {
-        this.dispatchEvent(
-            new CustomEvent(EngineEvent.Proccessing, {
-                detail: { type: state },
-            }),
-        );
-    }
-    private fin_proc() {
-        this.dispatchEvent(new Event(EngineEvent.FinProc));
-    }
-    private render_title(prjname?: string) {
-        if (prjname) this.projectname = prjname;
-        document.title =
-            (this.stateManager.is_dirty() ? "* " : "") +
-            this.projectname +
-            " - LiveSFX";
-    }
+
     async start_with_blank() {
         if (!this.stateManager.leaveConfirm()) return;
         await this.engine.dispose();
-        this.engine = new Engine();
+        this.engine = new AudioEngine();
         console.log("restart...");
         await this.init();
         this.stateManager.markAsChanged();
@@ -420,17 +344,6 @@ export class ProjectManager extends EventTarget {
         return Ok();
     }
 
-    private bindAudioEngineEvents() {
-        for (const event of Object.values(PlayerEvent)) {
-            this.engine.addEventListener(event, (e) => {
-                this.dispatchEvent(
-                    new CustomEvent(event, {
-                        detail: (e as CustomEvent).detail,
-                    }),
-                );
-            });
-        }
-    }
     get_bgm_info(id: "deckA" | "deckB") {
         return this.engine.get_bgm_info(id);
     }
