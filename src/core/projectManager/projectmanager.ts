@@ -354,6 +354,6 @@ export class ProjectManager extends InternalProjectManager {
         if (res.ok) {
             this.stateManager.markAsChanged();
         }
-        return Ok();
+        return res;
     }
 }
