@@ -29,6 +29,7 @@ export const AUDIO_MIME_TYPES: Record<string, string> = {
     weba: "audio/webm",
 
     amr: "audio/amr",
+    caf:"audio/x-caf",
 
     "3gp": "audio/3gpp",
     "3gpp": "audio/3gpp",
