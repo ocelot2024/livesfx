@@ -4,7 +4,6 @@ import {
     SoundFileType,
     SoundLibrary,
     type BGMFile,
-    type SoundMeta,
 } from "./sounds";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
