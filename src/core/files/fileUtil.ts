@@ -38,7 +38,6 @@ export const openAudioFilePicker = (multi?: boolean) => {
         .filter((key) => SupportedMime[key])
         .map((v) => "." + v)
         .join(", ");
-    .log(accept);
     return openFilePicker({ multiple: multi ?? true, accept });
 };
 
