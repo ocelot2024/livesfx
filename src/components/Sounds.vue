@@ -142,6 +142,8 @@ const onGridPointerDown = (e: PointerEvent) => {
     dragState.dy = 0;
 
     dragOriginRect = cardEl.getBoundingClientRect();
+
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 }
 
 const onGridPointerMove = (e: PointerEvent) => {
@@ -155,8 +157,6 @@ const onGridPointerMove = (e: PointerEvent) => {
         if (Math.hypot(dx, dy) < config.dragThreshold) return;
         dragState.active = true;
         dragState.hasDragged = true;
-        const gridEl = e.currentTarget as HTMLElement;
-        gridEl.setPointerCapture(e.pointerId);
     }
 
     e.preventDefault();

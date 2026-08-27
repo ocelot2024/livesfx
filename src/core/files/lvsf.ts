@@ -142,7 +142,7 @@ export class LVSFFile {
             dot_pos !== undefined && dot_pos >= 0
                 ? filename.slice(dot_pos + 1)
                 : "";
-        const mime = AUDIO_MIME_TYPES[ext];
+        const mime = AUDIO_MIME_TYPES[ext.toLowerCase()];
         if (!mime) return Err(EngineError.UnknownSound);
         const audio = this.lvsf.slice(
             data.offset + this.json_size + HEADER_SIZE,
