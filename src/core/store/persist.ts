@@ -46,18 +46,14 @@ const restore = (store: PiniaPluginContext["store"], storageKey: string) => {
         if (Object.keys(patch).length) {
             store.$patch((state) => Object.assign(state, patch));
         }
-    } catch (e) {
-        console.warn(
-            `[persist] ${store.$id} の設定が壊れていたため無視しました`,
-            e,
-        );
-    }
+    } catch (e) {}
 };
 
 const persist = (storeId: string, storageKey: string, state: unknown) => {
     try {
         localStorage.setItem(storageKey, JSON.stringify(state));
     } catch (e) {
+        //TODO アプリ内通知に変更
         console.warn(`[persist] ${storeId} の設定の保存に失敗しました`, e);
     }
 };

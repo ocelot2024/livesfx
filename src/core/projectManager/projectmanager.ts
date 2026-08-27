@@ -24,7 +24,6 @@ export class ProjectManager extends InternalProjectManager {
         if (!this.stateManager.leaveConfirm()) return;
         await this.engine.dispose();
         this.engine = new AudioEngine();
-        console.log("restart...");
         await this.init();
         this.stateManager.markAsChanged();
     }
@@ -108,7 +107,6 @@ export class ProjectManager extends InternalProjectManager {
         if (!save_result.ok) this.error(save_result.value);
         this.fin_proc();
         this.stateManager.markAsChanged();
-        console.log(this.engine.get_bgm_library());
     }
     async add_sfx(sounds?: SFXFile[]) {
         if (!this.storageManager.is_initialised()) {

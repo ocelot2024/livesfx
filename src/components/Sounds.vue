@@ -239,14 +239,12 @@ const finishDrag = async (committed: boolean) => {
             if (!groupResult.ok) {
                 order.value = store.sfx_library.map(s => s.id);
                 dragOverrideGroup.value = null;
-                console.error('move_sound_to_group failed, reverted order:', groupResult.value);
                 return;
             }
         }
         const result = await ProjectEngine.move_sound(id, finalIndex);
         if (!result.ok) {
             order.value = store.sfx_library.map(s => s.id);
-            console.error('move_sound failed, reverted order:', result.value);
         }
     }
     dragOverrideGroup.value = null;
@@ -382,8 +380,7 @@ const groupLabel = (name: string) => name === UNGROUPED ? '未分類' : name;
 const deleteGroup = (name: string) => {
     if (name === UNGROUPED) return;
     if (!confirm(`グループ「${name}」を削除しますか?中の音は未分類に移動します。`)) return;
-    const result = ProjectEngine.delete_group(name);
-    if (!result.ok) console.error('delete_group failed:', result.value);
+    ProjectEngine.delete_group(name);
 }
 
 const renameGroup = (name: string) => {
@@ -396,8 +393,7 @@ const renameGroup = (name: string) => {
         alert('そのグループ名は既に使われています');
         return;
     }
-    const result = ProjectEngine.rename_group(name, trimmed);
-    if (!result.ok) console.error('rename_group failed:', result.value);
+    ProjectEngine.rename_group(name, trimmed);
 }
 
 </script>
