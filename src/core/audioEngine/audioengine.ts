@@ -182,6 +182,11 @@ class BGMPlayer extends EventTarget {
     get_deck_elm(id: "deckA" | "deckB"): HTMLAudioElement {
         return this[id].player;
     }
+
+    reset() {
+        this.deckA.unload();
+        this.deckB.unload();
+    }
 }
 
 export class AudioEngine extends EventTarget {
@@ -382,6 +387,7 @@ export class AudioEngine extends EventTarget {
     }
     async dispose() {
         this.stop_all_sfx();
+        this.player.reset();
         await this.ctx.close();
         window.removeEventListener("click", this.resume_ctx);
         window.removeEventListener("touchstart", this.resume_ctx);
