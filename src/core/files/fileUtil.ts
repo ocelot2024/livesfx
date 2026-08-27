@@ -43,7 +43,10 @@ export const openAudioFilePicker = (multi?: boolean) => {
 };
 
 export const openLvsfFilePicker = () => {
-    return openFilePicker({ multiple: false, accept: "." + PROJECT_FILE_EX });
+    return openFilePicker({
+        multiple: false,
+        accept: "." + PROJECT_FILE_EX + ", ." + PROJECT_FILE_EX.toUpperCase(),
+    });
 };
 
 export interface LVSFSoundFileMeta {
