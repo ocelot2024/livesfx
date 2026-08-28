@@ -96,21 +96,22 @@ export class ProjectManager extends InternalProjectManager {
         }
         this.proc_event(EngineProcState.Writing);
 
-        this.storageManager.save_sound_cache(
-            await Promise.all(
-                files.map(async (v) => ({
-                    ...v,
-                    file: await v.file.arrayBuffer(),
-                })),
-            ),
-        ).catch((e)=>{
-            this.error(e)
-        })
+        this.storageManager
+            .save_sound_cache(
+                await Promise.all(
+                    files.map(async (v) => ({
+                        ...v,
+                        file: await v.file.arrayBuffer(),
+                    })),
+                ),
+            )
+            .catch((e) => {
+                this.error(e);
+            });
         this.fin_proc();
         this.stateManager.markAsChanged();
     }
     async add_sfx(sounds?: SFXFile[]) {
-        const start =performance.now()
         if (!this.storageManager.is_initialised()) {
             this.error(EngineError.StorageNotReady);
             return;
@@ -126,70 +127,62 @@ export class ProjectManager extends InternalProjectManager {
             }
             let add_failed = false;
 
-            let frag=[]
-            for(const audiofile of audios.value){
-                frag.push(audiofile.arrayBuffer())
-            }
-            const audioFiles =await Promise.allSettled(frag);
-            for (const [index, audiofile] of Object.entries(audios.value)) {
-                const result=audioFiles[Number(index)];
-                if(result?.status!=="fulfilled"){
-                    add_failed=true;
-                    continue;
-                }
-                const bin: ArrayBuffer = result.value;
-                const mime = audiofile.type;
-                const id = await this.engine.add_sfx({
-                    name: audiofile.name,
-                    file: bin.slice(0),
-                    mime,
-                });
-                if (!id.ok) {
-                    add_failed = true;
-                    continue;
-                }
-                files.push({
-                    id: id.value,
-                    file: bin,
-                    filename: audiofile.name,
-                    type: SoundFileType.SFX,
-                });
-            }
+            await Promise.allSettled(
+                audios.value.map(async (audiofile) => {
+                    const bin = await audiofile.arrayBuffer();
+                    const mime = audiofile.type;
+                    const id = await this.engine.add_sfx({
+                        name: audiofile.name,
+                        file: bin.slice(0),
+                        mime,
+                    });
+                    if (!id.ok) {
+                        add_failed = true;
+                        return;
+                    }
+                    files.push({
+                        id: id.value,
+                        file: bin,
+                        filename: audiofile.name,
+                        type: SoundFileType.SFX,
+                    });
+                }),
+            );
             if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
         } else {
             this.proc_event(EngineProcState.Loading);
             files = sounds;
-            for (const sound of files) {
-                const result = await this.engine.add_sfx({
-                    name: sound.filename,
-                    file: sound.file.slice(0),
-                    id: sound.id,
-                    group: sound.group,
-                    gain: sound.gain,
-                    mime: sound.mime,
-                });
-                if (!result.ok) {
-                    this.error(result.value);
-                    continue;
-                }
-                if (
-                    sound.start_from !== undefined &&
-                    sound.end_at !== undefined
-                ) {
-                    this.trim(result.value, sound.start_from, sound.end_at);
-                }
-                if (sound.play_mode !== undefined) {
-                    this.set_sfx_playmode(result.value, sound.play_mode);
-                }
-            }
+            await Promise.allSettled(
+                files.map(async (sound) => {
+                    const result = await this.engine.add_sfx({
+                        name: sound.filename,
+                        file: sound.file.slice(0),
+                        id: sound.id,
+                        group: sound.group,
+                        gain: sound.gain,
+                        mime: sound.mime,
+                    });
+                    if (!result.ok) {
+                        this.error(result.value);
+                        return;
+                    }
+                    if (
+                        sound.start_from !== undefined &&
+                        sound.end_at !== undefined
+                    ) {
+                        this.trim(result.value, sound.start_from, sound.end_at);
+                    }
+                    if (sound.play_mode !== undefined) {
+                        this.set_sfx_playmode(result.value, sound.play_mode);
+                    }
+                }),
+            );
         }
         this.proc_event(EngineProcState.Writing);
-        this.storageManager.save_sound_cache(files).catch(e=>{
-            this.error(e)
+        this.storageManager.save_sound_cache(files).catch((e) => {
+            this.error(e);
         });
         this.fin_proc();
-        const end =performance.now()
-        console.log(end-start)
         this.stateManager.markAsChanged();
     }
     play(id: string, options?: { start?: number; end?: number }) {
