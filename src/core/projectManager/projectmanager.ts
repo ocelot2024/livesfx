@@ -97,15 +97,16 @@ export class ProjectManager extends InternalProjectManager {
         }
         this.proc_event(EngineProcState.Writing);
 
-        const save_result = await this.storageManager.save_sound_cache(
+        this.storageManager.save_sound_cache(
             await Promise.all(
                 files.map(async (v) => ({
                     ...v,
                     file: await v.file.arrayBuffer(),
                 })),
             ),
-        );
-        if (!save_result.ok) this.error(save_result.value);
+        ).catch((e)=>{
+            this.error(e)
+        })
         this.fin_proc();
         this.stateManager.markAsChanged();
         console.log(this.engine.get_bgm_library());
@@ -185,8 +186,9 @@ export class ProjectManager extends InternalProjectManager {
             }
         }
         this.proc_event(EngineProcState.Writing);
-        const save_result = await this.storageManager.save_sound_cache(files);
-        if (!save_result.ok) this.error(save_result.value);
+        this.storageManager.save_sound_cache(files).catch(e=>{
+            this.error(e)
+        });
         this.fin_proc();
         const end =performance.now()
         console.log(end-start)
