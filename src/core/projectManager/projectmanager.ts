@@ -111,6 +111,7 @@ export class ProjectManager extends InternalProjectManager {
         console.log(this.engine.get_bgm_library());
     }
     async add_sfx(sounds?: SFXFile[]) {
+        const start =performance.now()
         if (!this.storageManager.is_initialised()) {
             this.error(EngineError.StorageNotReady);
             return;
@@ -125,8 +126,19 @@ export class ProjectManager extends InternalProjectManager {
                 return;
             }
             let add_failed = false;
-            for (const audiofile of audios.value) {
-                const bin: ArrayBuffer = await audiofile.arrayBuffer();
+
+            let frag=[]
+            for(const audiofile of audios.value){
+                frag.push(audiofile.arrayBuffer())
+            }
+            const audioFiles =await Promise.allSettled(frag);
+            for (const [index, audiofile] of Object.entries(audios.value)) {
+                const result=audioFiles[Number(index)];
+                if(result?.status!=="fulfilled"){
+                    add_failed=true;
+                    continue;
+                }
+                const bin: ArrayBuffer = result.value;
                 const mime = audiofile.type;
                 const id = await this.engine.add_sfx({
                     name: audiofile.name,
@@ -176,6 +188,8 @@ export class ProjectManager extends InternalProjectManager {
         const save_result = await this.storageManager.save_sound_cache(files);
         if (!save_result.ok) this.error(save_result.value);
         this.fin_proc();
+        const end =performance.now()
+        console.log(end-start)
         this.stateManager.markAsChanged();
     }
     play(id: string, options?: { start?: number; end?: number }) {
