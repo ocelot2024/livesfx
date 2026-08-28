@@ -12,23 +12,10 @@ export default class {
         }
 
         try {
-            await new Promise<void>((resolve, reject) => {
-                const request = indexedDB.deleteDatabase("fileCache");
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject();
-                request.onblocked = () => reject();
-            });
-        } catch (_) {
-            // LocalStorageとか回避策はおいおい
-            return Err(StorageError.InitialisingindexedDBFailed);
-        }
-
-        try {
             this.db = await new Promise<IDBDatabase>((resolve, reject) => {
                 const request = indexedDB.open("fileCache", 1);
-                request.onerror = () => reject();
-                request.onblocked = () => reject();
-                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+                request.onblocked = () => reject(new Error("blocked"));
                 request.onupgradeneeded = () => {
                     const db = request.result;
                     if (!db.objectStoreNames.contains("audioFileCache")) {
@@ -37,6 +24,16 @@ export default class {
                         });
                     }
                 };
+                request.onsuccess = () => resolve(request.result);
+            });
+
+            await new Promise<void>((resolve, reject) => {
+                const tx = this.db!.transaction("audioFileCache", "readwrite");
+                const request = tx.objectStore("audioFileCache").clear();
+                request.onerror = () => reject(request.error);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+                tx.onabort = () => reject(tx.error);
             });
         } catch (_) {
             return Err(StorageError.InitialisingindexedDBFailed);
