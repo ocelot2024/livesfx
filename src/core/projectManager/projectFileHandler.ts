@@ -28,26 +28,30 @@ const extractSoundData = async (
     manager: LVSFFile,
     info: lvsf_prj_info,
 ): Promise<Result<fileExResult, string>> => {
+    const start = performance.now();
     const sfx_frag: SFXFile[] = [];
     const bgm_frag: BGMFile[] = [];
 
     let load_failed = false;
 
-    for (const sound_info of info.sounds) {
-        const blob = manager.get_sound_data(sound_info.id);
-        if (!blob.ok) {
-            load_failed = true;
-            continue;
-        }
-        if (sound_info.type === SoundFileType.BGM) {
-            bgm_frag.push({ ...sound_info, file: blob.value });
-        } else {
-            sfx_frag.push({
-                ...sound_info,
-                file: await blob.value.arrayBuffer(),
-            });
-        }
-    }
+    await Promise.allSettled(
+        info.sounds.map(async (sound_info) => {
+            const blob = manager.get_sound_data(sound_info.id);
+            if (!blob.ok) {
+                load_failed = true;
+                return;
+            }
+            if (sound_info.type === SoundFileType.BGM) {
+                bgm_frag.push({ ...sound_info, file: blob.value });
+            } else {
+                sfx_frag.push({
+                    ...sound_info,
+                    file: await blob.value.arrayBuffer(),
+                });
+            }
+        }),
+    );
+    console.log(`extractSoundData took : ${performance.now() - start}`);
     return Ok({ sfx: sfx_frag, bgm: bgm_frag, load_failed });
 };
 
