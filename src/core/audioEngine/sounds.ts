@@ -51,7 +51,7 @@ abstract class BaseSound {
             if (dotpos < 0) {
                 throw new Error(EngineError.UnknownSound);
             } else {
-                const ex = this.meta.filename.slice(dotpos + 1);
+                const ex = this.meta.filename.slice(dotpos + 1).toLowerCase();
                 this.meta.mime = AUDIO_MIME_TYPES[ex];
             }
         }
@@ -151,10 +151,8 @@ export class SoundLibrary {
         if (meta.type === SoundFileType.SFX || meta.type === undefined) {
             const sound = new Sound(meta, file as AudioBuffer);
             this.sounds[meta.id] = sound;
-            console.log(this.sounds);
             return meta.id;
         } else {
-            console.log("Adding BGM");
             const bgm = new BGM(meta, file as Blob);
             this.musics[meta.id] = bgm;
             return meta.id;
@@ -223,7 +221,6 @@ export class SoundLibrary {
     get_bgm_library() {
         let frag: Record<string, SoundMeta> = {};
         for (const i in this.musics) {
-            console.log(this.musics);
             if (!this.musics[i]) continue;
             const info = this.musics[i].getInfo();
             if (info.type !== SoundFileType.BGM) continue;

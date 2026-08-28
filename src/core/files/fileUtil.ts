@@ -38,12 +38,14 @@ export const openAudioFilePicker = (multi?: boolean) => {
         .filter((key) => SupportedMime[key])
         .map((v) => "." + v)
         .join(", ");
-    console.log(accept);
     return openFilePicker({ multiple: multi ?? true, accept });
 };
 
 export const openLvsfFilePicker = () => {
-    return openFilePicker({ multiple: false, accept: "." + PROJECT_FILE_EX });
+    return openFilePicker({
+        multiple: false,
+        accept: "." + PROJECT_FILE_EX + ", ." + PROJECT_FILE_EX.toUpperCase(),
+    });
 };
 
 export interface LVSFSoundFileMeta {

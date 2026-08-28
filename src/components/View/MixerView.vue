@@ -12,9 +12,7 @@ const groups = computed(() => engine.get_group_names())
 
 const set_gain = (e: number, id?: string) => {
     if (!id) return;
-    console.log(id, e)
-    const result = engine.set_gain(id ?? MIXER_MASTER_CHANNEL_ID, e);
-    console.log(result)
+    engine.set_gain(id ?? MIXER_MASTER_CHANNEL_ID, e);
 }
 const get_gain = (id?: string) => {
     if (id === undefined) return 1

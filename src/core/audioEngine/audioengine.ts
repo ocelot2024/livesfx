@@ -4,12 +4,13 @@ import {
     SoundFileType,
     SoundLibrary,
     type BGMFile,
-    type SoundMeta,
 } from "./sounds";
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
 import type { BGMPlayerInfo } from "../store/enginestore";
+import { useConfigStore } from "../store/configstore";
+import type { Store } from "pinia";
 
 export type PlayResult =
     | { played: true; soundID: string; sourceID: string }
@@ -182,6 +183,11 @@ class BGMPlayer extends EventTarget {
     get_deck_elm(id: "deckA" | "deckB"): HTMLAudioElement {
         return this[id].player;
     }
+
+    reset() {
+        this.deckA.unload();
+        this.deckB.unload();
+    }
 }
 
 export class AudioEngine extends EventTarget {
@@ -191,6 +197,7 @@ export class AudioEngine extends EventTarget {
     private playing: Record<string, AudioBufferSourceNode>;
     private playing_id: { source_id: string; sfx_id: string }[];
     private player: BGMPlayer;
+
     constructor() {
         super();
         this.playing = {};
@@ -198,7 +205,6 @@ export class AudioEngine extends EventTarget {
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
         this.player = new BGMPlayer();
-
         this.mixer.connect_media_elem(
             this.player.get_deck_elm("deckA"),
             "deckA",
@@ -318,6 +324,13 @@ export class AudioEngine extends EventTarget {
         id: string,
         options?: { start?: number; end?: number },
     ): Promise<Result<PlayResult, AudioEngineError>> {
+        const configStore = useConfigStore();
+
+        const { maxPoly } = configStore;
+        if (this.playing_id.length >= maxPoly) {
+            const oldest = this.playing_id[0] as { source_id: string };
+            this.stop(oldest.source_id);
+        }
         await this.resume_ctx();
         const source_id = generateUUID();
         const PlaybackInfo = this.library.get_PlayInfo(id);
@@ -382,6 +395,7 @@ export class AudioEngine extends EventTarget {
     }
     async dispose() {
         this.stop_all_sfx();
+        this.player.reset();
         await this.ctx.close();
         window.removeEventListener("click", this.resume_ctx);
         window.removeEventListener("touchstart", this.resume_ctx);

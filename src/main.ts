@@ -10,14 +10,13 @@ import { useUpdateStore } from "./core/store/updatestore.ts";
 let pinia: Pinia | null = null;
 let pendingRegistration: ServiceWorkerRegistration | undefined;
 
-await ProjectEngine.init();
 const app = createApp(App);
 pinia = createPinia();
 pinia.use(createPersistPlugin(["config", "ui_state"]));
+useUpdateStore(pinia).setRegistration(pendingRegistration);
+await ProjectEngine.init();
 app.use(pinia);
 app.mount("#app");
-
-useUpdateStore(pinia).setRegistration(pendingRegistration);
 
 const updateSW = registerSW({
     onNeedRefresh() {
@@ -30,6 +29,7 @@ const updateSW = registerSW({
         useUpdateStore(pinia).setRegistration(registration);
     },
     onOfflineReady() {
-        console.log("Ready to Offline");
+        //アプリ内通知と状態に追加する。
+        console.log("Ready to offline");
     },
 });
