@@ -1,4 +1,3 @@
-import { version } from "vue";
 import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
 import { useConfigStore } from "../store/configstore";
 import { EngineProcState } from "../store/enginestore_type";
@@ -7,7 +6,6 @@ import { EngineEvent } from "../types/types";
 import { check_audio_compatibility } from "../util/compatibility";
 import projectStateManager from "./projectStateManager";
 import projectStorageManager from "./projectStorageManager";
-import { initUmami } from "@/tracker";
 
 export class InternalProjectManager extends EventTarget {
     protected projectname: string;
@@ -34,7 +32,6 @@ export class InternalProjectManager extends EventTarget {
                 e.preventDefault();
             }
         });
-        initUmami();
     }
     protected error(type: EngineError | EngineException | string) {
         this.dispatchEvent(
@@ -61,7 +58,7 @@ export class InternalProjectManager extends EventTarget {
             this.projectname +
             " - LiveSFX";
     }
-    async init(filename?: string, from_constructor?:boolean) {
+    async init(filename?: string, from_constructor?: boolean) {
         if (this.engine && from_constructor) {
             await this.engine.dispose();
             this.engine = new AudioEngine();
