@@ -1,3 +1,4 @@
+import { AnalysisTrackEvent, track } from "@/tracker";
 import { handleError } from "vue";
 
 export const generateUUID = (): string => {
@@ -22,6 +23,16 @@ export const isPWA = (): boolean => {
     );
 };
 
+const onPanic = (e: unknown) => {
+    try {
+        track(AnalysisTrackEvent.Panic, {
+            message: e,
+        });
+    } catch {
+        //トラッキングのエラーは無視できる。
+    }
+};
+
 export const applyGuard = (instance: object) => {
     const proto = Object.getPrototypeOf(instance);
 
@@ -41,20 +52,25 @@ export const applyGuard = (instance: object) => {
                 //Promise
                 if (result && typeof result.then === "function") {
                     return result
-                        .then(() => {
+                        .then((result: unknown) => {
                             if (import.meta.env.DEV)
                                 console.log(
-                                    `${key} tooks : ${performance.now() - start}`,
+                                    `${key} tooks : ${performance.now() - start}ms`,
                                 );
+                            return result;
                         })
                         .catch((e: unknown) => {
+                            onPanic(e);
                             throw e;
                         });
                 }
                 if (import.meta.env.DEV)
-                    console.log(`${key} tooks : ${performance.now() - start}`);
+                    console.log(
+                        `${key} tooks : ${performance.now() - start}ms`,
+                    );
                 return result;
             } catch (e) {
+                onPanic(e);
                 throw e;
             }
         };

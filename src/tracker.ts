@@ -10,12 +10,13 @@ export const AnalysisTrackEvent = {
     EnterEditMode: "EnterEditMode",
     ExitEditMode: "ExitEditMode",
     ChangeTab: "ChangeTab",
+    Panic: "Panic",
 } as const;
 
 export type AnalysisTrackEvent =
     (typeof AnalysisTrackEvent)[keyof typeof AnalysisTrackEvent];
 
-const pendingEvents: AnalysisTrackEvent[] = [];
+const pendingEvents: [AnalysisTrackEvent, object | undefined][] = [];
 let initialised_umami = false;
 let err_umami = false;
 let umami_ready = false;
@@ -35,7 +36,7 @@ export const initUmami = () => {
             version: __APP_VERSION__,
             standalone: isPWA() ? "yes" : "no",
         });
-        pendingEvents.forEach((event) => umami.track(event));
+        pendingEvents.forEach((event) => umami.track(...event));
         pendingEvents.length = 0;
         umami_ready = true;
     });
@@ -46,14 +47,14 @@ export const initUmami = () => {
     document.body.appendChild(script);
 };
 
-export const track = (name: AnalysisTrackEvent) => {
+export const track = (name: AnalysisTrackEvent, data?: object) => {
     if (err_umami) return;
 
     if (!umami_ready) {
-        pendingEvents.push(name);
+        pendingEvents.push([name, data]);
         initUmami();
         return;
     }
 
-    umami.track(name);
+    umami.track(name, data);
 };
