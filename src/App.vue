@@ -7,7 +7,7 @@ import Spinner from "./components/Spinner.vue";
 import { EngineProcState } from "./core/store/enginestore_type.ts";
 import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent, onMounted, ref } from 'vue';
 import Modal from './components/Modal.vue';
 import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
@@ -103,6 +103,14 @@ const selectedView = config_store.memoryLastTab
     : ref("pad")
 
 const showPrefView = ref<boolean>(false);
+const showConsentView = ref<boolean>(false);
+
+onMounted(() => {
+    if (config_store.is_first) {
+        config_store.is_first = false;
+        showConsentView.value = true
+    }
+})
 </script>
 
 <template>
@@ -130,7 +138,7 @@ const showPrefView = ref<boolean>(false);
         <Modal :show="showPrefView" @close="showPrefView = false">
             <prefView />
         </Modal>
-        <Modal show>
+        <Modal :show="showConsentView" @close="showConsentView = false">
             <consentView />
         </Modal>
         <UpdateModal />
