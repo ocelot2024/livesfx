@@ -1,5 +1,6 @@
 import { AnalysisTrackEvent, track } from "@/tracker";
 import { handleError } from "vue";
+import { Err } from "../types/types";
 
 export const generateUUID = (): string => {
     if (
@@ -69,6 +70,7 @@ export const applyGuard = (instance: object) => {
                 return result;
             } catch (e) {
                 onPanic(e);
+                return Err(e);
             }
         };
     }
