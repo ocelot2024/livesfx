@@ -24,7 +24,7 @@ const get_gain = (id?: string) => {
 
 <template>
     <div class="mixer flex">
-        <div v-for="groupName in groups">
+        <div v-for="groupName in groups" :key="groupName">
             <div class="groupName" style="margin-top: 24px;">
                 <p>{{ groupName }}</p>
             </div>
