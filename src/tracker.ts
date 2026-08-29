@@ -1,15 +1,7 @@
+import { useConfigStore } from "./core/store/configstore";
 import { isPWA } from "./core/util/util";
 
 export const AnalysisTrackEvent = {
-    OpenPref: "OpenPref",
-    StartWithBlank: "StartWithBlank",
-    StartFromFile: "StartFromFile",
-    ExportProject: "ExportProject",
-    AddSfx: "AddSfx",
-    AddBgm: "AddBgm",
-    EnterEditMode: "EnterEditMode",
-    ExitEditMode: "ExitEditMode",
-    ChangeTab: "ChangeTab",
     Panic: "Panic",
 } as const;
 
@@ -48,13 +40,16 @@ export const initUmami = () => {
 };
 
 export const track = (name: AnalysisTrackEvent, data?: object) => {
-    if (err_umami) return;
+    const store = useConfigStore();
+    if (store.collecting_error_info_consent) {
+        if (err_umami) return;
 
-    if (!umami_ready) {
-        pendingEvents.push([name, data]);
-        initUmami();
-        return;
+        if (!umami_ready) {
+            pendingEvents.push([name, data]);
+            initUmami();
+            return;
+        }
+
+        umami.track(name, data);
     }
-
-    umami.track(name, data);
 };
