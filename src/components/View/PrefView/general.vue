@@ -49,7 +49,7 @@ function resetSettings() {
                     <Toggle v-model="store.modalAnimation" />
                 </SettingsRow>
             </SettingsSection>
-            <SettingsSection title="その他">
+            <SettingsSection title="動作">
                 <SettingsRow label="ドラッグのしきい値">
                     <input type="number" min="0" step="1" v-model.number="store.dragThreshold">
                 </SettingsRow>
@@ -59,6 +59,13 @@ function resetSettings() {
                 <SettingsRow label="入れ替えのクールダウン">
                     <input type="number" min="0" step="10" v-model.number="store.swapCooldownMs">
                 </SettingsRow>
+            </SettingsSection>
+            <SettingsSection title="プライバシー">
+                <SettingsRow label="エラー情報の収集に同意">
+                    <Toggle v-model="store.collecting_error_info_consent" />
+                </SettingsRow>
+            </SettingsSection>
+            <SettingsSection title="その他">
                 <SettingsRow label="最後に開いていたタブの記憶">
                     <Toggle v-model="store.memoryLastTab" />
                 </SettingsRow>
