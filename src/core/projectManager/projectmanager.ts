@@ -328,7 +328,11 @@ export class ProjectManager extends InternalProjectManager {
         return result;
     }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
-        return this.engine.set_gain(id, gain);
+        const result = this.engine.set_gain(id, gain);
+        if (result.ok) {
+            this.stateManager.markAsSaved();
+        }
+        return result;
     }
     get_gain(id: string): Result<number, AudioMixerError> {
         return this.engine.get_gain(id);
