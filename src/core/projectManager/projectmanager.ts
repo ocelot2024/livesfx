@@ -14,10 +14,12 @@ import type { AudioMixerError } from "../types/err";
 import { start_from_file } from "./projectFileHandler";
 import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
+import { applyGuard } from "../util/util";
 
 export class ProjectManager extends InternalProjectManager {
     constructor() {
         super();
+        applyGuard(this);
     }
 
     async start_with_blank() {
