@@ -251,6 +251,9 @@ const finishDrag = async (committed: boolean) => {
 }
 
 const onGridPointerUp = async (e: PointerEvent) => {
+    if (Math.hypot(dragState.dx, dragState.dy) < config.dragThreshold && dragState.id) {
+        onClick(dragState.id)
+    }
     if (dragState.id === null || e.pointerId !== dragState.pointerId) return;
     await finishDrag(true);
 }
@@ -334,7 +337,9 @@ const reorderToEnd = async (fromIndex: number, draggedId: string) => {
 }
 
 const onClick = async (id: string) => {
+    console.log(dragState.hasDragged)
     if (dragState.hasDragged) {
+        console.log('a')
         dragState.hasDragged = false;
         return;
     }
