@@ -530,6 +530,7 @@ const renameGroup = (name: string) => {
     aspect-ratio: 1/1;
     transition: opacity .1s ease-in-out;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.06);
+    transition: box-shadow .4s ease-in-out;
 }
 
 button:active .card {
@@ -558,6 +559,13 @@ button:active .card {
     box-sizing: border-box;
     display: flex;
     text-align: center;
+}
+
+.playing {
+    box-shadow:
+        0 0 20px var(--accent-fg),
+        0 0 12px var(--red),
+        0 0 20px var(--purple);
 }
 </style>
 
