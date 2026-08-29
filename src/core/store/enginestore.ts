@@ -32,6 +32,20 @@ export const useEngineState = defineStore("engine", () => {
 
     let timer: number | null;
 
+    ProjectEngine.addEventListener(EngineEvent.PlaySFX, ((
+        e: CustomEvent<{ id: string }>,
+    ) => {
+        playing_sfx.value.push(e.detail.id);
+    }) as EventListener);
+    ProjectEngine.addEventListener(EngineEvent.StopSFX, ((
+        e: CustomEvent<{ id: string }>,
+    ) => {
+        const index = playing_sfx.value.indexOf(e.detail.id);
+        if (index !== -1) {
+            playing_sfx.value.splice(index, 1);
+        }
+    }) as EventListener);
+
     ProjectEngine.addEventListener(EngineEvent.ChangedLibrary, () => {
         const sounds: Record<string, SoundMeta> =
             ProjectEngine.get_sfx_library();

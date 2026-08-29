@@ -11,6 +11,8 @@ export enum EngineEvent {
     Proccessing = "proccessing",
     FinProc = "proc_end",
     Error = "error",
+    PlaySFX = "playsfx",
+    StopSFX = "endsfx",
 }
 
 export interface lvsf_prj_internal_meta extends lvsf_prj_info {

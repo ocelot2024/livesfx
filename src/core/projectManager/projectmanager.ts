@@ -192,11 +192,28 @@ export class ProjectManager extends InternalProjectManager {
         this.stateManager.markAsChanged();
     }
     play(id: string, options?: { start?: number; end?: number }) {
-        const result = this.engine.play(id, options);
+        this.dispatchEvent(
+            new CustomEvent(EngineEvent.PlaySFX, { detail: { id } }),
+        );
+        const result = this.engine.play(id, {
+            ...options,
+            onended: () => {
+                this.dispatchEvent(
+                    new CustomEvent(EngineEvent.StopSFX, { detail: { id } }),
+                );
+            },
+        });
         return result;
     }
     stop(source_id: string) {
-        this.engine.stop(source_id);
+        const res = this.engine.stop(source_id);
+        if (res.ok) {
+            this.dispatchEvent(
+                new CustomEvent(EngineEvent.StopSFX, {
+                    detail: { id: res.value },
+                }),
+            );
+        }
     }
     get_sfx_library() {
         return this.engine.get_sfx_library();

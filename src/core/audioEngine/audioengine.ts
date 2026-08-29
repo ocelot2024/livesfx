@@ -322,7 +322,11 @@ export class AudioEngine extends EventTarget {
     }
     async play(
         id: string,
-        options?: { start?: number; end?: number },
+        options?: {
+            start?: number;
+            end?: number;
+            onended?: (id: string) => void;
+        },
     ): Promise<Result<PlayResult, AudioEngineError>> {
         const configStore = useConfigStore();
 
@@ -363,6 +367,7 @@ export class AudioEngine extends EventTarget {
             if (index < 0) return;
             delete this.playing[source_id];
             this.playing_id.splice(index, 1);
+            if (options?.onended) options.onended(id);
         };
         if (options) {
             const bufferDuration = node.buffer?.duration ?? 0;
@@ -386,12 +391,14 @@ export class AudioEngine extends EventTarget {
         }
         return Ok({ played: true, soundID: id, sourceID: source_id });
     }
-    stop(source_id: string): Result<void, AudioEngineError> {
+    stop(source_id: string): Result<string, AudioEngineError> {
         if (!(source_id in this.playing))
             return Err(AudioEngineError.SpecifiedPlayingSoundNotFound);
+        const id = this.playing_id.find((v) => v.source_id == source_id)
+            ?.sfx_id as string;
         this.playing[source_id]?.stop();
         delete this.playing[source_id];
-        return Ok();
+        return Ok(id);
     }
     async dispose() {
         this.stop_all_sfx();
