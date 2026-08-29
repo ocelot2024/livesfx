@@ -27,6 +27,7 @@ function resetSettings() {
     const will = confirm('すべての設定を初期値に戻します。よろしいですか？')
     if (!will) return
     store.$reset()
+    store.is_first = false;
 }
 </script>
 <template>

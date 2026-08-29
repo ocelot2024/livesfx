@@ -29,6 +29,9 @@ const prefView = defineAsyncComponent({
     loadingComponent: Spinner
 })
 
+const consentView = defineAsyncComponent({
+    loader: () => import('./components/View/consent.vue')
+})
 const engine_store = useEngineState();
 const ui_store = useUiState();
 const config_store = useConfigStore();
@@ -126,6 +129,9 @@ const showPrefView = ref<boolean>(false);
         </div>
         <Modal :show="showPrefView" @close="showPrefView = false">
             <prefView />
+        </Modal>
+        <Modal show>
+            <consentView />
         </Modal>
         <UpdateModal />
     </main>

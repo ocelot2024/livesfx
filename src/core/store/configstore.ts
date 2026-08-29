@@ -3,6 +3,8 @@ import { SFXPlayMode } from "../audioEngine/sounds";
 
 export const useConfigStore = defineStore("config", {
     state: () => ({
+        is_first: true,
+
         enterEditModeConfirm: true,
         alertBeforeLeave: true,
         editModeAnimation: true,
@@ -25,5 +27,7 @@ export const useConfigStore = defineStore("config", {
         swapCooldownMs: 160,
 
         memoryLastTab: false,
+
+        collecting_error_info_consent: false,
     }),
 });
