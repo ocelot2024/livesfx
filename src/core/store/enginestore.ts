@@ -23,6 +23,7 @@ export const useEngineState = defineStore("engine", () => {
     const notif_queue = ref<Notificatin[]>([]);
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
     const groupNames = ref<string[]>([]);
+    const playing_sfx = ref<string[]>([]);
 
     const deck = ref<[BGMPlayerInfo, BGMPlayerInfo]>([
         { playing: false, meta: null, current_time: 0, duration: 0 },
@@ -126,6 +127,7 @@ export const useEngineState = defineStore("engine", () => {
         deck,
         dismissNotif,
         groupNames,
+        playing_sfx,
     };
 });
 

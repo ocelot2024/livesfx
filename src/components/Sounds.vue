@@ -395,7 +395,6 @@ const renameGroup = (name: string) => {
     }
     ProjectEngine.rename_group(name, trimmed);
 }
-
 </script>
 
 <template>
@@ -422,6 +421,7 @@ const renameGroup = (name: string) => {
                     <div class="card" :class="{
                         vibrate: store.ui_mode === 'edit' && dragState.id !== id,
                         'is-dragging-source': dragState.id === id,
+                        playing: store.playing_sfx.findIndex(v => v == id) >= 0
                     }">
                         <h3>{{ soundsById.get(id)?.filename }}</h3>
                     </div>
