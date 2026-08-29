@@ -59,9 +59,10 @@ interface ExtractedProjectFileData extends fileExResult {
     filename: string;
 }
 export const start_from_file = async (): Promise<
-    Result<ExtractedProjectFileData, string>
+    Result<ExtractedProjectFileData | string, string>
 > => {
     const filelist = await openLvsfFilePicker();
+    if (!filelist.some) return Ok("");
     const file = checkLVSFFile(filelist);
     if (!file.ok) return Err(file.value);
 

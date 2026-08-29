@@ -40,6 +40,7 @@ export class ProjectManager extends InternalProjectManager {
             this.error(EngineError.InvalidLVSFFile);
             return Err(result.value);
         }
+        if (typeof result.value == "string") return Ok();
         const { filename, sfx, bgm, load_failed } = result.value;
         await this.init(filename);
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
