@@ -77,11 +77,17 @@ export const useEngineState = defineStore("engine", () => {
                 ? messages[type as EngineError | EngineException]
                 : type;
 
+        const restart = async () => {
+            await ProjectEngine.export();
+            location.reload();
+        };
+        const onClick = type == "panic" ? restart : undefined;
         notif_queue.value.push({
             id,
             type: "critical",
             title: "エラーが発生しました",
             message: message,
+            onClick,
         });
         setTimeout(() => {
             const index = notif_queue.value.findIndex((v) => id === v.id);
@@ -149,4 +155,6 @@ const messages: ErrMsgType = {
     [EngineError.MissingCachedAudioForExport]:
         "エクスポートするのに必要なキャッシュが欠損しています。",
     [EngineError.UnknownSound]: "未知のサウンドが追加されました",
+    [EngineException.Panic]:
+        "予想外のエラーが発生しました。この通知をクリックしてプロジェクトを保存し再起動できます。",
 };

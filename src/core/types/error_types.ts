@@ -17,4 +17,5 @@ export enum EngineException {
     InitialiseDBException = "db_ini_except",
     NoSoundData = "no_sound_data",
     DBSaveCacheError = "ssave_cache_err",
+    Panic = "panic",
 }

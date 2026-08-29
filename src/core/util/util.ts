@@ -24,6 +24,7 @@ export const isPWA = (): boolean => {
 };
 
 const onPanic = (e: unknown) => {
+    window.dispatchEvent(new CustomEvent("panic", { detail: e }));
     try {
         track(AnalysisTrackEvent.Panic, {
             message: e,
@@ -59,10 +60,7 @@ export const applyGuard = (instance: object) => {
                                 );
                             return result;
                         })
-                        .catch((e: unknown) => {
-                            onPanic(e);
-                            throw e;
-                        });
+                        .catch(onPanic);
                 }
                 if (import.meta.env.DEV)
                     console.log(
@@ -71,7 +69,6 @@ export const applyGuard = (instance: object) => {
                 return result;
             } catch (e) {
                 onPanic(e);
-                throw e;
             }
         };
     }

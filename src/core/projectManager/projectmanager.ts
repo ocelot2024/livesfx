@@ -1,7 +1,7 @@
 import { AudioEngine } from "../audioEngine/audioengine";
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import { EngineProcState } from "../store/enginestore_type";
-import { EngineError } from "../types/error_types";
+import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
 import {
     SoundFileType,
@@ -20,6 +20,10 @@ export class ProjectManager extends InternalProjectManager {
     constructor() {
         super();
         applyGuard(this);
+
+        window.addEventListener("panic", (e) => {
+            this.error(EngineException.Panic);
+        });
     }
 
     async start_with_blank() {
