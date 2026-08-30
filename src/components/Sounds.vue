@@ -337,9 +337,7 @@ const reorderToEnd = async (fromIndex: number, draggedId: string) => {
 }
 
 const onClick = async (id: string) => {
-    console.log(dragState.hasDragged)
     if (dragState.hasDragged) {
-        console.log('a')
         dragState.hasDragged = false;
         return;
     }

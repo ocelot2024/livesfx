@@ -65,7 +65,13 @@ export const useEngineState = defineStore("engine", () => {
         sfx_library.value = Object.values(sounds);
         bgm_library.value = Object.values(musics);
     });
-
+    ProjectEngine.addEventListener(EngineEvent.DuckingActivated, () => {
+        ducking.value = true;
+    });
+    ProjectEngine.addEventListener(
+        EngineEvent.DuckingDeactivated,
+        () => (ducking.value = false),
+    );
     ProjectEngine.addEventListener(EngineEvent.Proccessing, (e) => {
         const event = e as CustomEvent<{ type: EngineProcState }>;
         EngineState.value = event.detail.type;

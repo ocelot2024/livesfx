@@ -27,7 +27,7 @@ const requestDucking = () => {
         <div class="flex"
             style="align-items: center; border: 1px solid var(--gray-4); padding: 2px 7px; border-radius: 12px;">
             <label style="margin-inline-end: 1rem;">ダッキング</label>
-            <Toggle v-model="engine_store.ducking" />
+            <Toggle :model-value="engine_store.ducking" @clicked="requestDucking" />
         </div>
         <button @click="toggle_ui_mode()">{{ engine_store.ui_mode == "live" ? "編集" : "完了" }}</button>
     </div>
