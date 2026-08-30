@@ -1,6 +1,7 @@
 import { ProjectManager } from "./projectmanager";
 import { EngineEvent } from "../types/types";
 import type { InternalProjectManager } from "./internalProjectManager";
+import { useConfigStore } from "../store/configstore";
 
 interface stateManagerHandler {
     onChangedHandler?: Function;
@@ -37,7 +38,8 @@ export default class {
         return this.dirty;
     }
     leaveConfirm(): boolean {
-        if (this.dirty) {
+        const config = useConfigStore();
+        if (this.dirty && config.alertBeforeLeave) {
             const will = confirm(
                 "未保存の変更があります。終了してもよろしいですか？",
             );
