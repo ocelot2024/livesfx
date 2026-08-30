@@ -2,10 +2,8 @@
 import Settinglist from '@/components/settinglist.vue';
 import SettingsRow from '@/components/settingsRow.vue';
 import SettingsSection from '@/components/settingsSection.vue';
-import Toggle from '@/components/toggle.vue';
 import { SFXPlayMode } from '@/core/audioEngine/sounds';
 import { useConfigStore } from '@/core/store/configstore';
-import { ref } from 'vue';
 
 
 const store = useConfigStore();
@@ -15,6 +13,11 @@ const store = useConfigStore();
 <template>
     <div>
         <Settinglist>
+            <SettingsSection title="一般">
+                <SettingsRow label="ダッキング時の音量">
+                    <input type="number" max="100" min="0" v-model="store.ducking_amount">
+                </SettingsRow>
+            </SettingsSection>
             <SettingsSection title="効果音">
                 <SettingsRow label="再生モードの初期値">
                     <select name="PlaybackOption" v-model="store.defaultPlayMode">

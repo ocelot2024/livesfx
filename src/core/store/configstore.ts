@@ -26,5 +26,7 @@ export const useConfigStore = defineStore("config", {
         memoryLastTab: false,
 
         collecting_error_info_consent: false,
+
+        ducking_amount: 80,
     }),
 });
