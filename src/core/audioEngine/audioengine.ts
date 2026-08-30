@@ -37,19 +37,19 @@ class Deck extends EventTarget {
         this.player = document.createElement("audio");
         this.info = null;
 
-        this.player.addEventListener("play", () => {
+        this.player.addEventListener(PlayerEvent.play, () => {
             this.dispatchEvent(new Event(PlayerEvent.play));
         });
 
-        this.player.addEventListener("pause", () => {
+        this.player.addEventListener(PlayerEvent.pause, () => {
             this.dispatchEvent(new Event(PlayerEvent.pause));
         });
 
-        this.player.addEventListener("ended", () => {
+        this.player.addEventListener(PlayerEvent.ended, () => {
             this.dispatchEvent(new Event(PlayerEvent.ended));
         });
 
-        this.player.addEventListener("timeupdate", () => {
+        this.player.addEventListener(PlayerEvent.timeupdate, () => {
             this.dispatchEvent(new Event(PlayerEvent.timeupdate));
         });
     }
