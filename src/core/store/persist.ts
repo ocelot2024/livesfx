@@ -1,4 +1,6 @@
 import type { PiniaPluginContext } from "pinia";
+import { useEngineState } from "./enginestore";
+import { generateUUID } from "../util/util";
 
 const STORAGE_KEY_PREFIX = "livesfx:pref:";
 const SAVE_DEBOUNCE_MS = 300;
@@ -53,7 +55,11 @@ const persist = (storeId: string, storageKey: string, state: unknown) => {
     try {
         localStorage.setItem(storageKey, JSON.stringify(state));
     } catch (e) {
-        //TODO アプリ内通知に変更
-        console.warn(`[persist] ${storeId} の設定の保存に失敗しました`, e);
+        const store = useEngineState();
+        store.notif_queue.push({
+            id: generateUUID(),
+            type: "warn",
+            message: `[persist] ${storeId} の設定の保存に失敗しました`,
+        });
     }
 };
