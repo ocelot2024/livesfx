@@ -13,12 +13,22 @@ const save = () => {
     ProjectEngine.rename(props.id, filename.value)
     emit('saved')
 }
+const deleteBGM = () => {
+    const decision = confirm("プロジェクトからファイルを削除しますか？");
+    if (decision) {
+        ProjectEngine.discard_sound(props.id);
+        emit('saved')
+    }
+}
 </script>
 <template>
     <div style="display: flex; flex-direction: column; padding: 20px;">
         <Settinglist>
             <SettingsSection title="その他">
                 <SettingsRow label="ファイル名"><input type="text" v-model="filename"></SettingsRow>
+            </SettingsSection>
+            <SettingsSection>
+                <SettingsRow label="BGMを削除する" chevron danger @click="deleteBGM()" />
             </SettingsSection>
         </Settinglist>
         <button @click="save" :disabled="!filename">変更を保存</button>
