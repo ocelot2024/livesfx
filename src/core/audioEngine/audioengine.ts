@@ -10,7 +10,6 @@ import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
 import type { BGMPlayerInfo } from "../store/enginestore";
 import { useConfigStore } from "../store/configstore";
-import type { Store } from "pinia";
 
 export type PlayResult =
     | { played: true; soundID: string; sourceID: string }
@@ -21,7 +20,7 @@ export const PlayerEvent = {
     pause: "pause",
     stop: "stop",
     load: "load",
-    unload: "unload",
+    unload: "unload_file",
     seek: "seek",
     ended: "ended",
     timeupdate: "timeupdate",
