@@ -8,6 +8,7 @@ import { EngineError, EngineException } from "../types/error_types";
 import { generateUUID } from "../util/util";
 import { PlayerEvent } from "../audioEngine/audioengine";
 import { UNGROUPED } from "../constants";
+import { AudioMixerError } from "../types/err";
 
 export interface BGMPlayerInfo {
     playing: boolean;
@@ -148,7 +149,7 @@ export const useEngineState = defineStore("engine", () => {
 });
 
 type ErrMsgType = {
-    [K in EngineError | EngineException]: string;
+    [K in EngineError | EngineException | AudioMixerError]: string;
 };
 
 const messages: ErrMsgType = {
@@ -175,4 +176,5 @@ const messages: ErrMsgType = {
     [EngineError.UnknownSound]: "未知のサウンドが追加されました",
     [EngineException.Panic]:
         "予想外のエラーが発生しました。この通知をクリックしてプロジェクトを保存し再起動できます。",
+    [AudioMixerError.ChannelNotFound]: "チャンネルが見つかりません",
 };

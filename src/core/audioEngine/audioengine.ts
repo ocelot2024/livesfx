@@ -10,7 +10,6 @@ import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
 import type { BGMPlayerInfo } from "../store/enginestore";
 import { useConfigStore } from "../store/configstore";
-import { FaceAngry } from "@lucide/vue";
 
 export type PlayResult =
     | { played: true; soundID: string; sourceID: string }
@@ -505,7 +504,7 @@ export class AudioEngine extends EventTarget {
         return this.library.rename(id, name);
     }
 
-    ducking(): Result<boolean, string> {
+    ducking(): Result<boolean, AudioMixerError> {
         if (this.is_ducking) {
             const res = this.mixer.set_gain(
                 MIXER_MASTER_CHANNEL_ID,
