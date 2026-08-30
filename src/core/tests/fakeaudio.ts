@@ -17,7 +17,12 @@ export class FakeNode {
     readonly label: string;
     connectedTo: FakeNode[] = [];
     disconnectCount = 0;
-    gain = { value: 1 };
+    gain = {
+        value: 1,
+        setTargetAtTime: (value: number, ...args: []) => {
+            this.gain.value = value;
+        },
+    };
     constructor(label: string) {
         this.label = label;
     }
