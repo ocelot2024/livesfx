@@ -25,7 +25,6 @@ export default class {
         this.dirty = true;
         const handler = this.handler.onChangedHandler;
         this.self.dispatchEvent(new CustomEvent(EngineEvent.ChangedLibrary));
-
         if (handler) handler();
     }
     markAsSaved() {

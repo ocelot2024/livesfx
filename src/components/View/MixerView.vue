@@ -6,8 +6,6 @@ import ChannelComponent from '../Channel.vue';
 
 const engine = ProjectEngine;
 
-// engine.get_group_names() は自動生成分も含めミキサー上の全グループを
-// 正として返す(SFXの`group`メタとの二重管理を廃止)。
 const groups = computed(() => engine.get_group_names())
 
 const set_gain = (e: number, id?: string) => {

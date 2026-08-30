@@ -73,6 +73,7 @@ export class InternalProjectManager extends EventTarget {
         this.stateManager.init();
         check_audio_compatibility();
         this.dispatchEvent(new Event(EngineEvent.Initialised));
+        this.stateManager.markAsSaved();
         await result;
     }
     protected proc_event(state: EngineProcState) {

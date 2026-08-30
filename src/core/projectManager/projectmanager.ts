@@ -31,7 +31,6 @@ export class ProjectManager extends InternalProjectManager {
         await this.engine.dispose();
         this.engine = new AudioEngine();
         await this.init();
-        this.stateManager.markAsChanged();
     }
     async start_from_file(): Promise<Result<void, string>> {
         if (!this.stateManager.leaveConfirm()) return Ok();
@@ -328,9 +327,13 @@ export class ProjectManager extends InternalProjectManager {
         this.stateManager.markAsChanged();
         return result;
     }
-    set_gain(id: string, gain: number): Result<number, AudioMixerError> {
+    set_gain(
+        id: string,
+        gain: number,
+        initialised?: boolean,
+    ): Result<number, AudioMixerError> {
         const result = this.engine.set_gain(id, gain);
-        if (result.ok) {
+        if (result.ok && !initialised) {
             this.stateManager.markAsChanged();
         }
         return result;

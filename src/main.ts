@@ -29,7 +29,6 @@ const updateSW = registerSW({
         useUpdateStore(pinia).setRegistration(registration);
     },
     onOfflineReady() {
-        //アプリ内通知と状態に追加する。
         console.log("Ready to offline");
     },
 });

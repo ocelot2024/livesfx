@@ -38,8 +38,8 @@ const applyCrossfade = (position: number) => {
     const gainA = Math.cos(theta)
     const gainB = Math.sin(theta)
 
-    ProjectEngine.set_gain("deckA", gainA)
-    ProjectEngine.set_gain("deckB", gainB)
+    ProjectEngine.set_gain("deckA", gainA, true)
+    ProjectEngine.set_gain("deckB", gainB, true)
 }
 
 const update = () => {
