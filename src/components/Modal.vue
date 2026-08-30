@@ -1,26 +1,28 @@
 <script setup lang="ts">
 import { useConfigStore } from '@/core/store/configstore';
 import { Transition, useTemplateRef } from 'vue';
-
+import { X } from '@lucide/vue';
 const store = useConfigStore();
 
 const emit = defineEmits(['close'])
 
 const props = defineProps<{ title?: string, show: boolean }>()
 const outer = useTemplateRef('outer')
-const clicked = (e:MouseEvent)=>{
+const clicked = (e: MouseEvent) => {
     const clicked_outer = outer.value == e.target
-    if(clicked_outer) emit('close')
+    if (clicked_outer) emit('close')
 }
 </script>
 <template>
     <Transition :css="store.modalAnimation">
-        <div class="full" v-if="props.show" @click="e=>clicked(e)" ref="outer">
+        <div class="full" v-if="props.show" @click="e => clicked(e)" ref="outer">
             <div class="dialog">
                 <header>
                     <div>
                         <h3>{{ props.title }}</h3>
-                    </div><button @click="$emit('close')">X</button>
+                    </div><button @click="$emit('close')">
+                        <X />
+                    </button>
                 </header>
                 <slot />
             </div>

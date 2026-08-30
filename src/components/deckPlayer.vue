@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ProjectEngine } from '@/core';
 import { useEngineState, type BGMPlayerInfo } from '@/core/store/enginestore';
+import { Eject, Pause, Play, X } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, ref, useTemplateRef } from 'vue';
 
@@ -90,11 +91,15 @@ const deckData = computed(() => deck.value[deckIndex.value]);
                 <div class="flex" style="justify-content: space-between;">
                     <h2 style="white-space: pre-wrap;">{{ deckData.meta?.filename ?? ' ' }}
                     </h2>
-                    <button style="background-color: transparent; border: 0;" @click="eject()"
-                        v-if="deckData.meta">X</button>
+                    <button style="background-color: transparent; border: 0;" @click="eject()" v-if="deckData.meta">
+                        <Eject fill="var(--label-normal)" :size="16" />
+                    </button>
                 </div>
                 <div class="flex player" v-if="deckData.meta">
-                    <button @click="toggle_play()">{{ props.deck_info.playing ? "■" : "▶" }}</button>
+                    <button @click="toggle_play()" class="play-button">
+                        <Play v-if="!props.deck_info.playing" fill="var(--label-normal)" :size="16" />
+                        <Pause v-else fill="var(--label-normal)" :size="16" />
+                    </button>
                     <progress @pointerdown="handleDragStart" :value="displayProgress" max="100"
                         ref="seekbar"></progress>
                     <small>{{ format_time(props.deck_info.current_time) }} / {{ format_time(props.deck_info.duration)
@@ -127,5 +132,11 @@ progress {
 
 .channel {
     flex: 0;
+}
+
+.play-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
