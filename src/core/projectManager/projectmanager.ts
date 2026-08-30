@@ -15,27 +15,27 @@ import { start_from_file } from "./projectFileHandler";
 import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 import { applyGuard } from "../util/util";
+import { UiCommandsManager } from "../commands/uiCommands";
 
 export class ProjectManager extends InternalProjectManager {
+    commands: UiCommandsManager;
     constructor() {
         super();
         applyGuard(this);
-
+        this.commands = new UiCommandsManager(
+            this.engine,
+            this.stateManager,
+            (e) => this.error(e),
+        );
         window.addEventListener("panic", () => {
             this.error(EngineException.Panic);
         });
-    }
-    private executeEngineAction<T, E>(
-        action: () => Result<T, E>,
-        markChanged: boolean = true,
-    ): Result<T, E> {
-        const result = action();
-        if (!result.ok) {
-            this.error(result.value as any);
-        } else if (markChanged) {
-            this.stateManager.markAsChanged();
+
+        for (const event in EngineEvent) {
+            this.commands.addEventListener(event, () =>
+                this.dispatchEvent(new Event(event)),
+            );
         }
-        return result;
     }
 
     private checkStorage(): boolean {
@@ -50,6 +50,7 @@ export class ProjectManager extends InternalProjectManager {
         if (!this.stateManager.leaveConfirm()) return;
         await this.engine.dispose();
         this.engine = new AudioEngine();
+        this.commands.replace_engine(this.engine);
         await this.init();
     }
 
@@ -65,6 +66,7 @@ export class ProjectManager extends InternalProjectManager {
 
         const { filename, sfx, bgm, load_failed } = result.value;
         await this.init(filename);
+        this.commands.replace_engine(this.engine);
 
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
 
@@ -269,154 +271,113 @@ export class ProjectManager extends InternalProjectManager {
     }
 
     play(id: string, options?: { start?: number; end?: number }) {
-        this.dispatchEvent(
-            new CustomEvent(EngineEvent.PlaySFX, { detail: { id } }),
-        );
-        return this.engine.play(id, {
-            ...options,
-            onended: () => {
-                this.dispatchEvent(
-                    new CustomEvent(EngineEvent.StopSFX, { detail: { id } }),
-                );
-            },
-        });
+        return this.commands.play(id, options);
     }
 
     stop(source_id: string) {
-        const res = this.engine.stop(source_id);
-        if (res.ok) {
-            this.dispatchEvent(
-                new CustomEvent(EngineEvent.StopSFX, {
-                    detail: { id: res.value },
-                }),
-            );
-        }
+        return this.commands.stop(source_id);
     }
 
     get_sfx_library() {
-        return this.engine.get_sfx_library();
+        return this.commands.get_sfx_library();
     }
     get_bgm_library() {
-        return this.engine.get_bgm_library();
+        return this.commands.get_bgm_library();
     }
     get_duration(id: string) {
-        return this.engine.get_duration(id);
+        return this.commands.get_duration(id);
     }
     get_waveform(id: string, buckets: number) {
-        return this.engine.get_waveform(id, buckets);
+        return this.commands.get_waveform(id, buckets);
     }
     get_soundinfo(id: string) {
-        return this.engine.get_soundinfo(id);
+        return this.commands.get_soundinfo(id);
     }
     stop_all_sfx() {
-        return this.engine.stop_all_sfx();
+        return this.commands.stop_all_sfx();
     }
     get_group_children(parent: string) {
-        return this.engine.get_group_children(parent);
+        return this.commands.get_group_children(parent);
     }
     get_group_names(): string[] {
-        return this.engine.get_group_names();
+        return this.commands.get_group_names();
     }
 
     trim(id: string, start: number, end: number) {
-        this.engine.trim(id, start, end);
-        this.stateManager.markAsChanged();
+        this.commands.trim(id, start, end);
     }
 
     set_sfx_playmode(id: string, mode: SFXPlayMode) {
-        this.engine.set_sfx_play_mode(id, mode);
-        this.stateManager.markAsChanged();
+        this.commands.set_sfx_playmode(id, mode);
     }
 
     discard_sound(id: string) {
-        this.engine.discard_sound(id);
-        this.stateManager.markAsChanged();
+        this.commands.discard_sound(id);
     }
 
     create_group(name: string): Result<string, string> {
-        return this.executeEngineAction(() => this.engine.createChannel(name));
+        return this.commands.create_group(name);
     }
 
     delete_group(name: string): Result<void, string> {
-        return this.executeEngineAction(() => this.engine.delete_group(name));
+        return this.commands.delete_group(name);
     }
 
     rename_group(oldName: string, newName: string): Result<void, string> {
-        return this.executeEngineAction(() =>
-            this.engine.rename_group(oldName, newName),
-        );
+        return this.commands.rename_group(oldName, newName);
     }
 
     move_sound_to_group(id: string, newGroup?: string): Result<void, string> {
-        return this.executeEngineAction(() =>
-            this.engine.move_channel_to_group(id, newGroup),
-        );
+        return this.commands.move_sound_to_group(id, newGroup);
     }
 
     move_sound(id: string, toIndex: number): Result<void, string> {
-        return this.executeEngineAction(() =>
-            this.engine.move_sound(id, toIndex),
-        );
+        return this.commands.move_sound(id, toIndex);
     }
 
     rename(id: string, name: string) {
-        return this.executeEngineAction(() => this.engine.rename(id, name));
+        return this.commands.rename(id, name);
     }
 
     set_gain(
         id: string,
         gain: number,
-        initialised?: boolean,
+        initialising?: boolean,
     ): Result<number, AudioMixerError> {
-        return this.executeEngineAction(
-            () => this.engine.set_gain(id, gain),
-            !initialised,
-        );
+        return this.commands.set_gain(id, gain, initialising);
     }
 
     get_gain(id: string): Result<number, AudioMixerError> {
-        return this.engine.get_gain(id);
+        return this.commands.get_gain(id);
     }
 
     ducking() {
-        const result = this.executeEngineAction(
-            () => this.engine.ducking(),
-            false,
-        );
-        if (result.ok) {
-            const eventName = result.value
-                ? EngineEvent.DuckingActivated
-                : EngineEvent.DuckingDeactivated;
-            this.dispatchEvent(new Event(eventName));
-        }
+        return this.commands.ducking();
     }
 
     get_bgm_info(id: "deckA" | "deckB") {
-        return this.engine.get_bgm_info(id);
+        return this.commands.get_bgm_info(id);
     }
     load_bgm(id: "deckA" | "deckB", file: BGMFile) {
-        this.engine.load_bgm(id, file);
+        this.commands.load_bgm(id, file);
     }
     play_bgm(id: "deckA" | "deckB") {
-        return this.engine.play_bgm(id);
+        return this.commands.play_bgm(id);
     }
     pause_bgm(id: "deckA" | "deckB") {
-        this.engine.pause_bgm(id);
+        this.commands.pause_bgm(id);
     }
     stop_bgm(id: "deckA" | "deckB") {
-        this.engine.stop_bgm(id);
+        this.commands.stop_bgm(id);
     }
     seek_bgm(id: "deckA" | "deckB", time: number) {
-        this.engine.seek_bgm(id, time);
+        this.commands.seek_bgm(id, time);
     }
     eject_bgm(id: "deckA" | "deckB") {
-        this.engine.unload_bgm(id);
+        this.commands.unload_bgm(id);
     }
 
     load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
-        return this.executeEngineAction(
-            () => this.engine.load_bgm_to_deck(id, bgmId),
-            false,
-        );
+        return this.commands.load_bgm_to_deck(id, bgmId);
     }
 }
