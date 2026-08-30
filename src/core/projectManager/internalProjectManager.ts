@@ -72,6 +72,7 @@ export class InternalProjectManager extends EventTarget {
         this.engine.createChannel("SFX");
         this.stateManager.init();
         check_audio_compatibility();
+        this.dispatchEvent(new Event(EngineEvent.Initialised));
         await result;
     }
     protected proc_event(state: EngineProcState) {
