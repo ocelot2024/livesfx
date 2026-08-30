@@ -520,6 +520,7 @@ export class AudioEngine extends EventTarget {
         const res = this.mixer.set_gain(
             MIXER_MASTER_CHANNEL_ID,
             gain.value * Math.pow(10, config_store.ducking_amount / 20),
+            1,
         );
         return res.ok ? Ok(true) : Err(res.value);
     }

@@ -90,7 +90,9 @@ export class AudioMixer {
         return Ok(id);
     }
 
-    channel_finder(id: string): { belongs_to: string; channel: Channel } | null {
+    channel_finder(
+        id: string,
+    ): { belongs_to: string; channel: Channel } | null {
         const entry = this.entries[id];
         if (!entry) return null;
         return { belongs_to: entry.belongs_to, channel: entry.channel };
@@ -182,10 +184,14 @@ export class AudioMixer {
         return Ok();
     }
 
-    set_gain(id: string, gain: number): Result<number, AudioMixerError> {
+    set_gain(
+        id: string,
+        gain: number,
+        time?: number,
+    ): Result<number, AudioMixerError> {
         const entry = this.entries[id];
         if (!entry) return Err(AudioMixerError.ChannelNotFound);
-        entry.channel.output.gain.value = gain;
+        entry.channel.output.gain.setTargetAtTime(gain, 0, time ?? 0.01);
         return Ok(gain);
     }
 
