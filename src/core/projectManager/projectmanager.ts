@@ -198,19 +198,18 @@ export class ProjectManager extends InternalProjectManager {
                     if (
                         sound.start_from !== undefined &&
                         sound.end_at !== undefined
-                    ) {
+                    )
                         this.engine.trim(
                             result.value,
                             sound.start_from,
                             sound.end_at,
                         );
-                    }
-                    if (sound.play_mode !== undefined) {
+
+                    if (sound.play_mode !== undefined)
                         this.engine.set_sfx_play_mode(
                             result.value,
                             sound.play_mode,
                         );
-                    }
                 }),
             );
         }
