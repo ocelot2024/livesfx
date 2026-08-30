@@ -28,18 +28,6 @@ const store = useConfigStore();
                     <input type="number" min="1" step="1" v-model.number="store.maxPoly">
                 </SettingsRow>
             </SettingsSection>
-            <SettingsSection title="BGM">
-                <SettingsRow label="自動リピート再生">
-                    <Toggle v-model="store.autoRepeat"></Toggle>
-                </SettingsRow>
-                <SettingsRow label="自動ダッキング">
-                    <Toggle v-model="store.autoDucking" />
-                </SettingsRow>
-                <SettingsRow label="ダッキング量">
-                    <input type="number" min="0" max="1" step="0.05" v-model.number="store.duckingAmount"
-                        :disabled="!store.autoDucking">
-                </SettingsRow>
-            </SettingsSection>
         </Settinglist>
     </div>
 </template>
