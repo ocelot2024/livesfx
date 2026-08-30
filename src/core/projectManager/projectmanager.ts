@@ -391,4 +391,7 @@ export class ProjectManager extends InternalProjectManager {
         }
         return res;
     }
+    discard_sound(id: string) {
+        this.engine.discard_sound(id);
+    }
 }
