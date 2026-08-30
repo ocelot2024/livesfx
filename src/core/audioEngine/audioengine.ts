@@ -1,4 +1,4 @@
-import { AudioMixer } from "./mixer";
+import { AudioMixer, MIXER_MASTER_CHANNEL_ID } from "./mixer";
 import {
     SFXPlayMode,
     SoundFileType,
@@ -10,6 +10,7 @@ import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
 import type { BGMPlayerInfo } from "../store/enginestore";
 import { useConfigStore } from "../store/configstore";
+import { FaceAngry } from "@lucide/vue";
 
 export type PlayResult =
     | { played: true; soundID: string; sourceID: string }
@@ -197,6 +198,9 @@ export class AudioEngine extends EventTarget {
     private playing_id: { source_id: string; sfx_id: string }[];
     private player: BGMPlayer;
 
+    private is_ducking: boolean;
+    private before_ducking_gain: number;
+
     constructor() {
         super();
         this.playing = {};
@@ -218,6 +222,8 @@ export class AudioEngine extends EventTarget {
         window.addEventListener("touchend", this.resume_ctx);
         window.addEventListener("pointerdown", this.resume_ctx);
 
+        this.is_ducking = false;
+        this.before_ducking_gain = 1;
         for (const event of Object.values(PlayerEvent)) {
             this.player.addEventListener(event, (e) => {
                 this.dispatchEvent(
@@ -497,5 +503,23 @@ export class AudioEngine extends EventTarget {
     }
     rename(id: string, name: string) {
         return this.library.rename(id, name);
+    }
+
+    ducking(): Result<boolean, string> {
+        if (this.is_ducking) {
+            const res = this.mixer.set_gain(
+                MIXER_MASTER_CHANNEL_ID,
+                this.before_ducking_gain,
+            );
+            return res.ok ? Ok(false) : Err(res.value);
+        }
+        const config_store = useConfigStore();
+        const gain = this.mixer.get_gain(MIXER_MASTER_CHANNEL_ID);
+        if (!gain.ok) return Err(gain.value);
+        const res = this.mixer.set_gain(
+            MIXER_MASTER_CHANNEL_ID,
+            gain.value * config_store.ducking_amount,
+        );
+        return res.ok ? Ok(true) : Err(res.value);
     }
 }

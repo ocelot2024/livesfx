@@ -395,4 +395,16 @@ export class ProjectManager extends InternalProjectManager {
         this.engine.discard_sound(id);
         this.stateManager.markAsChanged();
     }
+    ducking() {
+        const result = this.engine.ducking();
+        if (result.ok) {
+            if (result.value == true) {
+                this.dispatchEvent(new Event(EngineEvent.DuckingActivated));
+            } else {
+                this.dispatchEvent(new Event(EngineEvent.DuckingDeactivated));
+            }
+        } else {
+            this.error(result.value);
+        }
+    }
 }

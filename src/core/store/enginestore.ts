@@ -17,6 +17,7 @@ export interface BGMPlayerInfo {
 }
 
 export const useEngineState = defineStore("engine", () => {
+    const ducking = ref<boolean>(false);
     const sfx_library = ref<SoundMeta[]>([]);
     const bgm_library = ref<SoundMeta[]>([]);
     const ui_mode = ref<"live" | "edit">("live");
@@ -142,6 +143,7 @@ export const useEngineState = defineStore("engine", () => {
         dismissNotif,
         groupNames,
         playing_sfx,
+        ducking,
     };
 });
 

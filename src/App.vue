@@ -29,7 +29,12 @@ const prefView = defineAsyncComponent({
 })
 
 const consentView = defineAsyncComponent({
-    loader: () => import('./components/View/consent.vue')
+    loader: () => import('./components/View/consent.vue'),
+    loadingComponent: Spinner
+})
+
+const Footer = defineAsyncComponent({
+    loader: () => import('./components/Footer.vue')
 })
 const engine_store = useEngineState();
 const ui_store = useUiState();
@@ -71,16 +76,7 @@ const message: Record<EngineProcState, string> = {
     "writing": "書き込み中"
 }
 
-const configstore = useConfigStore();
-const toggle_ui_mode = () => {
-    if (engine_store.ui_mode == "live") {
-        const will = configstore.enterEditModeConfirm ? confirm('編集モードに入りますか?') : true;
-        if (!will) return;
-        engine_store.ui_mode = "edit"
-    } else {
-        engine_store.ui_mode = "live";
-    }
-}
+
 const tabitems: TabItem[] = [{
     id: "pad",
     label: "Pad"
@@ -117,10 +113,7 @@ onMounted(() => {
         <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
         <MixerView v-if="selectedView === 'mixer'" />
         <footer>
-            <div class="flex" style="justify-content: space-between;">
-                <button @click="ProjectEngine.stop_all_sfx()">すべて停止</button>
-                <button @click="toggle_ui_mode()">{{ engine_store.ui_mode == "live" ? "編集" : "完了" }}</button>
-            </div>
+            <Footer />
         </footer>
 
         <NotifCentre />
@@ -176,5 +169,6 @@ footer {
     padding: 12px;
     left: 0;
     right: 0;
+    background-color: var(--gray-6);
 }
 </style>

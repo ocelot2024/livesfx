@@ -13,6 +13,8 @@ export enum EngineEvent {
     Error = "error",
     PlaySFX = "playsfx",
     StopSFX = "endsfx",
+    DuckingActivated = "duckingactivated",
+    DuckingDeactivated = "duckingdeactivated",
 }
 
 export interface lvsf_prj_internal_meta extends lvsf_prj_info {
