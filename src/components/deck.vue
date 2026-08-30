@@ -5,7 +5,7 @@ import Settinglist from './settinglist.vue';
 import SettingsRow from './settingsRow.vue';
 import SettingsSection from './settingsSection.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
-import { ProjectEngine } from '@/core/index.ts';
+import { ProjectManager } from '@/core/index.ts';
 import Modal from './Modal.vue';
 import Spinner from './Spinner.vue';
 
@@ -38,8 +38,8 @@ const applyCrossfade = (position: number) => {
     const gainA = Math.cos(theta)
     const gainB = Math.sin(theta)
 
-    ProjectEngine.set_gain("deckA", gainA, true)
-    ProjectEngine.set_gain("deckB", gainB, true)
+    ProjectManager.set_gain("deckA", gainA, true)
+    ProjectManager.set_gain("deckB", gainB, true)
 }
 
 const update = () => {
@@ -54,7 +54,7 @@ onMounted(() => {
 })
 
 const load_to_deck = (deckId: "deckA" | "deckB", bgmId: string) => {
-    ProjectEngine.load_bgm_to_deck(deckId, bgmId);
+    ProjectManager.load_bgm_to_deck(deckId, bgmId);
 }
 
 const showed_editor = ref(false);
@@ -62,7 +62,7 @@ const target_id = ref()
 const filename = ref();
 
 const show_editor = (id: string) => {
-    const lib = ProjectEngine.get_bgm_library();
+    const lib = ProjectManager.get_bgm_library();
     const targtet = lib[id]
     if (!targtet) return;
     target_id.value = targtet.id;
@@ -88,7 +88,7 @@ const show_editor = (id: string) => {
                     <div v-if="store.bgm_library.length == 0"
                         style="background-color: var(--gray-5); width: 100%; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;">
                         <p>曲がまだありません。</p>
-                        <button @click="ProjectEngine.add_bgm()">曲を追加する</button>
+                        <button @click="ProjectManager.add_bgm()">曲を追加する</button>
                     </div>
                     <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id"
                         :chevron="store.ui_mode == 'edit'" @click="show_editor(value.id)">

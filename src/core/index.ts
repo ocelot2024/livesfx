@@ -1,5 +1,3 @@
-import { EngineEvent } from "./types/types";
-import { ProjectManager } from "./projectManager/projectmanager";
+import { ProjectManager as Manager } from "./projectManager/projectmanager";
 
-export const ProjectEngine = new ProjectManager();
-export { EngineEvent };
+export const ProjectManager = new Manager();

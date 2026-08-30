@@ -3,20 +3,20 @@ import { ref } from 'vue';
 import Settinglist from '../settinglist.vue';
 import SettingsRow from '../settingsRow.vue';
 import SettingsSection from '../settingsSection.vue';
-import { ProjectEngine } from '@/core/index.ts';
+import { ProjectManager } from '@/core/index.ts';
 
 
 const props = defineProps<{ id: string, filaname: string }>();
 const emit = defineEmits(['saved'])
 const filename = ref(props.filaname)
 const save = () => {
-    ProjectEngine.rename(props.id, filename.value)
+    ProjectManager.rename(props.id, filename.value)
     emit('saved')
 }
 const deleteBGM = () => {
     const decision = confirm("プロジェクトからファイルを削除しますか？");
     if (decision) {
-        ProjectEngine.discard_sound(props.id);
+        ProjectManager.discard_sound(props.id);
         emit('saved')
     }
 }

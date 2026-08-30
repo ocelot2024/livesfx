@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ProjectEngine } from '@/core';
+import { ProjectManager } from '@/core';
 import { MIXER_MASTER_CHANNEL_ID } from '@/core/audioEngine/mixer.ts';
 import ChannelComponent from '../Channel.vue';
 
-const engine = ProjectEngine;
+const engine = ProjectManager;
 
 const groups = computed(() => engine.get_group_names())
 

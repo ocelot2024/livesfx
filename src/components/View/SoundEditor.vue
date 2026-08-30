@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
-import { ProjectEngine } from '../../core/index.ts';
+import { ProjectManager } from '../../core/index.ts';
 import { useEngineState } from '../../core/store/enginestore.ts';
 import { SFXPlayMode } from '@/core/audioEngine/sounds.ts';
 import SettingsSection from '../settingsSection.vue';
@@ -35,7 +35,7 @@ const newGroupName = ref('');
 const groupError = ref('');
 
 const groupOptions = computed(() =>
-    ProjectEngine.get_group_names().filter(g => g !== 'BGM')
+    ProjectManager.get_group_names().filter(g => g !== 'BGM')
 );
 
 const format_time = (seconds: number) => {
@@ -70,7 +70,7 @@ const draw = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    const peaks = ProjectEngine.get_waveform(props.soundId, width);
+    const peaks = ProjectManager.get_waveform(props.soundId, width);
     if (!peaks) return;
 
     const mid = height / 2;
@@ -96,8 +96,8 @@ const draw = () => {
 
 const load_sound = () => {
     stop_preview();
-    const d = ProjectEngine.get_duration(props.soundId) ?? 0;
-    const meta = ProjectEngine.get_soundinfo(props.soundId);
+    const d = ProjectManager.get_duration(props.soundId) ?? 0;
+    const meta = ProjectManager.get_soundinfo(props.soundId);
     playbackOption.value = meta?.play_mode ?? SFXPlayMode.OverLap;
     duration.value = d;
     trimStart.value = meta?.start_from ?? 0;
@@ -147,7 +147,7 @@ const stop_preview = () => {
         playResetTimer = null;
     }
     if (activeSourceId.value) {
-        ProjectEngine.stop(activeSourceId.value);
+        ProjectManager.stop(activeSourceId.value);
         activeSourceId.value = null;
     }
     isPlaying.value = false;
@@ -160,7 +160,7 @@ const toggle_play = async () => {
     }
 
     clamp_trim();
-    const result = await ProjectEngine.play(props.soundId, {
+    const result = await ProjectManager.play(props.soundId, {
         start: trimStart.value,
         end: trimEnd.value,
     });
@@ -196,8 +196,8 @@ const emit = defineEmits(['saved']);
 
 const valid = ref(true)
 const save = () => {
-    ProjectEngine.trim(props.soundId, trimStart.value, trimEnd.value);
-    ProjectEngine.set_sfx_playmode(props.soundId, playbackOption.value);
+    ProjectManager.trim(props.soundId, trimStart.value, trimEnd.value);
+    ProjectManager.set_sfx_playmode(props.soundId, playbackOption.value);
 
     let targetGroup: string | undefined = selectedGroup.value || undefined;
     if (selectedGroup.value === NEW_GROUP) {
@@ -210,7 +210,7 @@ const save = () => {
             groupError.value = 'そのグループ名は既に使われています';
             return;
         }
-        const created = ProjectEngine.create_group(name);
+        const created = ProjectManager.create_group(name);
         if (!created.ok) {
             groupError.value = created.value;
             return;
@@ -218,15 +218,15 @@ const save = () => {
         targetGroup = name;
     }
 
-    const currentMeta = ProjectEngine.get_soundinfo(props.soundId);
+    const currentMeta = ProjectManager.get_soundinfo(props.soundId);
     if ((currentMeta?.group ?? undefined) !== targetGroup) {
-        const result = ProjectEngine.move_sound_to_group(props.soundId, targetGroup);
+        const result = ProjectManager.move_sound_to_group(props.soundId, targetGroup);
         if (!result.ok) {
             groupError.value = result.value;
             return;
         }
     }
-    ProjectEngine.rename(props.soundId, filename.value);
+    ProjectManager.rename(props.soundId, filename.value);
 
     emit('saved');
 }
@@ -234,7 +234,7 @@ const save = () => {
 const deleteSFX = () => {
     const decision = confirm("プロジェクトからファイルを削除しますか？");
     if (decision) {
-        ProjectEngine.discard_sound(props.soundId);
+        ProjectManager.discard_sound(props.soundId);
         emit('saved')
     }
 }

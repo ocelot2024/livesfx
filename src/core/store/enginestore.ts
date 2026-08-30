@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { ProjectEngine } from "..";
+import { ProjectManager } from "..";
 import { type BGMFile, type SoundMeta } from "../audioEngine/sounds";
 import { EngineEvent } from "../types/types";
 import { EngineProcState, type Notificatin } from "./enginestore_type";
@@ -34,12 +34,12 @@ export const useEngineState = defineStore("engine", () => {
 
     let timer: number | null;
 
-    ProjectEngine.addEventListener(EngineEvent.PlaySFX, ((
+    ProjectManager.addEventListener(EngineEvent.PlaySFX, ((
         e: CustomEvent<{ id: string }>,
     ) => {
         playing_sfx.value.push(e.detail.id);
     }) as EventListener);
-    ProjectEngine.addEventListener(EngineEvent.StopSFX, ((
+    ProjectManager.addEventListener(EngineEvent.StopSFX, ((
         e: CustomEvent<{ id: string }>,
     ) => {
         const index = playing_sfx.value.indexOf(e.detail.id);
@@ -48,31 +48,31 @@ export const useEngineState = defineStore("engine", () => {
         }
     }) as EventListener);
 
-    ProjectEngine.addEventListener(EngineEvent.ChangedLibrary, () => {
+    ProjectManager.addEventListener(EngineEvent.ChangedLibrary, () => {
         const sounds: Record<string, SoundMeta> =
-            ProjectEngine.get_sfx_library();
+            ProjectManager.get_sfx_library();
         const musics: Record<string, SoundMeta> =
-            ProjectEngine.get_bgm_library();
+            ProjectManager.get_bgm_library();
         sfx_library.value = Object.values(sounds);
         bgm_library.value = Object.values(musics);
-        groupNames.value = [...ProjectEngine.get_group_names(), UNGROUPED];
+        groupNames.value = [...ProjectManager.get_group_names(), UNGROUPED];
     });
-    ProjectEngine.addEventListener(EngineEvent.Initialised, () => {
+    ProjectManager.addEventListener(EngineEvent.Initialised, () => {
         const sounds: Record<string, SoundMeta> =
-            ProjectEngine.get_sfx_library();
+            ProjectManager.get_sfx_library();
         const musics: Record<string, SoundMeta> =
-            ProjectEngine.get_bgm_library();
+            ProjectManager.get_bgm_library();
         sfx_library.value = Object.values(sounds);
         bgm_library.value = Object.values(musics);
     });
-    ProjectEngine.addEventListener(EngineEvent.DuckingActivated, () => {
+    ProjectManager.addEventListener(EngineEvent.DuckingActivated, () => {
         ducking.value = true;
     });
-    ProjectEngine.addEventListener(
+    ProjectManager.addEventListener(
         EngineEvent.DuckingDeactivated,
         () => (ducking.value = false),
     );
-    ProjectEngine.addEventListener(EngineEvent.Proccessing, (e) => {
+    ProjectManager.addEventListener(EngineEvent.Proccessing, (e) => {
         const event = e as CustomEvent<{ type: EngineProcState }>;
         EngineState.value = event.detail.type;
         if (timer) clearTimeout(timer);
@@ -83,12 +83,12 @@ export const useEngineState = defineStore("engine", () => {
         }, 1000);
     });
 
-    ProjectEngine.addEventListener(EngineEvent.FinProc, () => {
+    ProjectManager.addEventListener(EngineEvent.FinProc, () => {
         if (timer) clearTimeout(timer);
         EngineState.value = EngineProcState.Idle;
     });
 
-    ProjectEngine.addEventListener(EngineEvent.Error, (e) => {
+    ProjectManager.addEventListener(EngineEvent.Error, (e) => {
         const event = e as CustomEvent<{
             type: EngineError | EngineException | string;
         }>;
@@ -101,7 +101,7 @@ export const useEngineState = defineStore("engine", () => {
                 : type;
 
         const restart = async () => {
-            await ProjectEngine.export();
+            await ProjectManager.export();
             location.reload();
         };
         const onClick = type == "panic" ? restart : undefined;
@@ -133,11 +133,13 @@ export const useEngineState = defineStore("engine", () => {
     };
 
     for (const event of Object.values(PlayerEvent)) {
-        ProjectEngine.addEventListener(event, (e) => {
+        ProjectManager.addEventListener(event, (e) => {
             const detail = (e as CustomEvent<{ deck?: "A" | "B" }>).detail;
             const id = detail?.deck;
             if (!id) return;
-            deck.value[deckIndex(id)] = ProjectEngine.get_bgm_info(deckKey(id));
+            deck.value[deckIndex(id)] = ProjectManager.get_bgm_info(
+                deckKey(id),
+            );
         });
     }
     return {

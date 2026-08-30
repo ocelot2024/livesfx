@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ProjectEngine } from '@/core';
+import { ProjectManager } from '@/core';
 import { useEngineState, type BGMPlayerInfo } from '@/core/store/enginestore';
 import { Eject, Pause, Play, X } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
@@ -50,7 +50,7 @@ const handleDragEnd = (_e: PointerEvent) => {
 
     if (dragProgress.value !== null && props.deck_info.duration) {
         const time = (dragProgress.value / 100) * props.deck_info.duration;
-        ProjectEngine.seek_bgm(props.deckId, time);
+        ProjectManager.seek_bgm(props.deckId, time);
     }
     dragProgress.value = null;
 }
@@ -66,14 +66,14 @@ const handleDragStart = (e: PointerEvent) => {
 
 const toggle_play = () => {
     if (props.deck_info.playing) {
-        ProjectEngine.pause_bgm(props.deckId);
+        ProjectManager.pause_bgm(props.deckId);
     } else {
-        ProjectEngine.play_bgm(props.deckId);
+        ProjectManager.play_bgm(props.deckId);
     }
 }
 
 const eject = () => {
-    ProjectEngine.eject_bgm(props.deckId);
+    ProjectManager.eject_bgm(props.deckId);
 }
 
 // A single source of truth for "which slot in the deck array is this instance".
@@ -103,7 +103,7 @@ const deckData = computed(() => deck.value[deckIndex.value]);
                     <progress @pointerdown="handleDragStart" :value="displayProgress" max="100"
                         ref="seekbar"></progress>
                     <small>{{ format_time(props.deck_info.current_time) }} / {{ format_time(props.deck_info.duration)
-                        }}</small>
+                    }}</small>
                 </div>
             </div>
         </div>

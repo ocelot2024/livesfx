@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { createPinia, type Pinia } from "pinia";
 import App from "./App.vue";
 import "./style/main.css";
-import { ProjectEngine } from "./core/index.ts";
+import { ProjectManager } from "./core/index.ts";
 import { registerSW } from "virtual:pwa-register";
 import { createPersistPlugin } from "./core/store/persist.ts";
 import { useUpdateStore } from "./core/store/updatestore.ts";
@@ -14,7 +14,7 @@ const app = createApp(App);
 pinia = createPinia();
 pinia.use(createPersistPlugin(["config", "ui_state"]));
 useUpdateStore(pinia).setRegistration(pendingRegistration);
-await ProjectEngine.init();
+await ProjectManager.init();
 app.use(pinia);
 app.mount("#app");
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppBar, { type MenuList } from './components/AppBar.vue';
-import { ProjectEngine, } from './core/index.ts';
+import { ProjectManager, } from './core/index.ts';
 import { useEngineState } from './core/store/enginestore.ts';
 import NotifCentre from "./components/View/NotifCentre.vue";
 import Spinner from "./components/Spinner.vue";
@@ -46,11 +46,11 @@ const menu: MenuList[] = [
         children: [
             {
                 label: "新規", id: "new", handle: () => {
-                    ProjectEngine.start_with_blank();
+                    ProjectManager.start_with_blank();
                 }
             },
-            { label: "名前を付けて保存", id: "save", handle: () => { ProjectEngine.export(); } },
-            { label: "開く", id: "open", handle: () => { ProjectEngine.start_from_file(); } },
+            { label: "名前を付けて保存", id: "save", handle: () => { ProjectManager.export(); } },
+            { label: "開く", id: "open", handle: () => { ProjectManager.start_from_file(); } },
             {
                 label: "環境設定", id: "pref", handle: () => {
                     showPrefView.value = true;
@@ -62,8 +62,8 @@ const menu: MenuList[] = [
         label: "編集",
         id: "edit",
         children: [
-            { "label": "サウンドの追加", id: "add", handle: () => { ProjectEngine.add_sfx(); } },
-            { "label": "BGMの追加", id: "add_bgm", handle: () => { ProjectEngine.add_bgm(); } }
+            { "label": "サウンドの追加", id: "add", handle: () => { ProjectManager.add_sfx(); } },
+            { "label": "BGMの追加", id: "add_bgm", handle: () => { ProjectManager.add_bgm(); } }
         ]
     }
 ]

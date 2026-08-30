@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, ref, reactive, computed, nextTick, watch } from 'vue';
-import { ProjectEngine } from '../core/index.ts';
+import { ProjectManager } from '../core/index.ts';
 import { useEngineState } from '../core/store/enginestore.ts';
 import { useConfigStore } from '../core/store/configstore.ts';
 import Modal from './Modal.vue';
@@ -233,7 +233,7 @@ const finishDrag = async (committed: boolean) => {
 
     if (wasActive && finalIndex !== -1) {
         if (newGroup !== null) {
-            const groupResult = ProjectEngine.move_sound_to_group(
+            const groupResult = ProjectManager.move_sound_to_group(
                 id, newGroup === UNGROUPED ? undefined : newGroup,
             );
             if (!groupResult.ok) {
@@ -242,7 +242,7 @@ const finishDrag = async (committed: boolean) => {
                 return;
             }
         }
-        const result = await ProjectEngine.move_sound(id, finalIndex);
+        const result = await ProjectManager.move_sound(id, finalIndex);
         if (!result.ok) {
             order.value = store.sfx_library.map(s => s.id);
         }
@@ -343,7 +343,7 @@ const onClick = async (id: string) => {
     }
     const is_live = store.ui_mode == "live";
     if (is_live) {
-        await ProjectEngine.play(id)
+        await ProjectManager.play(id)
     } else {
         selectedSound.value = id;
     }
@@ -370,7 +370,7 @@ const submitCreateGroup = () => {
         createGroupError.value = 'そのグループ名は既に使われています';
         return;
     }
-    const result = ProjectEngine.create_group(name);
+    const result = ProjectManager.create_group(name);
     if (!result.ok) {
         createGroupError.value = result.value;
         return;
@@ -383,7 +383,7 @@ const groupLabel = (name: string) => name === UNGROUPED ? '未分類' : name;
 const deleteGroup = (name: string) => {
     if (name === UNGROUPED) return;
     if (!confirm(`グループ「${name}」を削除しますか?中の音は未分類に移動します。`)) return;
-    ProjectEngine.delete_group(name);
+    ProjectManager.delete_group(name);
 }
 
 const renameGroup = (name: string) => {
@@ -396,7 +396,7 @@ const renameGroup = (name: string) => {
         alert('そのグループ名は既に使われています');
         return;
     }
-    ProjectEngine.rename_group(name, trimmed);
+    ProjectManager.rename_group(name, trimmed);
 }
 </script>
 
