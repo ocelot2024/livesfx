@@ -230,6 +230,14 @@ const save = () => {
 
     emit('saved');
 }
+
+const deleteSFX = () => {
+    const decision = confirm("プロジェクトからファイルを削除しますか？");
+    if (decision) {
+        ProjectEngine.discard_sound(props.soundId);
+        emit('saved')
+    }
+}
 </script>
 
 <template>
@@ -280,6 +288,9 @@ const save = () => {
                     </select>
                 </SettingsRow>
             </SettingsSection>
+            <SettingsSection>
+                <SettingsRow label="効果音を削除する" chevron danger @click="deleteSFX()"></SettingsRow>
+            </SettingsSection>
         </Settinglist>
         <button @click="save()" :disabled="!valid">変更を保存</button>
     </div>
@@ -300,7 +311,6 @@ const save = () => {
 }
 
 .waveform {
-    padding: 12px;
     position: relative;
     min-height: 12rem;
     border-radius: 10px;

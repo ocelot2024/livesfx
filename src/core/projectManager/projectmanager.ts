@@ -393,5 +393,6 @@ export class ProjectManager extends InternalProjectManager {
     }
     discard_sound(id: string) {
         this.engine.discard_sound(id);
+        this.stateManager.markAsChanged();
     }
 }
