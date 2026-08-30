@@ -24,16 +24,15 @@ export const SideCarEvent = {
 export type SideCarEvent = (typeof SideCarEvent)[keyof typeof SideCarEvent];
 
 export interface SideCarMessage {
-    type: EngineEvent;
+    type: "";
     detail: unknown;
 }
 export class SideCar extends EventTarget {
-    peer: RTCPeerConnection;
+    peer!: RTCPeerConnection;
     channel?: RTCDataChannel;
     constructor() {
         super();
         this.createPeer();
-        this.peer = new RTCPeerConnection();
     }
     private createPeer() {
         this.peer = new RTCPeerConnection();

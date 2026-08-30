@@ -11,6 +11,7 @@ export enum EngineError {
     PartialSoundAddFailed = "partial_sound_add_failed",
     MissingCachedAudioForExport = "missing_cache_audio_for_export",
     UnknownSound = "unknown_sound",
+    CouldNotConnectToHost = "couldnotconnecttohost",
 }
 
 export enum EngineException {

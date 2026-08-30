@@ -1,5 +1,13 @@
 import { AudioEngine } from "../audioEngine/audioengine";
-import { EngineEvent, Err, Ok, type Result } from "../types/types";
+import {
+    EngineEvent,
+    Err,
+    None,
+    Ok,
+    Some,
+    type Option,
+    type Result,
+} from "../types/types";
 import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
@@ -16,9 +24,11 @@ import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 import { applyGuard } from "../util/util";
 import { UiCommandsManager } from "../commands/uiCommands";
+import { SideCar } from "../sidecar/sidecar";
 
 export class ProjectManager extends InternalProjectManager {
     commands: UiCommandsManager;
+    sidecar: SideCar;
     constructor() {
         super();
         applyGuard(this);
@@ -27,6 +37,7 @@ export class ProjectManager extends InternalProjectManager {
             this.stateManager,
             (e) => this.error(e),
         );
+        this.sidecar = new SideCar();
         window.addEventListener("panic", () => {
             this.error(EngineException.Panic);
         });
@@ -379,5 +390,25 @@ export class ProjectManager extends InternalProjectManager {
 
     load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
         return this.commands.load_bgm_to_deck(id, bgmId);
+    }
+    async create_host(): Promise<Option<RTCSessionDescription>> {
+        const offer = await this.sidecar.createHost();
+        if (!offer) return None();
+        return Some(offer);
+    }
+    async join_host(
+        offer: RTCSessionDescription,
+    ): Promise<Result<RTCSessionDescription, string>> {
+        const answer = await this.sidecar.joinHost(offer);
+        if (!answer) return Err(EngineError.CouldNotConnectToHost);
+        return Ok(answer);
+    }
+    async apply_answer(
+        answer: RTCSessionDescription,
+    ): Promise<Result<void, string>> {
+        await this.sidecar.applyAnswer(answer);
+        if (!this.sidecar.connected)
+            return Err(EngineError.CouldNotConnectToHost);
+        return Ok();
     }
 }
