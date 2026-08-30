@@ -28,7 +28,7 @@ export class LVSFFile {
         metas: Record<string, SoundMeta>,
     ) {
         let missing = false;
-        for (const id in files) {
+        for (const id in metas) {
             const meta = metas[id];
             const file = files[id];
             if (!meta || !file) {
