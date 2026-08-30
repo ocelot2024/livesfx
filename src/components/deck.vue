@@ -7,6 +7,7 @@ import SettingsSection from './settingsSection.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectEngine } from '@/core/index.ts';
 import Modal from './Modal.vue';
+import BGMEditor from './View/BGMEditor.vue';
 
 const store = useEngineState();
 
@@ -63,11 +64,6 @@ const show_editor = (id: string) => {
     filename.value = targtet.filename;
     showed_editor.value = true;
 }
-const save = () => {
-    if (ProjectEngine.rename(target_id.value, filename.value).ok) {
-        showed_editor.value = false;
-    };
-}
 </script>
 <template>
     <div style="padding: 12px;">
@@ -101,14 +97,7 @@ const save = () => {
         </div>
 
         <Modal :show="showed_editor" @close="showed_editor = false">
-            <div style="display: flex; flex-direction: column; padding: 20px;">
-                <Settinglist>
-                    <SettingsSection title="その他">
-                        <SettingsRow label="ファイル名"><input type="text" v-model="filename"></SettingsRow>
-                    </SettingsSection>
-                </Settinglist>
-                <button @click="save" :disabled="!filename">変更を保存</button>
-            </div>
+            <BGMEditor :filaname="filename" :id="target_id" @saved="showed_editor = false" />
         </Modal>
     </div>
 </template>
