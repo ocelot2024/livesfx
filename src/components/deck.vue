@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, useTemplateRef, onMounted } from 'vue';
+import { ref, useTemplateRef, onMounted, defineAsyncComponent } from 'vue';
 import DeckPlayer from './deckPlayer.vue';
 import Settinglist from './settinglist.vue';
 import SettingsRow from './settingsRow.vue';
@@ -7,9 +7,14 @@ import SettingsSection from './settingsSection.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectEngine } from '@/core/index.ts';
 import Modal from './Modal.vue';
-import BGMEditor from './View/BGMEditor.vue';
+import Spinner from './Spinner.vue';
 
 const store = useEngineState();
+
+const BGMEditor = defineAsyncComponent({
+    loader: () => import('./View/BGMEditor.vue'),
+    loadingComponent: Spinner
+})
 
 const calcColour = (v: number) => {
     const t = v / 100
