@@ -8,7 +8,6 @@ import QRCode from 'qrcode';
 import { SupportedShareAPI } from '@/core/util/compatibility.ts';
 import SettingsRow from '../settingsRow.vue';
 import Modal from '../Modal.vue';
-import { QrcodeStream, type DetectedBarcode } from 'vue-qrcode-reader';
 import QRreader from '../QRreader.vue';
 
 const page = ref(0)
@@ -37,6 +36,12 @@ const err = () => {
 }
 const show_reader = ref(false)
 const err_cam = ref(false);
+const connecting = ref(false)
+const apply = async () => {
+    connecting.value = true
+    const res = await ProjectManager.apply_answer(JSON.parse(answer.value))
+    console.log(res);
+}
 </script>
 <template>
     <Settinglist>
@@ -75,7 +80,8 @@ const err_cam = ref(false);
                     <textarea v-model="answer" name="answer"></textarea>
                 </div>
             </SettingsSection>
-            <button style="margin: 0 16px; display: block;" :disabled="answer.length == 0">接続する</button>
+            <button style="margin: 0 16px; display: block;" :disabled="answer.length == 0 || connecting"
+                @click="apply">接続を確認</button>
         </div>
     </Settinglist>
     <Modal :show="show_reader" @close="show_reader = false">
