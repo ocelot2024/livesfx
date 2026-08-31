@@ -1,20 +1,32 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import Tab, { type TabItem } from '../Tab.vue';
 import General from './PrefView/general.vue';
 import Sounds from './PrefView/sounds.vue';
 import Mixer from './PrefView/mixer.vue';
 import SideCar from './PrefView/sidecar.vue';
+import { useConfigStore } from '@/core/store/configstore.ts';
 
+const selectedView = ref('general')
 
-const tabItem: TabItem[] = [
-    { id: "general", label: "一般" },
-    { id: "sound", label: "サウンド" },
-    { id: "mixer", label: "ミキサー" },
-    { id: "sidecar", label: "SideCar" }
-]
+const configstore = useConfigStore();
 
-const selectedView = ref("general")
+const tabItem = computed<TabItem[]>(() => {
+    const items: TabItem[] = [
+        { id: "general", label: "一般" },
+        { id: "sound", label: "サウンド" },
+        { id: "mixer", label: "ミキサー" },
+    ];
+
+    if (configstore.showUnfinishedFeatures) {
+        items.push({
+            id: "sidecar",
+            label: "SideCar (Future)",
+        });
+    }
+
+    return items;
+});
 
 </script>
 <template>
