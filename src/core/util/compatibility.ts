@@ -1,5 +1,7 @@
 import { AUDIO_MIME_TYPES } from "../constants";
 
+export const SupportedShareAPI = typeof navigator.canShare === "function";
+
 export let SupportedMime: Record<AUDIO_MIME_TYPES, boolean> = {};
 
 export const check_audio_compatibility = () => {

@@ -17,7 +17,6 @@ withDefaults(defineProps<Props>(), {
 
 <style scoped>
 .settings-list {
-    height: 100%;
     overflow-y: auto;
     padding: 8px 0 32px;
     color: var(--label-normal);

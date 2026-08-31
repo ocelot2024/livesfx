@@ -33,3 +33,15 @@ button:disabled {
 label {
     margin-inline-end: 3rem;
 }
+textarea {
+    background-color: var(--gray-6);
+    width: 100%;
+    border-radius: 12px;
+    height: 10em;
+    padding: 7px;
+    resize: none;
+}
+textarea:disabled {
+    background-color: var(--gray-4);
+    cursor: not-allowed;
+}

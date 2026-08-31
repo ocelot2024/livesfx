@@ -76,7 +76,9 @@ header {
     background-color: var(--gray-5);
     height:clamp(400px, 600px, 100svh);
     width: clamp(600px, 800px, 100vw);
-    overflow-y: scroll;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 
