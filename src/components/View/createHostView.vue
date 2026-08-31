@@ -9,6 +9,11 @@ import { SupportedShareAPI } from '@/core/util/compatibility.ts';
 import SettingsRow from '../settingsRow.vue';
 import Modal from '../Modal.vue';
 import QRreader from '../QRreader.vue';
+import { useEngineState } from '@/core/store/enginestore.ts';
+
+const store = useEngineState()
+
+const emit = defineEmits(['close'])
 
 const page = ref(0)
 
@@ -46,7 +51,9 @@ const connecting = ref(false)
 const apply = async () => {
     connecting.value = true
     const res = await ProjectManager.apply_answer(JSON.parse(answer.value))
-    console.log(res);
+    if (res.ok) {
+        page.value++;
+    }
 }
 </script>
 <template>
@@ -88,6 +95,12 @@ const apply = async () => {
             </SettingsSection>
             <button style="margin: 0 16px; display: block;" :disabled="answer.length == 0 || connecting"
                 @click="apply">接続を確認</button>
+        </div>
+        <div v-if="store.sidecar_mode" style="text-align: center;">
+            <h2>接続に成功しました</h2>
+            <p>ほかのデバイスからこのLiveSFXを操作できるようになりました。</p>
+            <br>
+            <button @click="emit('close')">閉じる</button>
         </div>
     </Settinglist>
     <Modal :show="show_reader" @close="show_reader = false">

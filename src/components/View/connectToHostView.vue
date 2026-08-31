@@ -9,12 +9,18 @@ import { SupportedShareAPI } from '@/core/util/compatibility.ts';
 import SettingsRow from '../settingsRow.vue';
 import Modal from '../Modal.vue';
 import QRreader from '../QRreader.vue';
+import { useEngineState } from '@/core/store/enginestore.ts';
+
+const store = useEngineState();
 
 const page = ref(0)
 
 const offer = ref('')
 const answer = ref('')
 const src = ref();
+
+const emit = defineEmits(['close'])
+
 const share = async () => {
     await navigator.share({ text: answer.value })
 }
@@ -49,7 +55,7 @@ const join_host = async () => {
 }
 </script>
 <template>
-    <Settinglist>
+    <Settinglist v-if="!store.sidecar_mode">
         <div v-if="page == 0" style="display: flex; flex-direction: column;">
             <SettingsSection title="説明">
                 <div class="flex"
@@ -91,6 +97,12 @@ const join_host = async () => {
             </SettingsSection>
         </div>
     </Settinglist>
+    <div v-else style="text-align: center;">
+        <h2>ホストと接続を確立しました</h2>
+        <p>このデバイスからホストのLiveSFXを操作することができます。</p>
+        <br>
+        <button @click="emit('close')">閉じる</button>
+    </div>
     <Modal :show="show_reader" @close="show_reader = false">
         <h2>接続するデバイスに表示されたQRコードを読み込んでください</h2>
         <QRreader @detect="detect" @error="err()" />

@@ -47,6 +47,10 @@ export class ProjectManager extends InternalProjectManager {
                 this.dispatchEvent(new Event(event)),
             );
         }
+
+        this.sidecar.addEventListener("connect", () =>
+            this.dispatchEvent(new Event(EngineEvent.SideCarStarted)),
+        );
     }
 
     private checkStorage(): boolean {
@@ -412,5 +416,8 @@ export class ProjectManager extends InternalProjectManager {
         const res = await this.sidecar.applyAnswer(answer);
         if (res.ok) return Ok(res);
         return Err(res.value);
+    }
+    get_sidecar_mode(): "host" | "visitor" | undefined {
+        return this.sidecar.mode ?? undefined;
     }
 }

@@ -30,6 +30,7 @@ export interface SideCarMessage {
 export class SideCar extends EventTarget {
     peer!: RTCPeerConnection;
     channel?: RTCDataChannel;
+    mode?: "host" | "visitor";
     constructor() {
         super();
         this.createPeer();
@@ -87,6 +88,7 @@ export class SideCar extends EventTarget {
             await this.peer.setLocalDescription(answer);
             await waitIceComplete(this.peer);
             if (!this.peer.localDescription) return Err("");
+            this.mode = "visitor";
             return Ok(this.peer.localDescription);
         } catch (e) {
             return Err(e);
@@ -98,6 +100,7 @@ export class SideCar extends EventTarget {
     ): Promise<Result<void, string>> {
         await this.peer.setRemoteDescription(answer);
         if (this.peer.connectionState === "connected") {
+            this.mode = "host";
             return Ok();
         }
         return new Promise<Result<void, string>>((resolve) => {
@@ -105,6 +108,7 @@ export class SideCar extends EventTarget {
                 switch (this.peer.connectionState) {
                     case "connected":
                         cleanup();
+                        this.mode = "host";
                         resolve(Ok());
                         break;
                     case "failed":

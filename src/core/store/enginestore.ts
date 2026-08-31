@@ -26,6 +26,7 @@ export const useEngineState = defineStore("engine", () => {
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
     const groupNames = ref<string[]>([]);
     const playing_sfx = ref<string[]>([]);
+    const sidecar_mode = ref<"host" | "visitor" | undefined>();
 
     const deck = ref<[BGMPlayerInfo, BGMPlayerInfo]>([
         { playing: false, meta: null, current_time: 0, duration: 0 },
@@ -48,6 +49,9 @@ export const useEngineState = defineStore("engine", () => {
         }
     }) as EventListener);
 
+    ProjectManager.addEventListener(EngineEvent.SideCarStarted, () => {
+        sidecar_mode.value = ProjectManager.get_sidecar_mode();
+    });
     ProjectManager.addEventListener(EngineEvent.ChangedLibrary, () => {
         const sounds: Record<string, SoundMeta> =
             ProjectManager.get_sfx_library();
@@ -153,6 +157,7 @@ export const useEngineState = defineStore("engine", () => {
         groupNames,
         playing_sfx,
         ducking,
+        sidecar_mode,
     };
 });
 

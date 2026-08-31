@@ -15,6 +15,7 @@ export enum EngineEvent {
     StopSFX = "endsfx",
     DuckingActivated = "duckingactivated",
     DuckingDeactivated = "duckingdeactivated",
+    SideCarStarted = "sidecarstarted",
 }
 
 export interface lvsf_prj_internal_meta extends lvsf_prj_info {
