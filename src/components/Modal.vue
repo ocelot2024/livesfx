@@ -42,6 +42,12 @@ const clicked = (e: MouseEvent) => {
 
 header {
     display: flex;
+    position: sticky;
+    background-color: var(--gray-5);
+    z-index: 999;
+    top: 0;
+    transform: translateY(-7px);
+    padding-top: 7px;
 
     div {
         padding-left: 20px;
@@ -68,8 +74,9 @@ header {
     padding: 7px;
     border-radius: 12px;
     background-color: var(--gray-5);
-    min-width: 100px;
-    min-height: 100px;
+    height:clamp(400px, 600px, 100svh);
+    width: clamp(600px, 800px, 100vw);
+    overflow-y: scroll;
 }
 
 
@@ -100,14 +107,5 @@ header {
 .v-enter-to .dialog,
 .v-leave-from .dialog {
     transform: scale(1);
-}
-
-@media (max-width: 1080px) {
-    .dialog {
-        max-width: 100vw;
-        height: 800px;
-        max-height: 100vh;
-        overflow-y: auto;
-    }
 }
 </style>
