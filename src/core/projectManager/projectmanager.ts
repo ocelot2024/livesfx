@@ -409,9 +409,8 @@ export class ProjectManager extends InternalProjectManager {
     async apply_answer(
         answer: RTCSessionDescription,
     ): Promise<Result<void, string>> {
-        await this.sidecar.applyAnswer(answer);
-        if (!this.sidecar.connected)
-            return Err(EngineError.CouldNotConnectToHost);
-        return Ok();
+        const res = await this.sidecar.applyAnswer(answer);
+        if (res.ok) return Ok(res);
+        return Err(res.value);
     }
 }

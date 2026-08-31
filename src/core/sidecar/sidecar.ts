@@ -93,8 +93,38 @@ export class SideCar extends EventTarget {
         }
     }
 
-    async applyAnswer(answer: RTCSessionDescriptionInit) {
+    async applyAnswer(
+        answer: RTCSessionDescriptionInit,
+    ): Promise<Result<void, string>> {
         await this.peer.setRemoteDescription(answer);
+        if (this.peer.connectionState === "connected") {
+            return Ok();
+        }
+        return new Promise<Result<void, string>>((resolve) => {
+            const handler = () => {
+                switch (this.peer.connectionState) {
+                    case "connected":
+                        cleanup();
+                        resolve(Ok());
+                        break;
+                    case "failed":
+                    case "closed":
+                    case "disconnected":
+                        cleanup();
+                        resolve(Err("connection failed"));
+                        break;
+                }
+            };
+            const cleanup = () => {
+                clearTimeout(time);
+                this.peer.removeEventListener("connectionstatechange", handler);
+            };
+            const time = setTimeout(() => {
+                cleanup();
+                resolve(Err("timeout"));
+            }, 10000);
+            this.peer.addEventListener("connectionstatechange", handler);
+        });
     }
 
     send(event_name: EngineEvent, option: unknown) {
