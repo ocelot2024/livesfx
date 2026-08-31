@@ -16,7 +16,7 @@ const mode = ref<'host' | 'visitor' | undefined>()
 const disconnect = () => {
     const will = confirm('本当に切断してもよろしいですか？');
     if (will) {
-        ProjectManager;
+        ProjectManager.disconnect();
     }
 }
 </script>

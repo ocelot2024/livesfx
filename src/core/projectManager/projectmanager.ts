@@ -24,7 +24,7 @@ import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 import { applyGuard } from "../util/util";
 import { UiCommandsManager } from "../commands/uiCommands";
-import { SideCar } from "../sidecar/sidecar";
+import { SideCar, SideCarEvent } from "../sidecar/sidecar";
 
 export class ProjectManager extends InternalProjectManager {
     commands: UiCommandsManager;
@@ -48,9 +48,12 @@ export class ProjectManager extends InternalProjectManager {
             );
         }
 
-        this.sidecar.addEventListener("connect", () =>
+        this.sidecar.addEventListener(SideCarEvent.Connect, () =>
             this.dispatchEvent(new Event(EngineEvent.SideCarStarted)),
         );
+        this.sidecar.addEventListener(SideCarEvent.Disconnect, () => {
+            this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
+        });
     }
 
     private checkStorage(): boolean {
@@ -419,5 +422,8 @@ export class ProjectManager extends InternalProjectManager {
     }
     get_sidecar_mode(): "host" | "visitor" | undefined {
         return this.sidecar.mode ?? undefined;
+    }
+    disconnect() {
+        return this.sidecar.reset();
     }
 }
