@@ -400,8 +400,11 @@ export class ProjectManager extends InternalProjectManager {
         offer: RTCSessionDescription,
     ): Promise<Result<RTCSessionDescription, string>> {
         const answer = await this.sidecar.joinHost(offer);
-        if (!answer) return Err(EngineError.CouldNotConnectToHost);
-        return Ok(answer);
+        if (!answer.ok) {
+            console.log(answer.value);
+            return Err(EngineError.CouldNotConnectToHost);
+        }
+        return Ok(answer.value);
     }
     async apply_answer(
         answer: RTCSessionDescription,

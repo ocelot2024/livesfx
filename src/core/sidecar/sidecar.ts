@@ -1,4 +1,4 @@
-import { EngineEvent } from "../types/types";
+import { EngineEvent, Err, Ok, type Result } from "../types/types";
 
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve) => {
@@ -78,13 +78,19 @@ export class SideCar extends EventTarget {
         return this.peer.localDescription;
     }
 
-    async joinHost(offer: RTCSessionDescriptionInit) {
-        await this.peer.setRemoteDescription(offer);
-        const answer = await this.peer.createAnswer();
-        await this.peer.setLocalDescription(answer);
-        await waitIceComplete(this.peer);
-
-        return this.peer.localDescription;
+    async joinHost(
+        offer: RTCSessionDescriptionInit,
+    ): Promise<Result<RTCSessionDescription, unknown>> {
+        try {
+            await this.peer.setRemoteDescription(offer);
+            const answer = await this.peer.createAnswer();
+            await this.peer.setLocalDescription(answer);
+            await waitIceComplete(this.peer);
+            if (!this.peer.localDescription) return Err("");
+            return Ok(this.peer.localDescription);
+        } catch (e) {
+            return Err(e);
+        }
     }
 
     async applyAnswer(answer: RTCSessionDescriptionInit) {

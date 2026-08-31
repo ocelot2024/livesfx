@@ -16,11 +16,17 @@ const offer = ref('')
 const answer = ref('')
 const src = ref();
 onMounted(async () => {
-    offer.value = JSON.stringify(await ProjectManager.create_host())
-    if (offer.value.length > 4200) {
-        return
+    const offer_request = await ProjectManager.create_host();
+    if (offer_request.some) {
+        offer.value = JSON.stringify(offer_request.value)
+        if (offer.value.length > 4200) {
+            return
+        }
+        src.value = await QRCode.toDataURL(offer.value);
     }
-    src.value = await QRCode.toDataURL(offer.value);
+    else {
+        alert('ホストを作成できませんでした')
+    }
 })
 const share = async () => {
     await navigator.share({ text: offer.value })
@@ -39,7 +45,7 @@ const err_cam = ref(false);
 const connecting = ref(false)
 const apply = async () => {
     connecting.value = true
-    const res = await ProjectManager.join_host(JSON.parse(answer.value))
+    const res = await ProjectManager.apply_answer(JSON.parse(answer.value))
     console.log(res);
 }
 </script>

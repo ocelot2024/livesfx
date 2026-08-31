@@ -16,7 +16,7 @@ const offer = ref('')
 const answer = ref('')
 const src = ref();
 const share = async () => {
-    await navigator.share({ text: offer.value })
+    await navigator.share({ text: answer.value })
 }
 
 const detect = (value: string[]) => {
@@ -31,9 +31,21 @@ const show_reader = ref(false)
 const err_cam = ref(false);
 const connecting = ref(false)
 const join_host = async () => {
-    connecting.value = true
-    const res = await ProjectManager.join_host(JSON.parse(offer.value));
-    console.log(res)
+    try {
+        connecting.value = true
+        const res = await ProjectManager.join_host(JSON.parse(offer.value));
+        if (res.ok) {
+            answer.value = JSON.stringify(res.value);
+            connecting.value = false;
+            page.value++;
+            src.value = await QRCode.toDataURL(answer.value);
+        } else {
+            alert('接続に失敗しました');
+            connecting.value = false
+        }
+    } catch {
+        alert('接続情報が不正です。')
+    }
 }
 </script>
 <template>
@@ -55,6 +67,28 @@ const join_host = async () => {
             </SettingsSection>
             <button style="margin: 0 16px; display: block;" :disabled="offer.length == 0 || connecting"
                 @click="join_host">次へ</button>
+        </div>
+        <div v-if="page == 1">
+            <SettingsSection title="接続の承認">
+                <div class="flex"
+                    style="justify-content: center; align-items: center; gap:7px; padding: 12px; text-align: center; flex-direction: column;">
+                    <h2>ホストでQRコードを読み取る</h2>
+                    <img alt="QRコード" class="qr-area" v-if="offer && offer.length < 4201" :src="src">
+                    <div class="qr-area flex qr-dummy" v-else-if="offer">
+                        <small>QRコードの作成に失敗しました</small>
+                    </div>
+                    <div class="qr-area flex qr-dummy" v-else>
+                        <Spinner />
+                        <small>読み込み中</small>
+                    </div>
+                    <p>または手動で共有</p>
+                    <textarea readonly v-model="answer" :disabled="!answer" name="answer">
+                </textarea>
+                    <button v-if="offer && SupportedShareAPI" @click="share()">共有</button>
+                    <p>接続するデバイスで読み込みが成功したら次へをクリックしてください。</p>
+                </div>
+                <SettingsRow chevron label="次へ" @click="page++" />
+            </SettingsSection>
         </div>
     </Settinglist>
     <Modal :show="show_reader" @close="show_reader = false">
