@@ -91,9 +91,7 @@ const join_host = async () => {
                     <textarea readonly v-model="answer" :disabled="!answer" name="answer">
                 </textarea>
                     <button v-if="offer && SupportedShareAPI" @click="share()">共有</button>
-                    <p>接続するデバイスで読み込みが成功したら次へをクリックしてください。</p>
                 </div>
-                <SettingsRow chevron label="次へ" @click="page++" />
             </SettingsSection>
         </div>
     </Settinglist>
