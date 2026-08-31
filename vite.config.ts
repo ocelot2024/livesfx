@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from "node:url";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 
 import { defineConfig, type Plugin } from "vite";
 import vue from "@vitejs/plugin-vue";
@@ -67,55 +67,65 @@ function versionInfoPlugin(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-    define: {
-        __APP_VERSION__: JSON.stringify(pkg.version),
-    },
-    plugins: [
-        vue(),
-        vueDevTools(),
-        versionInfoPlugin(),
-        VitePWA({
-            devOptions: { enabled: false },
-            registerType: "prompt",
-            manifest: {
-                name: "LiveSFX",
-                short_name: "LIVE",
-                theme_color: "#1c1c1e",
-                background_color: "#1c1c1e",
-                start_url: "/",
-                display: "standalone",
-                icons: [
-                    {
-                        sizes: "192x192",
-                        src: "pwa-192x192.png",
-                        type: "image/png",
-                    },
-                    {
-                        sizes: "512x512",
-                        src: "pwa-512x512.png",
-                        type: "image/png",
-                    },
-                    {
-                        sizes: "512x512",
-                        src: "maskable-icon-512x512.png",
-                        type: "image/png",
-                        purpose: "maskable",
-                    },
-                ],
+export default defineConfig(({ command }) => {
+    const isDev = command === "serve";
+
+    return {
+        define: {
+            __APP_VERSION__: JSON.stringify(pkg.version),
+        },
+
+        plugins: [
+            vue(),
+            vueDevTools(),
+            versionInfoPlugin(),
+            VitePWA({
+                devOptions: { enabled: false },
+                registerType: "prompt",
+                manifest: {
+                    name: "LiveSFX",
+                    short_name: "LIVE",
+                    theme_color: "#1c1c1e",
+                    background_color: "#1c1c1e",
+                    start_url: "/",
+                    display: "standalone",
+                    icons: [
+                        {
+                            sizes: "192x192",
+                            src: "pwa-192x192.png",
+                            type: "image/png",
+                        },
+                        {
+                            sizes: "512x512",
+                            src: "pwa-512x512.png",
+                            type: "image/png",
+                        },
+                        {
+                            sizes: "512x512",
+                            src: "maskable-icon-512x512.png",
+                            type: "image/png",
+                            purpose: "maskable",
+                        },
+                    ],
+                },
+            }),
+        ],
+
+        server:
+            isDev && existsSync("./cert/localhost.pem")
+                ? {
+                      host: true,
+                      https: {
+                          key: readFileSync("./cert/localhost-key.pem"),
+                          cert: readFileSync("./cert/localhost.pem"),
+                      },
+                  }
+                : undefined,
+
+        resolve: {
+            alias: {
+                "@": fileURLToPath(new URL("./src", import.meta.url)),
             },
-        }),
-    ],
-    server: {
-        host: true,
-        https: {
-            key: readFileSync("./cert/localhost-key.pem"),
-            cert: readFileSync("./cert/localhost.pem"),
         },
-    },
-    resolve: {
-        alias: {
-            "@": fileURLToPath(new URL("./src", import.meta.url)),
-        },
-    },
+    };
 });

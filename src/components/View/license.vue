@@ -1,5 +1,5 @@
 <template>
-    <div style="padding: 8px; width: 500px; height: 500px; overflow-y: auto;">
+    <div style="padding: 8px; ">
         <section>
             <h2>Vue</h2>
             <pre>
