@@ -79,7 +79,12 @@ const err_cam = ref(false);
     </Settinglist>
     <Modal :show="show_reader">
         <h2>接続するデバイスに表示されたQRコードを読み込んでください</h2>
-        <QrcodeStream v-if="show_reader" @error="err()" @detect="(deetected: DetectedBarcode[]) => detect(deetected)">
+        <QrcodeStream v-if="show_reader" @error="err()" @detect="(deetected: DetectedBarcode[]) => detect(deetected)"
+            :constraints="{
+                facingMode: 'environment',
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            }" :track="() => { }">
         </QrcodeStream>
     </Modal>
 </template>
