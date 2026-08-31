@@ -4,8 +4,10 @@ import Settinglist from '@/components/settinglist.vue';
 import SettingsRow from '@/components/settingsRow.vue';
 import SettingsSection from '@/components/settingsSection.vue';
 import CreateHostView from '../createHostView.vue';
+import { ref } from 'vue';
+import ConnectToHostView from '../connectToHostView.vue';
 
-
+const mode = ref<'host' | 'visitor' | undefined>()
 </script>
 <template>
 
@@ -17,11 +19,12 @@ import CreateHostView from '../createHostView.vue';
             </div>
         </SettingsSection>
         <SettingsSection title="SideCar">
-            <SettingsRow label="ホストの作成" chevron />
-            <SettingsRow label="ホストに接続" chevron />
+            <SettingsRow label="ホストの作成" chevron @click="mode = 'host'" />
+            <SettingsRow label="ホストに接続" chevron @click="mode = 'visitor'" />
         </SettingsSection>
     </Settinglist>
-    <Modal show>
-        <CreateHostView />
+    <Modal :show="!!mode" @close="mode = undefined">
+        <CreateHostView v-if="mode == 'host'" />
+        <ConnectToHostView v-if="mode == 'visitor'" />
     </Modal>
 </template>

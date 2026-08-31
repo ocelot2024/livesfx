@@ -6,8 +6,6 @@ import vue from "@vitejs/plugin-vue";
 import vueDevTools from "vite-plugin-vue-devtools";
 import { VitePWA } from "vite-plugin-pwa";
 
-import fs from "fs";
-
 interface ChangelogEntry {
     version: string;
     date: string;
@@ -111,8 +109,8 @@ export default defineConfig({
     server: {
         host: true,
         https: {
-            key: fs.readFileSync("./cert/localhost-key.pem"),
-            cert: fs.readFileSync("./cert/localhost.pem"),
+            key: readFileSync("./cert/localhost-key.pem"),
+            cert: readFileSync("./cert/localhost.pem"),
         },
     },
     resolve: {

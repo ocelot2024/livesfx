@@ -15,19 +15,12 @@ const page = ref(0)
 const offer = ref('')
 const answer = ref('')
 const src = ref();
-onMounted(async () => {
-    offer.value = JSON.stringify(await ProjectManager.create_host())
-    if (offer.value.length > 4200) {
-        return
-    }
-    src.value = await QRCode.toDataURL(offer.value);
-})
 const share = async () => {
     await navigator.share({ text: offer.value })
 }
 
 const detect = (value: string[]) => {
-    answer.value = value[0] ?? '';
+    offer.value = value[0] ?? '';
     show_reader.value = false;
 }
 const err = () => {
@@ -37,39 +30,19 @@ const err = () => {
 const show_reader = ref(false)
 const err_cam = ref(false);
 const connecting = ref(false)
-const apply = async () => {
+const join_host = async () => {
     connecting.value = true
-    const res = await ProjectManager.join_host(JSON.parse(answer.value))
-    console.log(res);
+    const res = await ProjectManager.join_host(JSON.parse(offer.value));
+    console.log(res)
 }
 </script>
 <template>
     <Settinglist>
-        <SettingsSection title="接続情報" v-if="page == 0">
-            <div class="flex"
-                style="justify-content: center; align-items: center; gap:7px; padding: 12px; text-align: center; flex-direction: column;">
-                <h2>接続するデバイスでQRコードを読み取る</h2>
-                <img alt="QRコード" class="qr-area" v-if="offer && offer.length < 4201" :src="src">
-                <div class="qr-area flex qr-dummy" v-else-if="offer">
-                    <small>QRコードの作成に失敗しました</small>
-                </div>
-                <div class="qr-area flex qr-dummy" v-else>
-                    <Spinner />
-                    <small>読み込み中</small>
-                </div>
-                <p>または手動で共有</p>
-                <textarea readonly v-model="offer" :disabled="!offer" name="offer">
-                </textarea>
-                <button v-if="offer && SupportedShareAPI" @click="share()">共有</button>
-                <p>接続するデバイスで読み込みが成功したら次へをクリックしてください。</p>
-            </div>
-            <SettingsRow chevron label="次へ" @click="page++" />
-        </SettingsSection>
-        <div v-if="page == 1" style="display: flex; flex-direction: column;">
+        <div v-if="page == 0" style="display: flex; flex-direction: column;">
             <SettingsSection title="説明">
                 <div class="flex"
                     style="justify-content: center; align-items: center; gap:7px; padding: 12px; text-align: center; flex-direction: column;">
-                    最後に接続するデバイスに表示されている文字を入力するかQRコードを読み取ってください、
+                    ホストのQRコードを読み取るか情報を入力してください。
                 </div>
             </SettingsSection>
             <SettingsSection title="説明">
@@ -77,11 +50,11 @@ const apply = async () => {
                     @click="show_reader = true" />
                 <div style="padding: 7px 16px; gap: 12px; display: flex; flex-direction: column;">
                     <div>情報を入力</div>
-                    <textarea v-model="answer" name="answer"></textarea>
+                    <textarea v-model="offer" name="offer"></textarea>
                 </div>
             </SettingsSection>
-            <button style="margin: 0 16px; display: block;" :disabled="answer.length == 0 || connecting"
-                @click="apply">接続を確認</button>
+            <button style="margin: 0 16px; display: block;" :disabled="offer.length == 0 || connecting"
+                @click="join_host">次へ</button>
         </div>
     </Settinglist>
     <Modal :show="show_reader" @close="show_reader = false">
