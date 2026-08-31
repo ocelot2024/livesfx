@@ -40,7 +40,10 @@ export class SideCar extends EventTarget {
         this.peer.ondatachannel = (e) => this.attachChannel(e.channel);
     }
     get connected() {
-        return this.channel?.readyState === "open";
+        return (
+            this.peer.connectionState === "connected" &&
+            this.channel?.readyState === "open"
+        );
     }
     private attachChannel(channel: RTCDataChannel) {
         this.channel = channel;
@@ -141,5 +144,6 @@ export class SideCar extends EventTarget {
         this.peer.close();
         this.createPeer();
         this.channel = undefined;
+        this.dispatchEvent(new Event(SideCarEvent.Disconnect));
     }
 }
