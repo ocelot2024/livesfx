@@ -9,6 +9,7 @@ import { SupportedShareAPI } from '@/core/util/compatibility.ts';
 import SettingsRow from '../settingsRow.vue';
 import Modal from '../Modal.vue';
 import { QrcodeStream, type DetectedBarcode } from 'vue-qrcode-reader';
+import QRreader from '../QRreader.vue';
 
 const page = ref(0)
 
@@ -26,8 +27,8 @@ const share = async () => {
     await navigator.share({ text: offer.value })
 }
 
-const detect = (value: DetectedBarcode[]) => {
-    answer.value = value[0]?.rawValue ?? '';
+const detect = (value: string[]) => {
+    answer.value = value[0] ?? '';
     show_reader.value = false;
 }
 const err = () => {
@@ -77,15 +78,9 @@ const err_cam = ref(false);
             <button style="margin: 0 16px; display: block;" :disabled="answer.length == 0">接続する</button>
         </div>
     </Settinglist>
-    <Modal :show="show_reader">
+    <Modal :show="show_reader" @close="show_reader = false">
         <h2>接続するデバイスに表示されたQRコードを読み込んでください</h2>
-        <QrcodeStream v-if="show_reader" @error="err()" @detect="(deetected: DetectedBarcode[]) => detect(deetected)"
-            :constraints="{
-                facingMode: 'environment',
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
-            }" :track="() => { }">
-        </QrcodeStream>
+        <QRreader @detect="detect" @error="err()" />
     </Modal>
 </template>
 <style scoped>
