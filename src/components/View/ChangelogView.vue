@@ -14,11 +14,6 @@ import { changelog } from '@/core/changelog.ts';
 <style scoped>
 .changelog {
     padding: 8px 16px;
-    width: 400px;
-    max-width: 80vw;
-    height: 500px;
-    max-height: 70vh;
-    overflow-y: auto;
 }
 
 h2 {
