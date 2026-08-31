@@ -28,5 +28,7 @@ export const useConfigStore = defineStore("config", {
         collecting_error_info_consent: false,
 
         ducking_amount: -2,
+
+        showUnfinishedFeatures: false,
     }),
 });

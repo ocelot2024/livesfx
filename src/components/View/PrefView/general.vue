@@ -69,6 +69,9 @@ function resetSettings() {
                 <SettingsRow label="最後に開いていたタブの記憶">
                     <Toggle v-model="store.memoryLastTab" />
                 </SettingsRow>
+                <SettingsRow label="開発中の機能を表示" danger>
+                    <Toggle v-model="store.showUnfinishedFeatures" />
+                </SettingsRow>
             </SettingsSection>
             <SettingsSection title="情報">
                 <div style="text-align:  center; padding: 8px;">
