@@ -1,5 +1,6 @@
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
-
+import type { SoundMeta } from "../audioEngine/sounds";
+import type { BGMPlayerInfo } from "../store/enginestore";
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve) => {
         if (pc.iceGatheringState === "complete") {
@@ -15,6 +16,13 @@ const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
         pc.addEventListener("icegatheringstatechange", listener);
     });
 };
+
+export const SideCarError = {
+    NotConnected: "noteconnected",
+    ImHostNotVisitor: "imhost",
+} as const;
+
+export type SideCarError = (typeof SideCarError)[keyof typeof SideCarError];
 export const SideCarEvent = {
     Connect: "connect",
     Disconnect: "disconnect",
@@ -22,11 +30,57 @@ export const SideCarEvent = {
 } as const;
 
 export type SideCarEvent = (typeof SideCarEvent)[keyof typeof SideCarEvent];
+export const SideCarCommand = {
+    Play: "play",
+    Stop: "stop",
+    StopAllSfx: "stop_all_sfx",
+    Ducking: "ducking",
+    PlayBgm: "play_bgm",
+    PauseBgm: "pause_bgm",
+    StopBgm: "stop_bgm",
+    SeekBgm: "seek_bgm",
+    LoadBgmToDeck: "load_bgm_to_deck",
+} as const;
+export type SideCarCommand =
+    (typeof SideCarCommand)[keyof typeof SideCarCommand];
 
-export interface SideCarMessage {
-    type: "";
-    detail: unknown;
+export type SideCarCommandPayload =
+    | {
+          cmd: typeof SideCarCommand.Play;
+          id: string;
+          options?: { start?: number; end?: number };
+      }
+    | { cmd: typeof SideCarCommand.Stop; source_id: string }
+    | { cmd: typeof SideCarCommand.StopAllSfx }
+    | { cmd: typeof SideCarCommand.Ducking }
+    | { cmd: typeof SideCarCommand.PlayBgm; deck: "deckA" | "deckB" }
+    | { cmd: typeof SideCarCommand.PauseBgm; deck: "deckA" | "deckB" }
+    | { cmd: typeof SideCarCommand.StopBgm; deck: "deckA" | "deckB" }
+    | {
+          cmd: typeof SideCarCommand.SeekBgm;
+          deck: "deckA" | "deckB";
+          time: number;
+      }
+    | {
+          cmd: typeof SideCarCommand.LoadBgmToDeck;
+          deck: "deckA" | "deckB";
+          bgmId: string;
+      };
+
+export interface SideCarStateSnapshot {
+    sfx_library: SoundMeta[];
+    bgm_library: SoundMeta[];
+    playing_sfx: string[];
+    deck: [BGMPlayerInfo, BGMPlayerInfo];
+    ducking: boolean;
+    groupNames: string[];
 }
+
+export type SideCarMessage =
+    | { kind: "snapshot"; state: SideCarStateSnapshot }
+    | { kind: "event"; event: EngineEvent; detail: unknown }
+    | { kind: "command"; payload: SideCarCommandPayload };
+
 export class SideCar extends EventTarget {
     peer!: RTCPeerConnection;
     channel?: RTCDataChannel;
@@ -134,10 +188,13 @@ export class SideCar extends EventTarget {
         });
     }
 
-    send(event_name: EngineEvent, option: unknown) {
-        this.channel?.send(
-            JSON.stringify({ type: event_name, detail: option }),
-        );
+    send(message: SideCarMessage): Result<void, SideCarError> {
+        try {
+            this.channel?.send(JSON.stringify(message));
+            return Ok();
+        } catch {
+            return Err(SideCarError.NotConnected);
+        }
     }
     reset() {
         this.channel?.close();
@@ -145,5 +202,20 @@ export class SideCar extends EventTarget {
         this.createPeer();
         this.channel = undefined;
         this.dispatchEvent(new Event(SideCarEvent.Disconnect));
+    }
+
+    send_command(
+        command_and_payload: SideCarCommandPayload,
+    ): Result<void, SideCarError> {
+        if (!this.connected) return Err(SideCarError.NotConnected);
+        if (this.mode === "visitor") {
+            const request: SideCarMessage = {
+                kind: "command",
+                payload: command_and_payload,
+            };
+            this.send(request);
+            return Ok();
+        }
+        return Err(SideCarError.ImHostNotVisitor);
     }
 }
