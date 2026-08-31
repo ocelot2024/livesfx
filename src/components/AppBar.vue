@@ -86,10 +86,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .app-bar {
+    position: sticky;
+    top: 0;
     z-index: 9;
-    position: relative;
     background-color: var(--blur);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(18px);
     border-bottom: 1px solid var(--gray-5);
     user-select: none;
 }

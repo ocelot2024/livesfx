@@ -74,7 +74,8 @@ function resetSettings() {
                 <div style="text-align:  center; padding: 8px;">
                     <img src="@/img/logo.png">
                     <h2>LiveSFX</h2>
-                    <small>v{{ appVersion }}</small>
+                    <small>v{{ appVersion }}</small><br>
+                    <small>This project is licensed under the ISC License</small>
                 </div>
                 <SettingsRow v-if="updateStore.hasPendingUpdate" :label="`アップデート (v${updateStore.newVersion?.version})`"
                     chevron @click="updateStore.showUpdateModal = true" />

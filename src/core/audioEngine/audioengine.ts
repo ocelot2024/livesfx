@@ -375,25 +375,31 @@ export class AudioEngine extends EventTarget {
         };
         if (options) {
             const bufferDuration = node.buffer?.duration ?? 0;
+            //option.startとoption.endはmetaより優先する
+            //プレビューとかでしか使わないから。
             const start = Math.min(
-                Math.max(0, options.start ?? 0),
+                Math.max(0, options.start ?? meta.start_from ?? 0),
                 bufferDuration,
             );
             const end = Math.min(
-                Math.max(start, options.end ?? bufferDuration),
+                Math.max(start, options.end ?? meta.end_at ?? bufferDuration),
                 bufferDuration,
             );
             node.start(0, start, Math.max(0, end - start));
-        } else if (meta.start_from != null && meta.end_at != null) {
+            return Ok({ played: true, soundID: id, sourceID: source_id });
+        }
+        if (meta.start_from != null && meta.end_at != null) {
+            console.log(meta);
             node.start(
                 0,
                 meta.start_from,
                 Math.max(0, meta.end_at - meta.start_from),
             );
+            return Ok({ played: true, soundID: id, sourceID: source_id });
         } else {
             node.start();
+            return Ok({ played: true, soundID: id, sourceID: source_id });
         }
-        return Ok({ played: true, soundID: id, sourceID: source_id });
     }
     stop(source_id: string): Result<string, AudioEngineError> {
         if (!(source_id in this.playing))

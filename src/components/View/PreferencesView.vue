@@ -16,7 +16,7 @@ const selectedView = ref("general")
 
 </script>
 <template>
-    <div style="min-width: 800px; height: 600px; max-width: 100vw; overflow-y: auto; overflow-x: hidden;">
+    <div>
         <Tab :tabs="tabItem" v-model="selectedView" />
         <General v-show="selectedView == 'general'" />
         <Sounds v-show="selectedView == 'sound'" />
