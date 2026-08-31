@@ -108,10 +108,12 @@ onMounted(() => {
     <main>
         <AppBar v-bind:items="menu" />
         <Tab :tabs="tabitems" v-model="selectedView" />
-        <PadView v-show="selectedView === 'pad'" />
-        <BGMView v-show="selectedView === 'bgm'" />
-        <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
-        <MixerView v-if="selectedView === 'mixer'" />
+        <div class="view">
+            <PadView v-show="selectedView === 'pad'" />
+            <BGMView v-show="selectedView === 'bgm'" />
+            <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
+            <MixerView v-if="selectedView === 'mixer'" />
+        </div>
         <footer>
             <Footer />
         </footer>
@@ -134,6 +136,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
+main {
+    width: 100vw;
+    height: 100svh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
 .full {
     position: fixed;
     inset: 0;
@@ -170,5 +180,13 @@ footer {
     left: 0;
     right: 0;
     background-color: var(--gray-6);
+    background-color: var(--blur);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.view {
+    overflow-y: auto;
+    flex: 1;
 }
 </style>
