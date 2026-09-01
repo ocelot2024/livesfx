@@ -8,7 +8,7 @@ import Settinglist from '../settinglist.vue';
 import SettingsRow from '../settingsRow.vue';
 
 const props = defineProps<{ soundId: string }>();
-
+const store = useEngineState()
 const filename = ref();
 
 const waveformEl = ref<HTMLDivElement | null>(null);
@@ -165,6 +165,7 @@ const toggle_play = async () => {
         end: trimEnd.value,
     });
     if (!result.ok) return;
+    if(store.sidecae_mode=='host'){
     if (!result.value.played) return;
     activeSourceId.value = result.value.sourceID;
     isPlaying.value = true;
@@ -175,6 +176,7 @@ const toggle_play = async () => {
         isPlaying.value = false;
         playResetTimer = null;
     }, playMs);
+    }
 };
 
 let resizeObserver: ResizeObserver | null = null;
