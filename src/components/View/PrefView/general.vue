@@ -33,7 +33,7 @@ function resetSettings() {
 <template>
     <div>
         <Settinglist>
-            <SettingsSection title="動作">
+            <SettingsSection title="動作" footer="iPhoneやiPad等一部の環境では再読み込み時に警告を出すことができません。">
                 <SettingsRow label="編集モード繊維の確認">
                     <Toggle v-model="store.enterEditModeConfirm" />
                 </SettingsRow>
