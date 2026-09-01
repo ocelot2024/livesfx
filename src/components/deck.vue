@@ -88,7 +88,9 @@ const show_editor = (id: string) => {
                     <div v-if="store.bgm_library.length == 0"
                         style="background-color: var(--gray-5); width: 100%; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;">
                         <p>曲がまだありません。</p>
-                        <button @click="ProjectManager.add_bgm()">曲を追加する</button>
+                        <button @click="ProjectManager.add_bgm()"
+                            v-if="store.sidecar_mode !== 'visitor'">曲を追加する</button>
+                        <p v-else>ホストから曲を追加してください。</p>
                     </div>
                     <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id"
                         :chevron="store.ui_mode == 'edit'" @click="show_editor(value.id)">

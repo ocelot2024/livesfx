@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppBar, { type MenuList } from './components/AppBar.vue';
+import AppBar, { type MenuItem, type MenuList } from './components/AppBar.vue';
 import { ProjectManager, } from './core/index.ts';
 import { useEngineState } from './core/store/enginestore.ts';
 import NotifCentre from "./components/View/NotifCentre.vue";
@@ -7,7 +7,7 @@ import Spinner from "./components/Spinner.vue";
 import { EngineProcState } from "./core/store/enginestore_type.ts";
 import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
-import { defineAsyncComponent, onMounted, ref, useTemplateRef } from 'vue';
+import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef } from 'vue';
 import Modal from './components/Modal.vue';
 import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
@@ -40,34 +40,50 @@ const Footer = defineAsyncComponent({
 const engine_store = useEngineState();
 const ui_store = useUiState();
 const config_store = useConfigStore();
-const menu: MenuList[] = [
-    {
+const menu = computed((): MenuList[] => {
+    const from_new = {
+        label: "新規", id: "new", handle: () => {
+            ProjectManager.start_with_blank();
+        }
+    }
+    const from_file =
+        { label: "開く", id: "open", handle: () => { ProjectManager.start_from_file(); } }
+    const saveas = { label: "名前を付けて保存", id: "save", handle: () => { ProjectManager.export(); } }
+    const pref = {
+        label: "環境設定", id: "pref", handle: () => {
+            showPrefView.value = true;
+        }
+    }
+    const disconnect = {
+        label: 'SideCarを終了する',
+        id: 'disconnect',
+        handle: () => {
+            const will = confirm('本当に切断しますか？');
+            if (!will) return;
+            ProjectManager.disconnect()
+        }
+    }
+    const file = {
         label: "ファイル",
-        id: "file",
+        id: 'file',
         children: [
-            {
-                label: "新規", id: "new", handle: () => {
-                    ProjectManager.start_with_blank();
-                }
-            },
-            { label: "名前を付けて保存", id: "save", handle: () => { ProjectManager.export(); } },
-            { label: "開く", id: "open", handle: () => { ProjectManager.start_from_file(); } },
-            {
-                label: "環境設定", id: "pref", handle: () => {
-                    showPrefView.value = true;
-                }
-            }
+            ...(engine_store.sidecar_mode !== 'visitor' ? [from_new, from_file, saveas, pref] : [disconnect])
+
         ]
-    },
-    {
+    }
+    const sound = {
         label: "サウンド",
-        id: "edit",
+        id: "sound",
         children: [
             { "label": "効果音の追加", id: "add", handle: () => { ProjectManager.add_sfx(); } },
             { "label": "BGMの追加", id: "add_bgm", handle: () => { ProjectManager.add_bgm(); } }
         ]
     }
-]
+
+    let menu = [file]
+    if (engine_store.sidecar_mode !== 'visitor') menu.push(sound)
+    return menu
+})
 
 const message: Record<EngineProcState, string> = {
     "idle": "",
