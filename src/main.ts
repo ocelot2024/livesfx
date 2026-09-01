@@ -12,13 +12,6 @@ import { onPanic, showFatalOverlay } from "./core/util/util.ts";
 let pinia: Pinia | null = null;
 let pendingRegistration: ServiceWorkerRegistration | undefined;
 
-window.addEventListener("error", (e) => {
-    onPanic(e.error ?? e.message);
-});
-window.addEventListener("unhandledrejection", (e) => {
-    onPanic(e.reason);
-});
-
 //https://github.com/Sec-ant/barcode-detector/issues/18
 setZXingModuleOverrides({
     locateFile: (path, prefix) => {
