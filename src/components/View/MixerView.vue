@@ -6,7 +6,9 @@ import ChannelComponent from '../Channel.vue';
 
 const engine = ProjectManager;
 
-const groups = computed(() => engine.get_group_names())
+const groups = computed(() => {
+    return engine.get_group_names()
+})
 
 const set_gain = (e: number, id?: string) => {
     if (!id) return;
@@ -22,26 +24,28 @@ const get_gain = (id?: string) => {
 
 <template>
     <div class="mixer flex">
-        <div v-for="groupName in groups" :key="groupName">
+        <div v-for="groupName in groups.filter(v => v !== 'BGM')" :key="groupName">
             <div class="groupName" style="margin-top: 24px;">
                 <p>{{ groupName }}</p>
             </div>
             <div class="groupContainer flex" :key="groupName">
-                <ChannelComponent channel-name="グループ" :id="groupName" class="groupFader"
-                    @update:volume="(e: number) => set_gain(e, groupName)" :initial_gain="get_gain(groupName)" />
-                <div class="divider"></div>
+
                 <ChannelComponent v-for="value in engine.get_group_children(groupName)" :channel-name="value.name"
                     :id="value.id ?? ''" @update:volume="(e: number) => set_gain(e, value.id)"
                     :initial_gain="get_gain(value.id)" />
             </div>
         </div>
         <div class="groupName">
-            <p>MASTER</p>
+            <p>グループボリューム</p>
         </div>
-        <div class="groupContainer">
+        <div class="groupContainer flex">
             <ChannelComponent channel-name="MAIN" :id="MIXER_MASTER_CHANNEL_ID"
                 @update:volume="(e: number) => set_gain(e, MIXER_MASTER_CHANNEL_ID)"
                 :initial_gain="get_gain(MIXER_MASTER_CHANNEL_ID)" />
+            <div class="divider"></div>
+            <ChannelComponent v-for="groupName in groups" :channel-name="`${groupName}`" :id="groupName"
+                class="groupFader" @update:volume="(e: number) => set_gain(e, groupName)"
+                :initial_gain="get_gain(groupName)" />
         </div>
     </div>
 </template>
@@ -57,7 +61,6 @@ const get_gain = (id?: string) => {
 .groupContainer {
     background-color: var(--gray-5);
     border-radius: 12px;
-    border: var(--gray-3) 1px solid;
     position: relative;
     flex: 1;
     overflow-x: auto;
