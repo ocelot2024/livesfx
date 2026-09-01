@@ -35,17 +35,19 @@ const get_gain = (id?: string) => {
                     :initial_gain="get_gain(value.id)" />
             </div>
         </div>
-        <div class="groupName">
-            <p>グループボリューム</p>
-        </div>
-        <div class="groupContainer flex">
-            <ChannelComponent channel-name="MAIN" :id="MIXER_MASTER_CHANNEL_ID"
-                @update:volume="(e: number) => set_gain(e, MIXER_MASTER_CHANNEL_ID)"
-                :initial_gain="get_gain(MIXER_MASTER_CHANNEL_ID)" />
-            <div class="divider"></div>
-            <ChannelComponent v-for="groupName in groups" :channel-name="`${groupName}`" :id="groupName"
-                class="groupFader" @update:volume="(e: number) => set_gain(e, groupName)"
-                :initial_gain="get_gain(groupName)" />
+        <div>
+            <div class="groupName">
+                <p>グループボリューム</p>
+            </div>
+            <div class="groupContainer flex">
+                <ChannelComponent channel-name="MAIN" :id="MIXER_MASTER_CHANNEL_ID"
+                    @update:volume="(e: number) => set_gain(e, MIXER_MASTER_CHANNEL_ID)"
+                    :initial_gain="get_gain(MIXER_MASTER_CHANNEL_ID)" />
+                <div class="divider"></div>
+                <ChannelComponent v-for="groupName in groups" :channel-name="`${groupName}`" :id="groupName"
+                    class="groupFader" @update:volume="(e: number) => set_gain(e, groupName)"
+                    :initial_gain="get_gain(groupName)" />
+            </div>
         </div>
     </div>
 </template>
