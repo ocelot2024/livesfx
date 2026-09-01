@@ -42,9 +42,13 @@ export class ProjectManager extends InternalProjectManager {
             this.error(EngineException.Panic);
         });
 
-        for (const event in EngineEvent) {
-            this.commands.addEventListener(event, () =>
-                this.dispatchEvent(new Event(event)),
+        for (const event of Object.values(EngineEvent)) {
+            this.commands.addEventListener(event, (e) =>
+                this.dispatchEvent(
+                    new CustomEvent(event, {
+                        detail: (e as CustomEvent).detail,
+                    }),
+                ),
             );
         }
 
@@ -69,7 +73,7 @@ export class ProjectManager extends InternalProjectManager {
         await this.engine.dispose();
         this.engine = new AudioEngine();
         this.commands.replace_engine(this.engine);
-        await this.init();
+        await this.init(undefined, true);
     }
 
     async start_from_file(): Promise<Result<void, string>> {
@@ -271,8 +275,7 @@ export class ProjectManager extends InternalProjectManager {
         const bgm_filesMap = await this.engine.get_all_bgm_arraybuffer();
         const fileMap = { ...sfx_filesMap, ...bgm_filesMap };
 
-        const missing = false;
-        lvsffile.addFile(fileMap, library);
+        const missing = lvsffile.addFile(fileMap, library);
         if (missing) this.warn(EngineError.MissingCachedAudioForExport);
 
         const blob = lvsffile.export();
