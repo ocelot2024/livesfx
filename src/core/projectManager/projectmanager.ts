@@ -51,12 +51,13 @@ export class ProjectManager extends InternalProjectManager {
         this.hostrelay = new SideCarHostRelay(this.commands, this.sidecar);
         this.visitorrelay = new SideCarVisitorRelay(
             this.sidecar,
-            (event, detail) =>
+            (event, detail) => {
                 this.dispatchEvent(
                     detail
                         ? new CustomEvent(event, { detail })
                         : new Event(event),
-                ),
+                );
+            },
         );
 
         for (const event of Object.values(EngineEvent)) {
@@ -67,9 +68,11 @@ export class ProjectManager extends InternalProjectManager {
                     }),
                 ),
             );
-            this.addEventListener(event, () => {
-                let detail;
+            this.addEventListener(event, (e: CustomEventInit<unknown>) => {
+                console.log(`[eventname] ${event}`);
+                console.table(e.detail);
                 if (this.sidecar.mode == "host") {
+                    let detail: any = e.detail;
                     if (event == EngineEvent.ChangedLibrary) {
                         const {
                             sfx_library,
@@ -119,6 +122,7 @@ export class ProjectManager extends InternalProjectManager {
         this.sidecar.addEventListener(
             SideCarEvent.Message,
             (e: CustomEventInit<SideCarMessage>) => {
+                if (this.sidecar.mode !== "host") return;
                 const data = e.detail;
                 if (!data) return;
                 switch (data.kind) {
@@ -127,11 +131,6 @@ export class ProjectManager extends InternalProjectManager {
                         break;
                     case "requestsnapshot":
                         this.hostrelay.sendSnapShot();
-                        break;
-                    case "snapshot":
-                        const store = useEngineState();
-                        const snapshot = data.state;
-                        store.$patch(snapshot);
                         break;
                 }
             },

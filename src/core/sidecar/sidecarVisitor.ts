@@ -22,6 +22,7 @@ export class SideCarVisitorRelay {
 
         this.sidecar.addEventListener(SideCarEvent.Message, (e) => {
             const msg = (e as CustomEvent<SideCarMessage>).detail;
+            console.table(msg);
             if (msg.kind === "snapshot") {
                 const store = useEngineState();
                 store.$patch(msg.state);
