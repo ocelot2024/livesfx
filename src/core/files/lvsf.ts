@@ -26,7 +26,7 @@ export class LVSFFile {
     addFile(
         files: Record<string, ArrayBuffer>,
         metas: Record<string, SoundMeta>,
-    ) {
+    ): boolean {
         let missing = false;
         for (const id in metas) {
             const meta = metas[id];
@@ -38,6 +38,7 @@ export class LVSFFile {
             this.soundMap[id] = meta;
             this.files.set(id, file);
         }
+        return missing;
     }
     export() {
         let offset = 0;
