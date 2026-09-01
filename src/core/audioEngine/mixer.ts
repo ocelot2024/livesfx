@@ -30,9 +30,6 @@ export class Channel {
 
 export class AudioMixer {
     private ctx: AudioContext;
-    // Single flat registry for MASTER, groups, and leaf channels. Group
-    // membership is expressed only through `belongs_to`, so there is no
-    // separate nested structure to keep in sync.
     private entries: Record<string, MixerEntry>;
 
     constructor(ctx: AudioContext) {
