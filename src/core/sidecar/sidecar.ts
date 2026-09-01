@@ -40,6 +40,7 @@ export const SideCarCommand = {
     StopBgm: "stop_bgm",
     SeekBgm: "seek_bgm",
     LoadBgmToDeck: "load_bgm_to_deck",
+    UnloadBGM: "eject_bgm",
 } as const;
 export type SideCarCommand =
     (typeof SideCarCommand)[keyof typeof SideCarCommand];
@@ -65,6 +66,10 @@ export type SideCarCommandPayload =
           cmd: typeof SideCarCommand.LoadBgmToDeck;
           deck: "deckA" | "deckB";
           bgmId: string;
+      }
+    | {
+          cmd: typeof SideCarCommand.UnloadBGM;
+          deck: "deckA" | "deckB";
       };
 
 export interface SideCarStateSnapshot {
@@ -79,6 +84,7 @@ export interface SideCarStateSnapshot {
 export type SideCarMessage =
     | { kind: "snapshot"; state: SideCarStateSnapshot }
     | { kind: "event"; event: EngineEvent; detail: unknown }
+    | { kind: "msg"; value: string }
     | { kind: "command"; payload: SideCarCommandPayload };
 
 export class SideCar extends EventTarget {

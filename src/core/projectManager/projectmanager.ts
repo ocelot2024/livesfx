@@ -24,11 +24,18 @@ import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 import { applyGuard } from "../util/util";
 import { UiCommandsManager } from "../commands/uiCommands";
-import { SideCar, SideCarEvent } from "../sidecar/sidecar";
+import {
+    SideCar,
+    SideCarCommand,
+    SideCarEvent,
+    type SideCarMessage,
+} from "../sidecar/sidecar";
+import { SideCarCommandExecutor } from "../sidecar/sidecarHost";
 
 export class ProjectManager extends InternalProjectManager {
     commands: UiCommandsManager;
     sidecar: SideCar;
+    sidecarcommandexec: SideCarCommandExecutor;
     constructor() {
         super();
         applyGuard(this);
@@ -38,9 +45,7 @@ export class ProjectManager extends InternalProjectManager {
             (e) => this.error(e),
         );
         this.sidecar = new SideCar();
-        window.addEventListener("panic", () => {
-            this.error(EngineException.Panic);
-        });
+        this.sidecarcommandexec = new SideCarCommandExecutor(this.commands);
 
         for (const event of Object.values(EngineEvent)) {
             this.commands.addEventListener(event, (e) =>
@@ -51,13 +56,26 @@ export class ProjectManager extends InternalProjectManager {
                 ),
             );
         }
-
+        window.addEventListener("panic", () => {
+            this.error(EngineException.Panic);
+        });
         this.sidecar.addEventListener(SideCarEvent.Connect, () =>
             this.dispatchEvent(new Event(EngineEvent.SideCarStarted)),
         );
         this.sidecar.addEventListener(SideCarEvent.Disconnect, () => {
             this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
         });
+        this.sidecar.addEventListener(
+            SideCarEvent.Message,
+            (e: CustomEventInit<SideCarMessage>) => {
+                const data = e.detail;
+                if (!data) return;
+                switch (data.kind) {
+                    case "command":
+                        this.sidecarcommandexec.excec(data.payload);
+                }
+            },
+        );
     }
 
     private checkStorage(): boolean {
@@ -292,10 +310,21 @@ export class ProjectManager extends InternalProjectManager {
     }
 
     play(id: string, options?: { start?: number; end?: number }) {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.Play,
+                id,
+                options,
+            });
         return this.commands.play(id, options);
     }
 
     stop(source_id: string) {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.Stop,
+                source_id,
+            });
         return this.commands.stop(source_id);
     }
 
@@ -373,6 +402,8 @@ export class ProjectManager extends InternalProjectManager {
     }
 
     ducking() {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({ cmd: SideCarCommand.Ducking });
         return this.commands.ducking();
     }
 
@@ -383,22 +414,54 @@ export class ProjectManager extends InternalProjectManager {
         this.commands.load_bgm(id, file);
     }
     play_bgm(id: "deckA" | "deckB") {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.PlayBgm,
+                deck: id,
+            });
         return this.commands.play_bgm(id);
     }
     pause_bgm(id: "deckA" | "deckB") {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.PauseBgm,
+                deck: id,
+            });
         this.commands.pause_bgm(id);
     }
     stop_bgm(id: "deckA" | "deckB") {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.StopBgm,
+                deck: id,
+            });
         this.commands.stop_bgm(id);
     }
     seek_bgm(id: "deckA" | "deckB", time: number) {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.SeekBgm,
+                deck: id,
+                time,
+            });
         this.commands.seek_bgm(id, time);
     }
     eject_bgm(id: "deckA" | "deckB") {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.UnloadBGM,
+                deck: id,
+            });
         this.commands.unload_bgm(id);
     }
 
     load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.LoadBgmToDeck,
+                deck: id,
+                bgmId,
+            });
         return this.commands.load_bgm_to_deck(id, bgmId);
     }
     async create_host(): Promise<Option<RTCSessionDescription>> {
