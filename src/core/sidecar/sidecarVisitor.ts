@@ -19,6 +19,7 @@ export class SideCarVisitorRelay {
     ) {
         this.sidecar = sidecar;
         this.emitLocally = emitLocally;
+
         this.sidecar.addEventListener(SideCarEvent.Message, (e) => {
             const msg = (e as CustomEvent<SideCarMessage>).detail;
             if (msg.kind === "snapshot") {

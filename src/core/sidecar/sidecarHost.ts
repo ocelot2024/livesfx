@@ -1,6 +1,6 @@
-import { ProjectManager } from "..";
 import type { UiCommandsManager } from "../commands/uiCommands";
 import { useEngineState } from "../store/enginestore";
+import type { EngineEvent } from "../types/types";
 import { SideCar, SideCarCommand, type SideCarCommandPayload } from "./sidecar";
 
 export class SideCarHostRelay {
@@ -36,6 +36,13 @@ export class SideCarHostRelay {
             case SideCarCommand.UnloadBGM:
                 return this.commands.unload_bgm(payload.deck);
         }
+    }
+    send_event(event: EngineEvent, detail?: unknown) {
+        this.sidecar.send({
+            kind: "event",
+            event,
+            detail,
+        });
     }
     sendSnapShot() {
         const {

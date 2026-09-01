@@ -1,4 +1,4 @@
-import { AudioEngine } from "../audioEngine/audioengine";
+import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
 import {
     EngineEvent,
     Err,
@@ -66,6 +66,45 @@ export class ProjectManager extends InternalProjectManager {
                         detail: (e as CustomEvent).detail,
                     }),
                 ),
+            );
+            this.addEventListener(event, () => {
+                let detail;
+                if (this.sidecar.mode == "host") {
+                    if (event == EngineEvent.ChangedLibrary) {
+                        const {
+                            sfx_library,
+                            bgm_library,
+                            playing_sfx,
+                            deck,
+                            ducking,
+                            groupNames,
+                        } = useEngineState();
+                        detail = {
+                            sfx_library,
+                            bgm_library,
+                            playing_sfx,
+                            deck,
+                            ducking,
+                            groupNames,
+                        };
+                    }
+                    this.hostrelay.send_event(event, detail);
+                }
+            });
+        }
+        for (const event of Object.values(PlayerEvent)) {
+            this.addEventListener(
+                event,
+                (e: CustomEventInit<{ deck: "A" | "B" }>) => {
+                    if (this.sidecar.mode == "host") {
+                        const deck = e.detail?.deck;
+                        if (!deck) return;
+                        this.hostrelay.send_event(event as EngineEvent, {
+                            deck: deck,
+                            info: this.get_bgm_info(`deck${deck}`),
+                        });
+                    }
+                },
             );
         }
         window.addEventListener("panic", () => {
