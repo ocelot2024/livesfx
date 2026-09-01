@@ -53,7 +53,9 @@ export class ProjectManager extends InternalProjectManager {
             this.sidecar,
             (event, detail) =>
                 this.dispatchEvent(
-                    detail ? new CustomEvent(event, detail) : new Event(event),
+                    detail
+                        ? new CustomEvent(event, { detail })
+                        : new Event(event),
                 ),
         );
 
