@@ -45,9 +45,9 @@ const get_gain = (id?: string) => {
                     @update:volume="(e: number) => set_gain(e, MIXER_MASTER_CHANNEL_ID)"
                     :initial_gain="get_gain(MIXER_MASTER_CHANNEL_ID)" />
                 <div class="divider"></div>
-                <ChannelComponent v-for="groupName in groupNames" :channel-name="`${groupName}`" :id="groupName"
-                    class="groupFader" @update:volume="(e: number) => set_gain(e, groupName)"
-                    :initial_gain="get_gain(groupName)" />
+                <ChannelComponent v-for="groupName in groupNames"
+                    :channel-name="`${groupName == UNGROUPED ? '未所属' : groupName}`" :id="groupName" class="groupFader"
+                    @update:volume="(e: number) => set_gain(e, groupName)" :initial_gain="get_gain(groupName)" />
             </div>
         </div>
     </div>
