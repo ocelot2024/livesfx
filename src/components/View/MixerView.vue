@@ -3,12 +3,13 @@ import { computed } from 'vue';
 import { ProjectManager } from '@/core';
 import { MIXER_MASTER_CHANNEL_ID } from '@/core/audioEngine/mixer.ts';
 import ChannelComponent from '../Channel.vue';
+import { useEngineState } from '@/core/store/enginestore.ts';
+import { storeToRefs } from 'pinia';
+import { UNGROUPED } from '@/core/constants.ts';
 
 const engine = ProjectManager;
-
-const groups = computed(() => {
-    return engine.get_group_names()
-})
+const store = useEngineState();
+const { groupNames } = storeToRefs(store);
 
 const set_gain = (e: number, id?: string) => {
     if (!id) return;
@@ -24,7 +25,7 @@ const get_gain = (id?: string) => {
 
 <template>
     <div class="mixer flex">
-        <div v-for="groupName in groups.filter(v => v !== 'BGM')" :key="groupName">
+        <div v-for="groupName in groupNames.filter(v => ![UNGROUPED, 'BGM'].includes(v))" :key="groupName">
             <div class="groupName" style="margin-top: 24px;">
                 <p>{{ groupName }}</p>
             </div>
@@ -44,7 +45,7 @@ const get_gain = (id?: string) => {
                     @update:volume="(e: number) => set_gain(e, MIXER_MASTER_CHANNEL_ID)"
                     :initial_gain="get_gain(MIXER_MASTER_CHANNEL_ID)" />
                 <div class="divider"></div>
-                <ChannelComponent v-for="groupName in groups" :channel-name="`${groupName}`" :id="groupName"
+                <ChannelComponent v-for="groupName in groupNames" :channel-name="`${groupName}`" :id="groupName"
                     class="groupFader" @update:volume="(e: number) => set_gain(e, groupName)"
                     :initial_gain="get_gain(groupName)" />
             </div>
