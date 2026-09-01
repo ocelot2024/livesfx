@@ -502,6 +502,9 @@ export class ProjectManager extends InternalProjectManager {
         return this.sidecar.mode ?? undefined;
     }
     disconnect() {
-        return this.sidecar.reset();
+        const mode = this.sidecar.mode;
+        this.sidecar.reset();
+        if (mode == "visitor") this.start_with_blank();
+        return;
     }
 }
