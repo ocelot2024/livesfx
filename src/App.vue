@@ -7,14 +7,15 @@ import Spinner from "./components/Spinner.vue";
 import { EngineProcState } from "./core/store/enginestore_type.ts";
 import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
-import { defineAsyncComponent, onMounted, ref } from 'vue';
+import { defineAsyncComponent, onMounted, ref, useTemplateRef } from 'vue';
 import Modal from './components/Modal.vue';
 import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
 import { useUiState } from './core/store/ui_state.ts';
 import { storeToRefs } from 'pinia';
 
-
+const footer_height = ref()
+const footer = useTemplateRef('footer')
 const MixerView = defineAsyncComponent({
     loader: () => import('./components/View/MixerView.vue'),
     loadingComponent: Spinner
@@ -101,6 +102,10 @@ onMounted(() => {
         config_store.is_first = false;
         showConsentView.value = true
     }
+    const observer = new ResizeObserver(() => {
+        footer_height.value = footer.value?.clientHeight ?? 0;
+    })
+    if (footer.value) observer.observe(footer.value)
 })
 </script>
 
@@ -108,13 +113,13 @@ onMounted(() => {
     <main>
         <AppBar v-bind:items="menu" />
         <Tab :tabs="tabitems" v-model="selectedView" />
-        <div class="view">
+        <div class="view" :style="{ 'padding-bottom': footer_height + 'px' }">
             <PadView v-show="selectedView === 'pad'" />
             <BGMView v-show="selectedView === 'bgm'" />
             <!--ミキサーは少し重い操作がある可能性があるうえそんなに頻繁に使わないからv-ifで十分-->
             <MixerView v-if="selectedView === 'mixer'" />
         </div>
-        <footer>
+        <footer ref="footer">
             <Footer />
         </footer>
 
