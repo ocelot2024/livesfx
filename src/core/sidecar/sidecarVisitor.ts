@@ -33,6 +33,7 @@ export class SideCarVisitorRelay {
 
     private applyEvent(event: EngineEvent, detail: unknown) {
         if (event === EngineEvent.ChangedLibrary) {
+            this.sidecar.send({ kind: "requestsnapshot" });
             const origin = detail as {
                 sfx_library: Record<string, SoundMeta>;
                 bgm_library: Record<string, SoundMeta>;
