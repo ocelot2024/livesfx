@@ -7,8 +7,6 @@ export const MIXER_MASTER_CHANNEL_ID = "MASTER";
 
 interface MixerEntry {
     channel: Channel;
-    // "" only for MASTER itself (it has no parent). Every other entry
-    // (group or leaf channel) belongs directly to MASTER or to a group.
     belongs_to: string;
     isGroup: boolean;
 }
