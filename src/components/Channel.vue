@@ -4,8 +4,8 @@ import { useConfigStore } from '../core/store/configstore'
 
 const props = defineProps<{ channelName: string, id: string, initial_gain?: number }>()
 
-const volume = defineModel<number>('volume', { default: 1 })
-volume.value = props.initial_gain ?? 1;
+const volume = ref<number>(props.initial_gain ?? 1)
+const emit = defineEmits<{ 'update:volume': [number] }>()
 
 const track = ref<HTMLElement | null>(null)
 const thumbHeight = 60
@@ -75,12 +75,14 @@ const positionToVolume = (clientY: number) => {
 const onPointerDown = (e: PointerEvent) => {
     dragging.value = true
         ; (e.target as HTMLElement).setPointerCapture(e.pointerId)
-    volume.value = positionToVolume(e.clientY)
+    volume.value = positionToVolume(e.clientY);
+    emit('update:volume', volume.value)
 }
 
 const onPointerMove = (e: PointerEvent) => {
     if (!dragging.value) return
     volume.value = positionToVolume(e.clientY)
+    emit('update:volume', volume.value)
 }
 
 const onPointerUp = (e: PointerEvent) => {
@@ -91,6 +93,7 @@ const onPointerUp = (e: PointerEvent) => {
 const onTrackClick = (e: PointerEvent) => {
     if (e.target === track.value) {
         volume.value = positionToVolume(e.clientY)
+        emit('update:volume', volume.value)
     }
 }
 
