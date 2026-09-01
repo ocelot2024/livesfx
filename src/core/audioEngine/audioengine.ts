@@ -459,6 +459,9 @@ export class AudioEngine extends EventTarget {
     get_group_names(): string[] {
         return this.mixer.get_group_names();
     }
+    get_all_channels() {
+        return this.mixer.get_all_channels();
+    }
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
         this.library.set_gain(id, gain);
         return this.mixer.set_gain(id, gain);

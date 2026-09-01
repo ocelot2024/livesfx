@@ -32,7 +32,6 @@ import {
 } from "../sidecar/sidecar";
 import { SideCarHostRelay } from "../sidecar/sidecarHost";
 import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
-import { useEngineState } from "../store/enginestore";
 
 export class ProjectManager extends InternalProjectManager {
     commands: UiCommandsManager;
@@ -72,10 +71,14 @@ export class ProjectManager extends InternalProjectManager {
             );
             this.addEventListener(event, (e: CustomEventInit<unknown>) => {
                 if (this.sidecar.mode == "host") {
-                    if (event === EngineEvent.ChangedLibrary) {
-                        this.hostrelay.send_event(event, {
-                            ...useEngineState(),
-                        });
+                    if (
+                        event === EngineEvent.ChangedLibrary ||
+                        event === EngineEvent.Initialised
+                    ) {
+                        this.hostrelay.send_event(
+                            event,
+                            this.hostrelay.buildLibraryState(),
+                        );
                         return;
                     }
                     this.hostrelay.send_event(event, e.detail);
@@ -114,7 +117,19 @@ export class ProjectManager extends InternalProjectManager {
                 if (!data) return;
                 switch (data.kind) {
                     case "command":
-                        this.hostrelay.excec(data.payload);
+                        try {
+                            const result = this.hostrelay.excec(data.payload);
+                            if (result instanceof Promise) {
+                                result.catch((err) =>
+                                    console.error(
+                                        "SideCar command failed",
+                                        err,
+                                    ),
+                                );
+                            }
+                        } catch (err) {
+                            console.error("SideCar command failed", err);
+                        }
                         break;
                     case "requestsnapshot":
                         this.hostrelay.sendSnapShot();
@@ -398,6 +413,8 @@ export class ProjectManager extends InternalProjectManager {
         return this.commands.stop_all_sfx();
     }
     get_group_children(parent: string) {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_group_children(parent);
         return this.commands.get_group_children(parent);
     }
     get_group_names(): string[] {
@@ -447,10 +464,21 @@ export class ProjectManager extends InternalProjectManager {
         gain: number,
         initialising?: boolean,
     ): Result<number, AudioMixerError> {
+        if (this.sidecar.mode == "visitor") {
+            this.sidecar.send_command({
+                cmd: SideCarCommand.SetGain,
+                id,
+                gain,
+                initialising,
+            });
+            return Ok(gain);
+        }
         return this.commands.set_gain(id, gain, initialising);
     }
 
     get_gain(id: string): Result<number, AudioMixerError> {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_gain(id);
         return this.commands.get_gain(id);
     }
 
@@ -461,6 +489,8 @@ export class ProjectManager extends InternalProjectManager {
     }
 
     get_bgm_info(id: "deckA" | "deckB") {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_bgm_info(id);
         return this.commands.get_bgm_info(id);
     }
     load_bgm(id: "deckA" | "deckB", file: BGMFile) {

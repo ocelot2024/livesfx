@@ -82,6 +82,9 @@ export class UiCommandsManager extends EventTarget {
     get_group_names(): string[] {
         return this.engine.get_group_names();
     }
+    get_all_channels() {
+        return this.engine.get_all_channels();
+    }
     trim(id: string, start: number, end: number) {
         this.engine.trim(id, start, end);
         this.stateManager.markAsChanged();

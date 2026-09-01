@@ -1,5 +1,6 @@
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import type { SoundMeta } from "../audioEngine/sounds";
+import type { MixerChannelSnapshot } from "../audioEngine/mixer";
 import type { BGMPlayerInfo } from "../store/enginestore";
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve) => {
@@ -35,6 +36,7 @@ export const SideCarCommand = {
     Stop: "stop",
     StopAllSfx: "stop_all_sfx",
     Ducking: "ducking",
+    SetGain: "set_gain",
     PlayBgm: "play_bgm",
     PauseBgm: "pause_bgm",
     StopBgm: "stop_bgm",
@@ -54,6 +56,12 @@ export type SideCarCommandPayload =
     | { cmd: typeof SideCarCommand.Stop; source_id: string }
     | { cmd: typeof SideCarCommand.StopAllSfx }
     | { cmd: typeof SideCarCommand.Ducking }
+    | {
+          cmd: typeof SideCarCommand.SetGain;
+          id: string;
+          gain: number;
+          initialising?: boolean;
+      }
     | { cmd: typeof SideCarCommand.PlayBgm; deck: "deckA" | "deckB" }
     | { cmd: typeof SideCarCommand.PauseBgm; deck: "deckA" | "deckB" }
     | { cmd: typeof SideCarCommand.StopBgm; deck: "deckA" | "deckB" }
@@ -73,12 +81,13 @@ export type SideCarCommandPayload =
       };
 
 export interface SideCarStateSnapshot {
-    sfx_library: SoundMeta[];
-    bgm_library: SoundMeta[];
+    sfx_library: Record<string, SoundMeta>;
+    bgm_library: Record<string, SoundMeta>;
+    groupNames: string[];
+    channels: MixerChannelSnapshot[];
     playing_sfx: string[];
     deck: [BGMPlayerInfo, BGMPlayerInfo];
     ducking: boolean;
-    groupNames: string[];
 }
 
 export type SideCarMessage =

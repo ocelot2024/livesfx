@@ -11,6 +11,14 @@ interface MixerEntry {
     isGroup: boolean;
 }
 
+export interface MixerChannelSnapshot {
+    id: string;
+    name: string;
+    belongs_to: string;
+    isGroup: boolean;
+    gain: number;
+}
+
 export class Channel {
     readonly inputGain: GainNode;
     readonly output: GainNode;
@@ -103,6 +111,16 @@ export class AudioMixer {
         return Object.entries(this.entries)
             .filter(([id, e]) => e.isGroup && id !== MIXER_MASTER_CHANNEL_ID)
             .map(([id]) => id);
+    }
+
+    get_all_channels(): MixerChannelSnapshot[] {
+        return Object.entries(this.entries).map(([id, entry]) => ({
+            id,
+            name: entry.channel.name,
+            belongs_to: entry.belongs_to,
+            isGroup: entry.isGroup,
+            gain: entry.channel.output.gain.value,
+        }));
     }
 
     delete_channel(id: string): Result<void, string> {

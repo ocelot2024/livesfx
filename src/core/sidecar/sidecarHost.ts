@@ -1,7 +1,12 @@
 import type { UiCommandsManager } from "../commands/uiCommands";
 import { useEngineState } from "../store/enginestore";
 import type { EngineEvent } from "../types/types";
-import { SideCar, SideCarCommand, type SideCarCommandPayload } from "./sidecar";
+import {
+    SideCar,
+    SideCarCommand,
+    type SideCarCommandPayload,
+    type SideCarStateSnapshot,
+} from "./sidecar";
 
 export class SideCarHostRelay {
     private commands: UiCommandsManager;
@@ -20,6 +25,12 @@ export class SideCarHostRelay {
                 return this.commands.stop_all_sfx();
             case SideCarCommand.Ducking:
                 return this.commands.ducking();
+            case SideCarCommand.SetGain:
+                return this.commands.set_gain(
+                    payload.id,
+                    payload.gain,
+                    payload.initialising,
+                );
             case SideCarCommand.PlayBgm:
                 return this.commands.play_bgm(payload.deck);
             case SideCarCommand.PauseBgm:
@@ -44,25 +55,25 @@ export class SideCarHostRelay {
             detail,
         });
     }
+    buildLibraryState() {
+        return {
+            sfx_library: this.commands.get_sfx_library(),
+            bgm_library: this.commands.get_bgm_library(),
+            groupNames: this.commands.get_group_names(),
+            channels: this.commands.get_all_channels(),
+        };
+    }
     sendSnapShot() {
-        const {
-            sfx_library,
-            bgm_library,
+        const { playing_sfx, deck, ducking } = useEngineState();
+        const state: SideCarStateSnapshot = {
+            ...this.buildLibraryState(),
             playing_sfx,
             deck,
             ducking,
-            groupNames,
-        } = useEngineState();
+        };
         this.sidecar.send({
             kind: "snapshot",
-            state: {
-                sfx_library,
-                bgm_library,
-                playing_sfx,
-                deck,
-                ducking,
-                groupNames,
-            },
+            state,
         });
     }
 }
