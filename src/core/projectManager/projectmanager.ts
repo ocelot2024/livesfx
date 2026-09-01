@@ -32,11 +32,13 @@ import {
 } from "../sidecar/sidecar";
 import { SideCarHostRelay } from "../sidecar/sidecarHost";
 import { useEngineState } from "../store/enginestore";
+import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
 
 export class ProjectManager extends InternalProjectManager {
     commands: UiCommandsManager;
     sidecar: SideCar;
     hostrelay: SideCarHostRelay;
+    visitorrelay: SideCarVisitorRelay;
     constructor() {
         super();
         applyGuard(this);
@@ -47,6 +49,13 @@ export class ProjectManager extends InternalProjectManager {
         );
         this.sidecar = new SideCar();
         this.hostrelay = new SideCarHostRelay(this.commands, this.sidecar);
+        this.visitorrelay = new SideCarVisitorRelay(
+            this.sidecar,
+            (event, detail) =>
+                this.dispatchEvent(
+                    detail ? new CustomEvent(event, detail) : new Event(event),
+                ),
+        );
 
         for (const event of Object.values(EngineEvent)) {
             this.commands.addEventListener(event, (e) =>
@@ -339,9 +348,13 @@ export class ProjectManager extends InternalProjectManager {
     }
 
     get_sfx_library() {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_sfx_library();
         return this.commands.get_sfx_library();
     }
     get_bgm_library() {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_bgm_library();
         return this.commands.get_bgm_library();
     }
     get_duration(id: string) {
@@ -360,6 +373,8 @@ export class ProjectManager extends InternalProjectManager {
         return this.commands.get_group_children(parent);
     }
     get_group_names(): string[] {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_group_names();
         return this.commands.get_group_names();
     }
 
