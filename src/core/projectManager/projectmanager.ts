@@ -69,8 +69,6 @@ export class ProjectManager extends InternalProjectManager {
                 ),
             );
             this.addEventListener(event, (e: CustomEventInit<unknown>) => {
-                console.log(`[eventname] ${event}`);
-                console.table(e.detail);
                 if (this.sidecar.mode == "host") {
                     let detail: any = e.detail;
                     if (event == EngineEvent.ChangedLibrary) {
@@ -539,7 +537,6 @@ export class ProjectManager extends InternalProjectManager {
     ): Promise<Result<RTCSessionDescription, string>> {
         const answer = await this.sidecar.joinHost(offer);
         if (!answer.ok) {
-            console.log(answer.value);
             return Err(EngineError.CouldNotConnectToHost);
         }
         return Ok(answer.value);

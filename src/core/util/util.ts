@@ -64,18 +64,18 @@ export const applyGuard = (instance: object) => {
                         return result
                             .then((result: unknown) => {
                                 if (import.meta.env.DEV)
-                                    console.log(
-                                        `${key} tooks : ${performance.now() - start}ms`,
-                                    );
-                                return result;
+                                    //console.log(
+                                    //    `${key} tooks : ${performance.now() - start}ms`,
+                                    //);
+                                    return result;
                             })
                             .catch(onPanic);
                     }
                     if (import.meta.env.DEV)
-                        console.log(
-                            `${key} tooks : ${performance.now() - start}ms`,
-                        );
-                    return result;
+                        //console.log(
+                        //   `${key} tooks : ${performance.now() - start}ms`,
+                        //);
+                        return result;
                 } catch (e) {
                     onPanic(e);
                     return Err(e);

@@ -389,7 +389,6 @@ export class AudioEngine extends EventTarget {
             return Ok({ played: true, soundID: id, sourceID: source_id });
         }
         if (meta.start_from != null && meta.end_at != null) {
-            console.log(meta);
             node.start(
                 0,
                 meta.start_from,

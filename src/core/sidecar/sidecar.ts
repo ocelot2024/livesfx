@@ -110,7 +110,6 @@ export class SideCar extends EventTarget {
         this.channel = channel;
 
         channel.onopen = () => {
-            console.log("channel open");
             if (this.mode == "visitor") {
                 this.send({ kind: "requestsnapshot" });
             }
@@ -118,7 +117,6 @@ export class SideCar extends EventTarget {
         };
 
         channel.onclose = () => {
-            console.log("channel close");
             this.dispatchEvent(new Event(SideCarEvent.Disconnect));
         };
 
