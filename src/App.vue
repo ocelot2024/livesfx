@@ -67,7 +67,7 @@ const menu = computed((): MenuList[] => {
         label: "ファイル",
         id: 'file',
         children: [
-            ...(engine_store.sidecar_mode !== 'visitor' ? [from_new, from_file, saveas, pref] : [disconnect])
+            ...(engine_store.sidecar_mode !== 'visitor' ? [from_new, from_file, saveas, pref, disconnect] : [disconnect])
 
         ]
     }
