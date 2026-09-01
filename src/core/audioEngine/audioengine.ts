@@ -519,10 +519,11 @@ export class AudioEngine extends EventTarget {
             );
             return res.ok ? Ok(false) : Err(res.value);
         }
-        this.is_ducking = true;
         const config_store = useConfigStore();
         const gain = this.mixer.get_gain(MIXER_MASTER_CHANNEL_ID);
         if (!gain.ok) return Err(gain.value);
+        this.before_ducking_gain = gain.value;
+        this.is_ducking = true;
         const res = this.mixer.set_gain(
             MIXER_MASTER_CHANNEL_ID,
             gain.value * Math.pow(10, config_store.ducking_amount / 20),
