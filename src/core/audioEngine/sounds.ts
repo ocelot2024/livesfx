@@ -92,7 +92,7 @@ abstract class BaseSound {
     }
 }
 
-class Sound extends BaseSound {
+class SFX extends BaseSound {
     private buffer: AudioBuffer;
     constructor(option: SoundMeta, buffer: AudioBuffer) {
         super(option);
@@ -139,7 +139,7 @@ class BGM extends BaseSound {
 }
 
 export class SoundLibrary {
-    private sounds: Record<string, Sound>;
+    private sounds: Record<string, SFX>;
     private musics: Record<string, BGM>;
     private ctx: AudioContext;
     constructor(ctx: AudioContext) {
@@ -149,7 +149,7 @@ export class SoundLibrary {
     }
     add(meta: SoundMeta, file: AudioBuffer | Blob) {
         if (meta.type === SoundFileType.SFX || meta.type === undefined) {
-            const sound = new Sound(meta, file as AudioBuffer);
+            const sound = new SFX(meta, file as AudioBuffer);
             this.sounds[meta.id] = sound;
             return meta.id;
         } else {
@@ -257,7 +257,7 @@ export class SoundLibrary {
         keys.splice(fromIndex, 1);
         keys.splice(clampedIndex, 0, id);
 
-        const reordered: Record<string, Sound> = {};
+        const reordered: Record<string, SFX> = {};
         for (const key of keys) {
             const sound = this.sounds[key];
             if (sound) reordered[key] = sound;
