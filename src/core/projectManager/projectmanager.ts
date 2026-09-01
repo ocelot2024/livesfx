@@ -31,8 +31,8 @@ import {
     type SideCarMessage,
 } from "../sidecar/sidecar";
 import { SideCarHostRelay } from "../sidecar/sidecarHost";
-import { useEngineState } from "../store/enginestore";
 import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
+import { useEngineState } from "../store/enginestore";
 
 export class ProjectManager extends InternalProjectManager {
     commands: UiCommandsManager;
@@ -49,14 +49,16 @@ export class ProjectManager extends InternalProjectManager {
         );
         this.sidecar = new SideCar();
         this.hostrelay = new SideCarHostRelay(this.commands, this.sidecar);
+
         this.visitorrelay = new SideCarVisitorRelay(
             this.sidecar,
             (event, detail) => {
-                this.dispatchEvent(
-                    detail
-                        ? new CustomEvent(event, { detail })
-                        : new Event(event),
-                );
+                if (this.sidecar.mode == "visitor")
+                    this.dispatchEvent(
+                        detail
+                            ? new CustomEvent(event, { detail })
+                            : new Event(event),
+                    );
             },
         );
 
@@ -70,26 +72,13 @@ export class ProjectManager extends InternalProjectManager {
             );
             this.addEventListener(event, (e: CustomEventInit<unknown>) => {
                 if (this.sidecar.mode == "host") {
-                    let detail: any = e.detail;
-                    if (event == EngineEvent.ChangedLibrary) {
-                        const {
-                            sfx_library,
-                            bgm_library,
-                            playing_sfx,
-                            deck,
-                            ducking,
-                            groupNames,
-                        } = useEngineState();
-                        detail = {
-                            sfx_library,
-                            bgm_library,
-                            playing_sfx,
-                            deck,
-                            ducking,
-                            groupNames,
-                        };
+                    if (event === EngineEvent.ChangedLibrary) {
+                        this.hostrelay.send_event(event, {
+                            ...useEngineState(),
+                        });
+                        return;
                     }
-                    this.hostrelay.send_event(event, detail);
+                    this.hostrelay.send_event(event, e.detail);
                 }
             });
         }
@@ -149,6 +138,7 @@ export class ProjectManager extends InternalProjectManager {
         this.engine = new AudioEngine();
         this.commands.replace_engine(this.engine);
         await this.init(undefined, true);
+        this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
     }
 
     async start_from_file(): Promise<Result<void, string>> {
