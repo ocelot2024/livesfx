@@ -7,9 +7,17 @@ import { registerSW } from "virtual:pwa-register";
 import { createPersistPlugin } from "./core/store/persist.ts";
 import { useUpdateStore } from "./core/store/updatestore.ts";
 import { setZXingModuleOverrides } from "vue-qrcode-reader";
+import { onPanic, showFatalOverlay } from "./core/util/util.ts";
 
 let pinia: Pinia | null = null;
 let pendingRegistration: ServiceWorkerRegistration | undefined;
+
+window.addEventListener("error", (e) => {
+    onPanic(e.error ?? e.message);
+});
+window.addEventListener("unhandledrejection", (e) => {
+    onPanic(e.reason);
+});
 
 //https://github.com/Sec-ant/barcode-detector/issues/18
 setZXingModuleOverrides({
@@ -22,10 +30,21 @@ setZXingModuleOverrides({
 });
 
 const app = createApp(App);
+app.config.errorHandler = (err) => {
+    onPanic(err);
+};
+
 pinia = createPinia();
 pinia.use(createPersistPlugin(["config", "ui_state"]));
 useUpdateStore(pinia).setRegistration(pendingRegistration);
-await ProjectManager.init();
+
+try {
+    await ProjectManager.init(undefined, true);
+} catch (e) {
+    showFatalOverlay(e);
+    throw e;
+}
+
 app.use(pinia);
 app.mount("#app");
 
