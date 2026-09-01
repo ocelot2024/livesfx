@@ -85,7 +85,8 @@ export type SideCarMessage =
     | { kind: "snapshot"; state: SideCarStateSnapshot }
     | { kind: "event"; event: EngineEvent; detail: unknown }
     | { kind: "msg"; value: string }
-    | { kind: "command"; payload: SideCarCommandPayload };
+    | { kind: "command"; payload: SideCarCommandPayload }
+    | { kind: "requestsnapshot" };
 
 export class SideCar extends EventTarget {
     peer!: RTCPeerConnection;
@@ -110,6 +111,9 @@ export class SideCar extends EventTarget {
 
         channel.onopen = () => {
             console.log("channel open");
+            if (this.mode == "visitor") {
+                this.send({ kind: "requestsnapshot" });
+            }
             this.dispatchEvent(new Event(SideCarEvent.Connect));
         };
 

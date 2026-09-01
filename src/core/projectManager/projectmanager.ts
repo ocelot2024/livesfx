@@ -30,12 +30,13 @@ import {
     SideCarEvent,
     type SideCarMessage,
 } from "../sidecar/sidecar";
-import { SideCarCommandExecutor } from "../sidecar/sidecarHost";
+import { SideCarHostRelay } from "../sidecar/sidecarHost";
+import { useEngineState } from "../store/enginestore";
 
 export class ProjectManager extends InternalProjectManager {
     commands: UiCommandsManager;
     sidecar: SideCar;
-    sidecarcommandexec: SideCarCommandExecutor;
+    hostrelay: SideCarHostRelay;
     constructor() {
         super();
         applyGuard(this);
@@ -45,7 +46,7 @@ export class ProjectManager extends InternalProjectManager {
             (e) => this.error(e),
         );
         this.sidecar = new SideCar();
-        this.sidecarcommandexec = new SideCarCommandExecutor(this.commands);
+        this.hostrelay = new SideCarHostRelay(this.commands, this.sidecar);
 
         for (const event of Object.values(EngineEvent)) {
             this.commands.addEventListener(event, (e) =>
@@ -72,7 +73,16 @@ export class ProjectManager extends InternalProjectManager {
                 if (!data) return;
                 switch (data.kind) {
                     case "command":
-                        this.sidecarcommandexec.excec(data.payload);
+                        this.hostrelay.excec(data.payload);
+                        break;
+                    case "requestsnapshot":
+                        this.hostrelay.sendSnapShot();
+                        break;
+                    case "snapshot":
+                        const store = useEngineState();
+                        const snapshot = data.state;
+                        store.$patch(snapshot);
+                        break;
                 }
             },
         );
@@ -483,7 +493,9 @@ export class ProjectManager extends InternalProjectManager {
         answer: RTCSessionDescription,
     ): Promise<Result<void, string>> {
         const res = await this.sidecar.applyAnswer(answer);
-        if (res.ok) return Ok(res);
+        if (res.ok) {
+            return Ok(res);
+        }
         return Err(res.value);
     }
     get_sidecar_mode(): "host" | "visitor" | undefined {

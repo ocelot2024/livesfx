@@ -1,10 +1,14 @@
+import { ProjectManager } from "..";
 import type { UiCommandsManager } from "../commands/uiCommands";
-import { SideCarCommand, type SideCarCommandPayload } from "./sidecar";
+import { useEngineState } from "../store/enginestore";
+import { SideCar, SideCarCommand, type SideCarCommandPayload } from "./sidecar";
 
-export class SideCarCommandExecutor {
+export class SideCarHostRelay {
     private commands: UiCommandsManager;
-    constructor(commands: UiCommandsManager) {
+    private sidecar: SideCar;
+    constructor(commands: UiCommandsManager, sidecar: SideCar) {
         this.commands = commands;
+        this.sidecar = sidecar;
     }
     excec(payload: SideCarCommandPayload) {
         switch (payload.cmd) {
@@ -32,5 +36,26 @@ export class SideCarCommandExecutor {
             case SideCarCommand.UnloadBGM:
                 return this.commands.unload_bgm(payload.deck);
         }
+    }
+    sendSnapShot() {
+        const {
+            sfx_library,
+            bgm_library,
+            playing_sfx,
+            deck,
+            ducking,
+            groupNames,
+        } = useEngineState();
+        this.sidecar.send({
+            kind: "snapshot",
+            state: {
+                sfx_library,
+                bgm_library,
+                playing_sfx,
+                deck,
+                ducking,
+                groupNames,
+            },
+        });
     }
 }
