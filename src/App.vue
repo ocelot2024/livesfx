@@ -59,10 +59,10 @@ const menu: MenuList[] = [
         ]
     },
     {
-        label: "編集",
+        label: "サウンド",
         id: "edit",
         children: [
-            { "label": "サウンドの追加", id: "add", handle: () => { ProjectManager.add_sfx(); } },
+            { "label": "効果音の追加", id: "add", handle: () => { ProjectManager.add_sfx(); } },
             { "label": "BGMの追加", id: "add_bgm", handle: () => { ProjectManager.add_bgm(); } }
         ]
     }
