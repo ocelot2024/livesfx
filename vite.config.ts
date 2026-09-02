@@ -82,6 +82,7 @@ export default defineConfig(({ command }) => {
             VitePWA({
                 devOptions: { enabled: false },
                 registerType: "prompt",
+                includeAssets: ["favicon.ico"],
                 manifest: {
                     name: "LiveSFX",
                     short_name: "LIVE",

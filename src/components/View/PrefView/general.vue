@@ -75,7 +75,7 @@ function resetSettings() {
             </SettingsSection>
             <SettingsSection title="情報">
                 <div style="text-align:  center; padding: 8px;">
-                    <img src="@/img/logo.png">
+                    <img src="/logo.svg">
                     <h2>LiveSFX</h2>
                     <small>v{{ appVersion }}</small><br>
                     <small>This project is licensed under the ISC License</small>
