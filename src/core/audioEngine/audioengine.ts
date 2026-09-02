@@ -330,6 +330,7 @@ export class AudioEngine extends EventTarget {
             start?: number;
             end?: number;
             onended?: (id: string) => void;
+            beforestart?: (id: string) => void;
         },
     ): Promise<Result<PlayResult, AudioEngineError>> {
         const configStore = useConfigStore();
@@ -346,7 +347,6 @@ export class AudioEngine extends EventTarget {
         const { node, ...meta } = PlaybackInfo;
         const playMode = PlaybackInfo?.play_mode;
         if (!node) return Err(AudioEngineError.SoundNotFound);
-        //PlayModeを確認する。絶対にあるはずやからなかったらおかしい
         if (!playMode && playMode !== 0)
             return Err(AudioEngineError.SoundNotFound);
 
@@ -364,6 +364,11 @@ export class AudioEngine extends EventTarget {
         this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.input(id, node);
 
+        const start = (when?: number, offset?: number, duration?: number) => {
+            if (options?.beforestart) options?.beforestart(id);
+            start(when, offset, duration);
+        };
+
         node.onended = () => {
             const index = this.playing_id.findIndex(
                 (value) => value.source_id == source_id,
@@ -377,26 +382,26 @@ export class AudioEngine extends EventTarget {
             const bufferDuration = node.buffer?.duration ?? 0;
             //option.startとoption.endはmetaより優先する
             //プレビューとかでしか使わないから。
-            const start = Math.min(
+            const time = Math.min(
                 Math.max(0, options.start ?? meta.start_from ?? 0),
                 bufferDuration,
             );
             const end = Math.min(
-                Math.max(start, options.end ?? meta.end_at ?? bufferDuration),
+                Math.max(time, options.end ?? meta.end_at ?? bufferDuration),
                 bufferDuration,
             );
-            node.start(0, start, Math.max(0, end - start));
+            start(0, time, Math.max(0, end - time));
             return Ok({ played: true, soundID: id, sourceID: source_id });
         }
         if (meta.start_from != null && meta.end_at != null) {
-            node.start(
+            start(
                 0,
                 meta.start_from,
                 Math.max(0, meta.end_at - meta.start_from),
             );
             return Ok({ played: true, soundID: id, sourceID: source_id });
         } else {
-            node.start();
+            start();
             return Ok({ played: true, soundID: id, sourceID: source_id });
         }
     }

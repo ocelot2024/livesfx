@@ -36,11 +36,13 @@ export class UiCommandsManager extends EventTarget {
         this.engine = new_one;
     }
     play(id: string, options?: { start?: number; end?: number }) {
-        this.dispatchEvent(
-            new CustomEvent(EngineEvent.PlaySFX, { detail: { id } }),
-        );
-        return this.engine.play(id, {
+        this.engine.play(id, {
             ...options,
+            beforestart: () => {
+                this.dispatchEvent(
+                    new CustomEvent(EngineEvent.PlaySFX, { detail: id }),
+                );
+            },
             onended: () => {
                 this.dispatchEvent(
                     new CustomEvent(EngineEvent.StopSFX, { detail: { id } }),
