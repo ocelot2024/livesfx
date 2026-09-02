@@ -421,6 +421,8 @@ export class ProjectManager extends InternalProjectManager {
         return this.commands.get_soundinfo(id);
     }
     stop_all_sfx() {
+        if(this.sidecar.mode=='visitor')
+            return this.sidecar.send_command({cmd:"stop_all_sfx"})
         return this.commands.stop_all_sfx();
     }
     get_group_children(parent: string) {
