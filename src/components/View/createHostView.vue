@@ -10,8 +10,10 @@ import SettingsRow from '../settingsRow.vue';
 import Modal from '../Modal.vue';
 import QRreader from '../QRreader.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
+import { useConfigStore } from '@/core/store/configstore.ts';
 
 const store = useEngineState()
+const config_store = useConfigStore();
 
 const emit = defineEmits(['close'])
 
@@ -56,7 +58,8 @@ const apply = async () => {
     }
 }
 const onClick = (e: PointerEvent) => {
-    (e.target as HTMLTextAreaElement).select()
+    if (config_store.autoSelectCredentials)
+        (e.target as HTMLTextAreaElement).select()
 }
 </script>
 <template>
