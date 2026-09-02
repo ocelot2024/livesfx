@@ -165,7 +165,8 @@ const toggle_play = async () => {
         end: trimEnd.value,
     });
     if (!result.ok) return;
-    if(store.sidecae_mode=='host'){
+    if(store.sidecar_mode!=='visitor'){
+        if (!('value' in result)) return;
     if (!result.value.played) return;
     activeSourceId.value = result.value.sourceID;
     isPlaying.value = true;
