@@ -17,14 +17,12 @@ const select = (id: string) => {
 
 <template>
     <div class="container">
-        <div class="tabs">
-            <button v-for="(tab, _index) in tabs" :key="tab.id" class="tab" :class="{ active: selected === tab.id }"
+        <div class="tabs" :style="{ '--tab-count': tabs.length }">
+            <button v-for="tab in tabs" :key="tab.id" class="tab" :class="{ active: selected === tab.id }"
                 @click="select(tab.id)">
                 {{ tab.label }}
             </button>
-
             <div class="glider" :style="{
-                width: `calc(100% / ${tabs.length})`,
                 transform: `translateX(${tabs.findIndex(t => t.id === selected) * 100}%)`
             }" />
         </div>
@@ -35,19 +33,20 @@ const select = (id: string) => {
 .container {
     display: flex;
     justify-content: center;
+    width: 100%;
 }
 
 .tabs {
-    width: max-content;
     position: relative;
     display: flex;
     padding: 4px;
     border-radius: 12px;
+    width: min(100%, calc(10rem * var(--tab-count) + 8px));
 }
 
 .tab {
-    width: 10rem;
     flex: 1;
+    min-width: 0;
     z-index: 1;
     border: none;
     background: transparent;
@@ -57,6 +56,10 @@ const select = (id: string) => {
     font: inherit;
     transition: color 0.2s;
     color: var(--label-boring);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tab.active {
@@ -68,7 +71,8 @@ const select = (id: string) => {
     top: 4px;
     bottom: 4px;
     left: 4px;
-    background-color: var(--gray-5);
+    width: calc((100% - 8px) / var(--tab-count));
+    background-color: var(--blur);
     border-radius: 8px;
     transition: transform 0.25s ease;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
