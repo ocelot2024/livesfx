@@ -7,17 +7,20 @@ const store = useUpdateStore();
 <template>
     <Modal :show="store.showUpdateModal" title="アップデート" @close="store.dismissModal()">
         <div class="update-modal">
-            <p class="version-line">
-                v{{ store.currentVersion }} → v{{ store.newVersion?.version ?? '?' }}
-            </p>
-            <p v-if="store.newVersion?.date" class="date">{{ store.newVersion.date }}</p>
+            <div class="info">
+                <p class="version-line">
+                    v{{ store.currentVersion }} → v{{ store.newVersion?.version ?? '?' }}
+                </p>
+                <p v-if="store.newVersion?.date" class="date">{{ store.newVersion.date }}</p>
 
-            <h3>更新内容</h3>
-            <ul v-if="store.newVersion?.notes.length">
-                <li v-for="note in store.newVersion.notes" :key="note">{{ note }}</li>
-            </ul>
-            <p v-else class="no-notes">更新内容の詳細を取得できませんでした。</p>
-
+                <h3>更新内容</h3>
+                <ul v-if="store.newVersion?.notes.length">
+                    <li v-for="note in store.newVersion.notes" :key="note">{{ note }}</li>
+                </ul>
+                <p v-else class="no-notes">
+                    更新内容の詳細を取得できませんでした。
+                </p>
+            </div>
             <div class="actions">
                 <button @click="store.dismissModal()">あとで</button>
                 <button class="primary" @click="store.applyUpdate()">今すぐ更新</button>
@@ -28,8 +31,14 @@ const store = useUpdateStore();
 <style scoped>
 .update-modal {
     padding: 16px;
-    width: 300px;
-    max-width: 80vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.info {
+    flex: 1;
 }
 
 .version-line {
@@ -71,7 +80,15 @@ li {
 .actions {
     display: flex;
     gap: 8px;
+    margin: 0 -23px;
+    transform: translateY(23px);
+    padding: 7px;
     justify-content: flex-end;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--blur);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .actions .primary {
