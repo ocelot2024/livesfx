@@ -365,7 +365,8 @@ export class AudioEngine extends EventTarget {
         this.mixer.input(id, node);
 
         const start = (when?: number, offset?: number, duration?: number) => {
-            if (options?.beforestart) options?.beforestart(id);
+            if (typeof options?.beforestart == "function")
+                options.beforestart(id);
             node.start(when, offset, duration);
         };
 
