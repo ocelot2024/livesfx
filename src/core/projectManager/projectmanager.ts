@@ -81,13 +81,10 @@ export class ProjectManager extends InternalProjectManager {
                         );
                         return;
                     }
-                    if(event == EngineEvent.CrossFaded){
-                        const deckAgain=this.get_gain('deckA')
-                        if(deckAgain.ok && deckAgain.value){
-                            this.hostrelay.send_event(
-                                event,
-                                deckAgain.value
-                            )
+                    if (event == EngineEvent.CrossFaded) {
+                        const deckAgain = this.get_gain("deckA");
+                        if (deckAgain.ok && deckAgain.value) {
+                            this.hostrelay.send_event(event, deckAgain.value);
                         }
                     }
                     this.hostrelay.send_event(event, e.detail);
@@ -198,7 +195,7 @@ export class ProjectManager extends InternalProjectManager {
 
         if (!musics) {
             const audiofiles = await openAudioFilePicker();
-            this.proc_event(EngineProcState.Loading)
+            this.proc_event(EngineProcState.Loading);
             if (!audiofiles.some) {
                 this.fin_proc();
                 return;
@@ -225,7 +222,7 @@ export class ProjectManager extends InternalProjectManager {
             }
             if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
         } else {
-            this.proc_event(EngineProcState.Loading)
+            this.proc_event(EngineProcState.Loading);
             files = musics;
             for (const sound of files) {
                 const result = this.engine.add_bgm({
@@ -262,7 +259,7 @@ export class ProjectManager extends InternalProjectManager {
 
         if (!sounds) {
             const audios = await openAudioFilePicker();
-            this.proc_event(EngineProcState.Loading)
+            this.proc_event(EngineProcState.Loading);
             if (!audios.some) {
                 this.fin_proc();
                 return;
@@ -292,7 +289,7 @@ export class ProjectManager extends InternalProjectManager {
             );
             if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
         } else {
-            this.proc_event(EngineProcState.Loading)
+            this.proc_event(EngineProcState.Loading);
             files = sounds;
             await Promise.allSettled(
                 files.map(async (sound) => {
@@ -421,8 +418,8 @@ export class ProjectManager extends InternalProjectManager {
         return this.commands.get_soundinfo(id);
     }
     stop_all_sfx() {
-        if(this.sidecar.mode=='visitor')
-            return this.sidecar.send_command({cmd:"stop_all_sfx"})
+        if (this.sidecar.mode == "visitor")
+            return this.sidecar.send_command({ cmd: "stop_all_sfx" });
         return this.commands.stop_all_sfx();
     }
     get_group_children(parent: string) {
@@ -588,8 +585,8 @@ export class ProjectManager extends InternalProjectManager {
     }
     disconnect() {
         const mode = this.sidecar.mode;
-        this.sidecar.reset();
         if (mode == "visitor") this.start_with_blank();
+        this.sidecar.reset();
         return;
     }
 }
