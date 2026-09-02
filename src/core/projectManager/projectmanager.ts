@@ -113,6 +113,7 @@ export class ProjectManager extends InternalProjectManager {
             this.dispatchEvent(new Event(EngineEvent.SideCarStarted)),
         );
         this.sidecar.addEventListener(SideCarEvent.Disconnect, () => {
+            this.disconnect();
             this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
         });
         this.sidecar.addEventListener(
@@ -153,8 +154,8 @@ export class ProjectManager extends InternalProjectManager {
         return true;
     }
 
-    async start_with_blank() {
-        if (!this.stateManager.leaveConfirm()) return;
+    async start_with_blank(skip_dialog?: boolean) {
+        if (!skip_dialog) if (!this.stateManager.leaveConfirm()) return;
         await this.engine.dispose();
         this.engine = new AudioEngine();
         this.commands.replace_engine(this.engine);
@@ -585,7 +586,7 @@ export class ProjectManager extends InternalProjectManager {
     }
     disconnect() {
         const mode = this.sidecar.mode;
-        if (mode == "visitor") this.start_with_blank();
+        if (mode == "visitor") this.start_with_blank(true);
         this.sidecar.reset();
         return;
     }

@@ -119,7 +119,7 @@ export class SideCar extends EventTarget {
         this.channel = channel;
 
         channel.onopen = () => {
-            if(!this.mode) this.mode = 'host'
+            if (!this.mode) this.mode = "host";
             if (this.mode == "visitor") {
                 this.send({ kind: "requestsnapshot" });
             }
@@ -127,7 +127,12 @@ export class SideCar extends EventTarget {
         };
 
         channel.onclose = () => {
-            this.dispatchEvent(new Event(SideCarEvent.Disconnect));
+            console.log("closed");
+            this.dispatchEvent(
+                new CustomEvent(SideCarEvent.Disconnect, {
+                    detail: { mode: this.mode },
+                }),
+            );
         };
 
         channel.onmessage = (e) => {
@@ -219,8 +224,7 @@ export class SideCar extends EventTarget {
         this.peer.close();
         this.createPeer();
         this.channel = undefined;
-        this.mode = undefined
-        this.dispatchEvent(new Event(SideCarEvent.Disconnect));
+        this.mode = undefined;
     }
 
     send_command(
