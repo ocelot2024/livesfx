@@ -186,10 +186,10 @@ export class ProjectManager extends InternalProjectManager {
         if (!this.checkStorage()) return;
 
         let files: BGMFile[] = [];
-        this.proc_event(EngineProcState.Loading);
 
         if (!musics) {
             const audiofiles = await openAudioFilePicker();
+            this.proc_event(EngineProcState.Loading)
             if (!audiofiles.some) {
                 this.fin_proc();
                 return;
@@ -216,6 +216,7 @@ export class ProjectManager extends InternalProjectManager {
             }
             if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
         } else {
+            this.proc_event(EngineProcState.Loading)
             files = musics;
             for (const sound of files) {
                 const result = this.engine.add_bgm({
@@ -249,10 +250,10 @@ export class ProjectManager extends InternalProjectManager {
         if (!this.checkStorage()) return;
 
         let files: SFXFile[] = [];
-        this.proc_event(EngineProcState.Loading);
 
         if (!sounds) {
             const audios = await openAudioFilePicker();
+            this.proc_event(EngineProcState.Loading)
             if (!audios.some) {
                 this.fin_proc();
                 return;
@@ -282,6 +283,7 @@ export class ProjectManager extends InternalProjectManager {
             );
             if (add_failed) this.warn(EngineError.PartialSoundAddFailed);
         } else {
+            this.proc_event(EngineProcState.Loading)
             files = sounds;
             await Promise.allSettled(
                 files.map(async (sound) => {
