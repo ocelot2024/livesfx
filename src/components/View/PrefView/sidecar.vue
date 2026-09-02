@@ -9,9 +9,10 @@ import ConnectToHostView from '../connectToHostView.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectManager } from '@/core/index.ts';
 import { useConfigStore } from '@/core/store/configstore.ts';
+import Toggle from '@/components/toggle.vue';
 
 const store = useEngineState()
-
+const config_store = useConfigStore()
 const mode = ref<'host' | 'visitor' | undefined>()
 
 const disconnect = () => {
@@ -45,6 +46,11 @@ const clickConnect = () => {
         <SettingsSection v-else>
             <SettingsRow :label="store.sidecar_mode == 'host' ? 'ホストとして起動中' : 'ビジターとしてホストに接続中'" />
             <SettingsRow label="SideCarを切断" danger chevron @click="disconnect()" />
+        </SettingsSection>
+        <SettingsSection title="その他">
+            <SettingsRow label="認証情報の自動選択">
+                <Toggle v-model="config_store.autoSelectCredentials" />
+            </SettingsRow>
         </SettingsSection>
     </Settinglist>
     <Modal :show="!!mode" @close="mode = undefined">

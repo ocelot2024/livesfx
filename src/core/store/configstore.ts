@@ -30,5 +30,7 @@ export const useConfigStore = defineStore("config", {
         ducking_amount: -2,
 
         showUnfinishedFeatures: false,
+
+        autoSelectCredentials: true,
     }),
 });
