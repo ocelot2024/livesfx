@@ -176,8 +176,7 @@ const toggle_play = async () => {
         isPlaying.value = false;
         playResetTimer = null;
     }, playMs);
-    }
-};
+}
 
 let resizeObserver: ResizeObserver | null = null;
 
