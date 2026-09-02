@@ -6,10 +6,12 @@ import { useConfigStore } from '../core/store/configstore.ts';
 import Modal from './Modal.vue';
 
 import { UNGROUPED } from '@/core/constants.ts';
+import { useUiState } from '@/core/store/ui_state.ts';
 
 const selectedSound = ref();
 const store = useEngineState();
 const config = useConfigStore();
+const ui_store = useUiState();
 
 const editor = defineAsyncComponent({
     loader: () => import('./View/SoundEditor.vue'),
@@ -122,7 +124,7 @@ const resetDragState = () => {
 }
 
 const onGridPointerDown = (e: PointerEvent) => {
-    if (store.ui_mode !== 'edit') return;
+    if (ui_store.ui_mode !== 'edit') return;
     if (dragState.id !== null) return;
 
     const cardEl = (e.target as HTMLElement)?.closest('[data-sound-id]');
@@ -341,7 +343,7 @@ const onClick = async (id: string) => {
         dragState.hasDragged = false;
         return;
     }
-    const is_live = store.ui_mode == "live";
+    const is_live = ui_store.ui_mode == "live";
     if (is_live) {
         await ProjectManager.play(id)
     } else {
@@ -402,27 +404,27 @@ const renameGroup = (name: string) => {
 
 <template>
     <div>
-        <div class="group-toolbar" v-if="store.ui_mode === 'edit'">
+        <div class="group-toolbar" v-if="ui_store.ui_mode === 'edit'">
             <button @click="openCreateGroup">＋ 新しいグループ</button>
         </div>
         <div v-for="groupName in groupNames" :key="groupName" class="group-section">
             <div class="group-header"
-                v-if="groupedOrder.get(groupName)?.length || (store.ui_mode === 'edit' && groupName !== UNGROUPED)">
+                v-if="groupedOrder.get(groupName)?.length || (ui_store.ui_mode === 'edit' && groupName !== UNGROUPED)">
                 <h4>{{ groupLabel(groupName) }}</h4>
-                <template v-if="groupName !== UNGROUPED && store.ui_mode === 'edit'">
+                <template v-if="groupName !== UNGROUPED && ui_store.ui_mode === 'edit'">
                     <button class="rename-group" @click="renameGroup(groupName)">名前を変更</button>
                     <button class="delete-group" @click="deleteGroup(groupName)">グループを削除</button>
                 </template>
             </div>
             <div class="grid" :data-group-name="groupName" :class="{
-                'empty-dropzone': store.ui_mode === 'edit' && !groupedOrder.get(groupName)?.length,
+                'empty-dropzone': ui_store.ui_mode === 'edit' && !groupedOrder.get(groupName)?.length,
             }" @pointerdown="onGridPointerDown" @pointermove="onGridPointerMove" @pointerup="onGridPointerUp"
                 @pointercancel="onGridPointerCancel" @lostpointercapture="onGridLostPointerCapture">
                 <button v-for="id in groupedOrder.get(groupName)" :key="id" :data-sound-id="id"
                     :ref="(el) => setCardRef(id, el as Element)" @click="onClick(id)"
-                    :class="{ 'edit-mode': store.ui_mode === 'edit' }">
+                    :class="{ 'edit-mode': ui_store.ui_mode === 'edit' }">
                     <div class="card" :class="{
-                        vibrate: store.ui_mode === 'edit' && dragState.id !== id,
+                        vibrate: ui_store.ui_mode === 'edit' && dragState.id !== id,
                         'is-dragging-source': dragState.id === id,
                         playing: store.playing_sfx.findIndex(v => v == id) >= 0
                     }">

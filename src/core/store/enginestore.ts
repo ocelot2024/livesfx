@@ -21,7 +21,6 @@ export const useEngineState = defineStore("engine", () => {
     const ducking = ref<boolean>(false);
     const sfx_library = ref<SoundMeta[]>([]);
     const bgm_library = ref<SoundMeta[]>([]);
-    const ui_mode = ref<"live" | "edit">("live");
     const notif_queue = ref<Notificatin[]>([]);
     const EngineState = ref<EngineProcState>(EngineProcState.Idle);
     const groupNames = ref<string[]>([]);
@@ -38,7 +37,9 @@ export const useEngineState = defineStore("engine", () => {
     ProjectManager.addEventListener(EngineEvent.PlaySFX, ((
         e: CustomEvent<{ id: string }>,
     ) => {
+        console.log(e.detail);
         playing_sfx.value.push(e.detail.id);
+        console.log(playing_sfx.value);
     }) as EventListener);
     ProjectManager.addEventListener(EngineEvent.StopSFX, ((
         e: CustomEvent<{ id: string }>,
@@ -150,7 +151,6 @@ export const useEngineState = defineStore("engine", () => {
         });
     }
     return {
-        ui_mode,
         sfx_library,
         bgm_library,
         notif_queue,

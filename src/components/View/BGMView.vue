@@ -9,8 +9,10 @@ import { ProjectManager } from '@/core/index.ts';
 import Modal from '../Modal.vue';
 import Spinner from '../Spinner.vue';
 import { EngineEvent } from '@/core/types/types.ts';
+import { useUiState } from '@/core/store/ui_state.ts';
 
 const store = useEngineState();
+const ui_store = useUiState();
 
 const BGMEditor = defineAsyncComponent({
     loader: () => import('../View/BGMEditor.vue'),
@@ -107,8 +109,8 @@ const show_editor = (id: string) => {
                         <p v-else>ホストから曲を追加してください。</p>
                     </div>
                     <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id"
-                        :chevron="store.ui_mode == 'edit'" @click="show_editor(value.id)">
-                        <div class="row-actions" v-show="store.ui_mode == 'live'">
+                        :chevron="ui_store.ui_mode == 'edit'" @click="show_editor(value.id)">
+                        <div class="row-actions" v-show="ui_store.ui_mode == 'live'">
                             <button @click="load_to_deck('deckA', value.id)">A</button>
                             <button @click="load_to_deck('deckB', value.id)">B</button>
                         </div>
