@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useConfigStore } from '../core/store/configstore'
 
 const props = defineProps<{ channelName: string, id: string, initial_gain?: number }>()
 
-watch(props, () => {
-    gain.value = props.initial_gain ?? 1
-})
-
-const gain = ref<number>(props.initial_gain ?? 1)
+const volume = ref<number>(props.initial_gain ?? 1)
 const emit = defineEmits<{ 'update:volume': [number] }>()
 
 const track = ref<HTMLElement | null>(null)
@@ -47,14 +43,14 @@ const dbToPosition = (db: number) => {
 const thumbTop = computed(() => {
     const trackHeight = 300
     const range = trackHeight - thumbHeight
-    const db = gainToDb(gain.value)
+    const db = gainToDb(volume.value)
     const pos = db === -Infinity ? 1 : dbToPosition(Math.max(db, config.faderMinDb))
     return pos * range
 })
 
 const displayDb = computed(() => {
-    if (gain.value <= 0) return '-∞'
-    const db = gainToDb(gain.value)
+    if (volume.value <= 0) return '-∞'
+    const db = gainToDb(volume.value)
     return (db >= 0 ? '+' : '') + db.toFixed(1)
 })
 
@@ -65,7 +61,7 @@ const unityMarkTop = computed(() => {
 })
 
 const positionToVolume = (clientY: number) => {
-    if (!track.value) return gain.value
+    if (!track.value) return volume.value
     const rect = track.value.getBoundingClientRect()
     const trackHeight = rect.height
     const range = trackHeight - thumbHeight
@@ -79,14 +75,14 @@ const positionToVolume = (clientY: number) => {
 const onPointerDown = (e: PointerEvent) => {
     dragging.value = true
         ; (e.target as HTMLElement).setPointerCapture(e.pointerId)
-    gain.value = positionToVolume(e.clientY);
-    emit('update:volume', gain.value)
+    volume.value = positionToVolume(e.clientY);
+    emit('update:volume', volume.value)
 }
 
 const onPointerMove = (e: PointerEvent) => {
     if (!dragging.value) return
-    gain.value = positionToVolume(e.clientY)
-    emit('update:volume', gain.value)
+    volume.value = positionToVolume(e.clientY)
+    emit('update:volume', volume.value)
 }
 
 const onPointerUp = (e: PointerEvent) => {
@@ -96,8 +92,8 @@ const onPointerUp = (e: PointerEvent) => {
 
 const onTrackClick = (e: PointerEvent) => {
     if (e.target === track.value) {
-        gain.value = positionToVolume(e.clientY)
-        emit('update:volume', gain.value)
+        volume.value = positionToVolume(e.clientY)
+        emit('update:volume', volume.value)
     }
 }
 

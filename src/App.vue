@@ -63,14 +63,14 @@ const menu = computed((): MenuList[] => {
             ProjectManager.disconnect()
         }
     }
-    let file = {
+    const file = {
         label: "ファイル",
         id: 'file',
         children: [
-            from_new, from_file, saveas, pref
+            ...(engine_store.sidecar_mode !== 'visitor' ? [from_new, from_file, saveas, pref, disconnect] : [disconnect])
+
         ]
     }
-    if (engine_store.sidecar_mode !== undefined) file.children.push(disconnect)
     const sound = {
         label: "サウンド",
         id: "sound",
