@@ -36,7 +36,7 @@ export class UiCommandsManager extends EventTarget {
         this.engine = new_one;
     }
     play(id: string, options?: { start?: number; end?: number }) {
-        this.engine.play(id, {
+        return this.engine.play(id, {
             ...options,
             beforestart: () => {
                 this.dispatchEvent(
