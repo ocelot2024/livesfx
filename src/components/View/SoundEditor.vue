@@ -165,6 +165,7 @@ const toggle_play = async () => {
         end: trimEnd.value,
     });
     if (!result.ok) return;
+    if (!('value' in result)) return;
     if (!result.value.played) return;
     activeSourceId.value = result.value.sourceID;
     isPlaying.value = true;

@@ -63,19 +63,21 @@ export const applyGuard = (instance: object) => {
                     if (result && typeof result.then === "function") {
                         return result
                             .then((result: unknown) => {
-                                if (import.meta.env.DEV)
+                                if (import.meta.env.DEV) {
                                     //console.log(
                                     //    `${key} tooks : ${performance.now() - start}ms`,
                                     //);
-                                    return result;
+                                }
+                                return result;
                             })
                             .catch(onPanic);
                     }
-                    if (import.meta.env.DEV)
+                    if (import.meta.env.DEV) {
                         //console.log(
                         //   `${key} tooks : ${performance.now() - start}ms`,
                         //);
-                        return result;
+                    }
+                    return result;
                 } catch (e) {
                     onPanic(e);
                     return Err(e);
