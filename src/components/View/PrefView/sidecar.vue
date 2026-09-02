@@ -8,6 +8,7 @@ import { ref } from 'vue';
 import ConnectToHostView from '../connectToHostView.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectManager } from '@/core/index.ts';
+import { useConfigStore } from '@/core/store/configstore.ts';
 
 const store = useEngineState()
 
@@ -18,6 +19,14 @@ const disconnect = () => {
     if (will) {
         ProjectManager.disconnect();
     }
+}
+
+const clickConnect = () => {
+    if (useConfigStore().alertBeforeLeave) {
+        const will = confirm('ホストに接続した場合現在の状態は破棄されます。')
+        if (!will) return
+    }
+    mode.value = 'visitor'
 }
 </script>
 <template>
@@ -31,7 +40,7 @@ const disconnect = () => {
         </SettingsSection>
         <SettingsSection title="SideCar" v-if="!store.sidecar_mode">
             <SettingsRow label="ホストの作成" chevron @click="mode = 'host'" />
-            <SettingsRow label="ホストに接続" chevron @click="mode = 'visitor'" />
+            <SettingsRow label="ホストに接続" chevron @click="clickConnect" />
         </SettingsSection>
         <SettingsSection v-else>
             <SettingsRow :label="store.sidecar_mode == 'host' ? 'ホストとして起動中' : 'ビジターとしてホストに接続中'" />
