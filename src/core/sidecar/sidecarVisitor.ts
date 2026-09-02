@@ -87,6 +87,13 @@ export class SideCarVisitorRelay {
         ) {
             this.applyLibraryState(detail as SideCarLibraryState);
         }
+        if(event==EngineEvent.CrossFaded){
+            const deckA=this.mirror.channels.find(v=>v.id == 'deckA');
+            if(deckA&&detail as number){
+                deckA.gain=detail as number
+                console.log(deckA.gain)
+            }
+        }
         if (Object.values(PlayerEvent).includes(event as PlayerEvent)) {
             const origin = detail as { deck: "A" | "B"; info: BGMPlayerInfo };
             this.mirror.deck[origin.deck === "A" ? 0 : 1] = origin.info;

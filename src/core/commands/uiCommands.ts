@@ -136,7 +136,12 @@ export class UiCommandsManager extends EventTarget {
         initialised?: boolean,
     ): Result<number, AudioMixerError> {
         return this.executeEngineAction(
-            () => this.engine.set_gain(id, gain),
+            () => {
+                if(id=='deckA'){
+                    this.dispatchEvent(new Event(EngineEvent.CrossFaded))
+                }
+                return this.engine.set_gain(id, gain)
+            },
             !initialised,
         );
     }

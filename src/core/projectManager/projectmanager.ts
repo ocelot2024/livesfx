@@ -81,6 +81,15 @@ export class ProjectManager extends InternalProjectManager {
                         );
                         return;
                     }
+                    if(event == EngineEvent.CrossFaded){
+                        const deckAgain=this.get_gain('deckA')
+                        if(deckAgain.ok && deckAgain.value){
+                            this.hostrelay.send_event(
+                                event,
+                                deckAgain.value
+                            )
+                        }
+                    }
                     this.hostrelay.send_event(event, e.detail);
                 }
             });
