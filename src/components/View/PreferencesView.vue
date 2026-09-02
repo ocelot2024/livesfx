@@ -16,14 +16,12 @@ const tabItem = computed<TabItem[]>(() => {
         { id: "general", label: "一般" },
         { id: "sound", label: "サウンド" },
         { id: "mixer", label: "ミキサー" },
+        {
+            id: "sidecar",
+            label: "SideCar",
+        }
     ];
 
-    if (configstore.showUnfinishedFeatures) {
-        items.push({
-            id: "sidecar",
-            label: "SideCar (Future)",
-        });
-    }
 
     return items;
 });
