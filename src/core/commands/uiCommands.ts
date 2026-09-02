@@ -40,7 +40,7 @@ export class UiCommandsManager extends EventTarget {
             ...options,
             beforestart: () => {
                 this.dispatchEvent(
-                    new CustomEvent(EngineEvent.PlaySFX, { detail: id }),
+                    new CustomEvent(EngineEvent.PlaySFX, { detail: { id } }),
                 );
             },
             onended: () => {
