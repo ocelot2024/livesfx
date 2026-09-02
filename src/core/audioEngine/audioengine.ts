@@ -366,7 +366,7 @@ export class AudioEngine extends EventTarget {
 
         const start = (when?: number, offset?: number, duration?: number) => {
             if (options?.beforestart) options?.beforestart(id);
-            start(when, offset, duration);
+            node.start(when, offset, duration);
         };
 
         node.onended = () => {
