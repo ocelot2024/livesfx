@@ -53,6 +53,9 @@ const join_host = async () => {
         alert('接続情報が不正です。')
     }
 }
+const onClick = (e: PointerEvent) => {
+    (e.target as HTMLTextAreaElement).select()
+}
 </script>
 <template>
     <Settinglist v-if="!store.sidecar_mode">
@@ -68,7 +71,7 @@ const join_host = async () => {
                     @click="show_reader = true" />
                 <div style="padding: 7px 16px; gap: 12px; display: flex; flex-direction: column;">
                     <div>情報を入力</div>
-                    <textarea v-model="offer" name="offer"></textarea>
+                    <textarea @click="onClick" v-model="offer" name="offer"></textarea>
                 </div>
             </SettingsSection>
             <button style="margin: 0 16px; display: block;" :disabled="offer.length == 0 || connecting"
@@ -88,7 +91,7 @@ const join_host = async () => {
                         <small>読み込み中</small>
                     </div>
                     <p>または手動で共有</p>
-                    <textarea readonly v-model="answer" :disabled="!answer" name="answer">
+                    <textarea @click="onClick" readonly v-model="answer" :disabled="!answer" name="answer">
                 </textarea>
                     <button v-if="offer && SupportedShareAPI" @click="share()">共有</button>
                 </div>

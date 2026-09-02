@@ -55,6 +55,9 @@ const apply = async () => {
         page.value++;
     }
 }
+const onClick = (e: PointerEvent) => {
+    (e.target as HTMLTextAreaElement).select()
+}
 </script>
 <template>
     <Settinglist>
@@ -71,7 +74,7 @@ const apply = async () => {
                     <small>読み込み中</small>
                 </div>
                 <p>または手動で共有</p>
-                <textarea readonly v-model="offer" :disabled="!offer" name="offer">
+                <textarea readonly @click="onClick" v-model="offer" :disabled="!offer" name="offer">
                 </textarea>
                 <button v-if="offer && SupportedShareAPI" @click="share()">共有</button>
                 <p>接続するデバイスで読み込みが成功したら次へをクリックしてください。</p>
@@ -90,7 +93,7 @@ const apply = async () => {
                     @click="show_reader = true" />
                 <div style="padding: 7px 16px; gap: 12px; display: flex; flex-direction: column;">
                     <div>情報を入力</div>
-                    <textarea v-model="answer" name="answer"></textarea>
+                    <textarea @click="onClick" v-model="answer" name="answer"></textarea>
                 </div>
             </SettingsSection>
             <button style="margin: 0 16px; display: block;" :disabled="answer.length == 0 || connecting"
