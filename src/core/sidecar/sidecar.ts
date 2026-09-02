@@ -119,6 +119,7 @@ export class SideCar extends EventTarget {
         this.channel = channel;
 
         channel.onopen = () => {
+            if(!this.mode) this.mode = 'host'
             if (this.mode == "visitor") {
                 this.send({ kind: "requestsnapshot" });
             }
@@ -181,8 +182,8 @@ export class SideCar extends EventTarget {
             const handler = () => {
                 switch (this.peer.connectionState) {
                     case "connected":
-                        cleanup();
                         this.mode = "host";
+                        cleanup();
                         resolve(Ok());
                         break;
                     case "failed":
@@ -218,6 +219,7 @@ export class SideCar extends EventTarget {
         this.peer.close();
         this.createPeer();
         this.channel = undefined;
+        this.mode = undefined
         this.dispatchEvent(new Event(SideCarEvent.Disconnect));
     }
 
