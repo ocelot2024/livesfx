@@ -87,11 +87,10 @@ export class SideCarVisitorRelay {
         ) {
             this.applyLibraryState(detail as SideCarLibraryState);
         }
-        if(event==EngineEvent.CrossFaded){
-            const deckA=this.mirror.channels.find(v=>v.id == 'deckA');
-            if(deckA&&detail as number){
-                deckA.gain=detail as number
-                console.log(deckA.gain)
+        if (event == EngineEvent.CrossFaded) {
+            const deckA = this.mirror.channels.find((v) => v.id == "deckA");
+            if (deckA && detail !== undefined) {
+                deckA.gain = detail as number;
             }
         }
         if (Object.values(PlayerEvent).includes(event as PlayerEvent)) {
