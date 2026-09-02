@@ -8,6 +8,7 @@ import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectManager } from '@/core/index.ts';
 import Modal from './Modal.vue';
 import Spinner from './Spinner.vue';
+import { EngineEvent } from '@/core/types/types.ts';
 
 const store = useEngineState();
 
@@ -41,6 +42,13 @@ const applyCrossfade = (position: number) => {
     ProjectManager.set_gain("deckA", gainA, true)
     ProjectManager.set_gain("deckB", gainB, true)
 }
+
+ProjectManager.addEventListener(EngineEvent.CrossFaded,(e:CustomEventInit<number>)=>{
+    if(crossfade.value?.value && e.detail!==undefined&&e.detail!==null){
+        const theta = Math.acos(e.detail);
+        crossfade.value.value=String(theta/ (Math.PI/2)  *100)
+    }
+})
 
 const update = () => {
     const position = (crossfade.value?.value as unknown as number) ?? 50
