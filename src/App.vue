@@ -79,15 +79,15 @@ const menu = computed((): MenuList[] => {
         ]
     }
 
-    const sidecar={
-        label:'SideCar',
-        id:'sidecar',
-        children:[disconnect
+    const sidecar = {
+        label: 'SideCar',
+        id: 'sidecar',
+        children: [disconnect
         ]
     }
     let menu = []
     if (engine_store.sidecar_mode !== 'visitor') menu.push(file, sound)
-    if(engine_store.sidecar_mode)menu.push(sidecar)
+    if (engine_store.sidecar_mode) menu.push(sidecar)
     return menu
 })
 
@@ -120,6 +120,7 @@ const showPrefView = ref<boolean>(false);
 const showConsentView = ref<boolean>(false);
 
 onMounted(() => {
+    ui_store.ui_mode = 'live'
     if (config_store.is_first) {
         config_store.is_first = false;
         showConsentView.value = true
