@@ -47,7 +47,11 @@ export class ProjectManager extends InternalProjectManager {
             (e) => this.error(e),
         );
         this.sidecar = new SideCar();
-        this.hostrelay = new SideCarHostRelay(this.commands, this.sidecar);
+        this.hostrelay = new SideCarHostRelay(
+            this.commands,
+            this.sidecar,
+            this.engine,
+        );
 
         this.visitorrelay = new SideCarVisitorRelay(
             this.sidecar,

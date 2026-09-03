@@ -1,3 +1,4 @@
+import type { AudioEngine } from "../audioEngine/audioengine";
 import type { UiCommandsManager } from "../commands/uiCommands";
 import { useEngineState } from "../store/enginestore";
 import type { EngineEvent } from "../types/types";
@@ -11,9 +12,15 @@ import {
 export class SideCarHostRelay {
     private commands: UiCommandsManager;
     private sidecar: SideCar;
-    constructor(commands: UiCommandsManager, sidecar: SideCar) {
+    private engine: AudioEngine;
+    constructor(
+        commands: UiCommandsManager,
+        sidecar: SideCar,
+        engine: AudioEngine,
+    ) {
         this.commands = commands;
         this.sidecar = sidecar;
+        this.engine = engine;
     }
     excec(payload: SideCarCommandPayload) {
         switch (payload.cmd) {
@@ -47,7 +54,7 @@ export class SideCarHostRelay {
             case SideCarCommand.UnloadBGM:
                 return this.commands.unload_bgm(payload.deck);
             case SideCarCommand.ToggleLoop:
-                return this.commands.loop_bgm(payload.id)
+                return this.engine.loop_bgm(payload.id);
         }
     }
     send_event(event: EngineEvent, detail?: unknown) {
