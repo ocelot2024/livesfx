@@ -13,23 +13,35 @@ export const AUDIO_MIME_TYPES: Record<string, string[]> = {
 
     aac: ["audio/aac"],
 
-    wav: ["audio/wav"],
+    wav: ["audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave"],
 
     aif: ["audio/aiff"],
     aiff: ["audio/aiff"],
     aifc: ["audio/aiff"],
 
-    flac: ["audio/flac"],
+    flac: ["audio/flac", "audio/x-flac"],
 
     ogg: ["audio/ogg"],
     oga: ["audio/ogg"],
-    opus: ["audio/ogg"],
+    opus: ["audio/ogg", "audio/opus"],
 
     webm: ["audio/webm"],
     weba: ["audio/webm"],
 
     amr: ["audio/amr"],
-    caf: ["audio/x-caf"],
+    caf: ["audio/x-caf", "audio/caf"],
+
+    au: ["audio/basic"],
+    snd: ["audio/basic"],
+
+    mid: ["audio/midi", "audio/x-midi"],
+    midi: ["audio/midi", "audio/x-midi"],
+    kar: ["audio/midi"],
+
+    gsm: ["audio/gsm"],
+
+    ape: ["audio/ape"],
+    wv: ["audio/wavpack"],
 
     "3gp": ["audio/3gpp"],
     "3gpp": ["audio/3gpp"],
