@@ -237,17 +237,6 @@ export class ProjectManager extends InternalProjectManager {
         }
 
         this.proc_event(EngineProcState.Writing);
-        try {
-            const cacheFiles = await Promise.all(
-                files.map(async (v) => ({
-                    ...v,
-                    file: await v.file.arrayBuffer(),
-                })),
-            );
-            await this.storageManager.save_sound_cache(cacheFiles);
-        } catch (e) {
-            this.error(e as any);
-        }
 
         this.fin_proc();
         this.stateManager.markAsChanged();
