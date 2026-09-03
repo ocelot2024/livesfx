@@ -47,7 +47,7 @@ const applyCrossfade = (position: number) => {
 
 ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<number>) => {
     const local_gain = ProjectManager.get_gain('deckA')
-    if (!crossfade.value) return
+    if (!crossfade.value || (e.detail ==undefined && store.sidecar_mode == 'visitor')) return
     if (e.detail !== undefined && e.detail !== null) {
         const theta = Math.acos(e.detail);
         crossfade.value.value = String(theta / (Math.PI / 2) * 100)
