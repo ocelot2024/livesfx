@@ -15,6 +15,7 @@ export interface BGMPlayerInfo {
     meta: SoundMeta | null;
     current_time: number;
     duration: number;
+    loop?:boolean
 }
 
 export const useEngineState = defineStore("engine", () => {
