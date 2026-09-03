@@ -146,9 +146,9 @@ export const useEngineState = defineStore("engine", () => {
             const detail = (e as CustomEvent<{ deck?: "A" | "B" }>).detail;
             const id = detail?.deck;
             if (!id) return;
-            deck.value[deckIndex(id)] = ProjectManager.get_bgm_info(
-                deckKey(id),
-            );
+            const info = ProjectManager.get_bgm_info(deckKey(id))
+            console.log(info)
+            deck.value[deckIndex(id)] = info
         });
     }
     return {

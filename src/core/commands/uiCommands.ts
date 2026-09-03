@@ -184,7 +184,7 @@ export class UiCommandsManager extends EventTarget {
     unload_bgm(id: "deckA" | "deckB") {
         this.engine.unload_bgm(id);
     }
-    loop_bgm(id:string){
+    loop_bgm(id:'deckA'|'deckB'){
         this.engine.loop_bgm(id)
         this.dispatchEvent(new CustomEvent(PlayerEvent.loop, {detail:{id}}))
     }

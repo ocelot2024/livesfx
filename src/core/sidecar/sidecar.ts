@@ -82,7 +82,7 @@ export type SideCarCommandPayload =
       }
     |{
         cmd:typeof SideCarCommand.ToggleLoop;
-        id:string
+        id:'deckA'|'deckB'
     }
 
 export interface SideCarStateSnapshot {

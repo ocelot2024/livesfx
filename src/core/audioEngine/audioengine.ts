@@ -152,7 +152,9 @@ class BGMPlayer extends EventTarget {
             });
         }
     }
-
+loop_bgm(id:"deckA" | "deckB"){
+    this[id].player.loop=!this[id].player.loop
+}
     get_info(id: "deckA" | "deckB") {
         return this[id].get_info();
     }
@@ -519,8 +521,8 @@ export class AudioEngine extends EventTarget {
     rename(id: string, name: string) {
         return this.library.rename(id, name);
     }
-    loop_bgm(id:string){
-        return this.library.loop_bgm(id)
+    loop_bgm(id:'deckA'|'deckB'){
+        return this.player.loop_bgm(id)
     }
     ducking(): Result<boolean, AudioMixerError> {
         if (this.is_ducking) {
