@@ -144,9 +144,10 @@ export class LVSFFile {
         const filename = this.prj_info.sounds.find((v) => v.id == id)?.filename;
         if (!data || !filemime || !filename)
             return Err(EngineError.SoundNotExist);
-        const mimes = Object.entries(AUDIO_MIME_TYPES).filter(
-            (v) => v[1] == filemime,
+        const mimes = Object.entries(AUDIO_MIME_TYPES).filter((v) =>
+            v[1].includes(filemime),
         )[0];
+        console.log(`[MIME] ${mimes} ${filemime}`);
         if (!mimes) return Err(EngineError.SoundNotExist);
         const mimesupported = SupportedMime[mimes[0]];
         if (!mimesupported) return Err(EngineError.UnknownSound);

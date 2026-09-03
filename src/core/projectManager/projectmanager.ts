@@ -331,6 +331,7 @@ export class ProjectManager extends InternalProjectManager {
         this.proc_event(EngineProcState.Proccessing);
 
         const files = await this.storageManager.load_sound_cache();
+        console.log(files);
         if (!files.ok) {
             this.error(files.value);
             this.fin_proc();
