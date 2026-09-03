@@ -145,6 +145,7 @@ export const useEngineState = defineStore("engine", () => {
         ProjectManager.addEventListener(event, (e) => {
             const detail = (e as CustomEvent<{ deck?: "A" | "B" }>).detail;
             const id = detail?.deck;
+            console.log(id)
             if (!id) return;
             const info = ProjectManager.get_bgm_info(deckKey(id))
             console.log(info)

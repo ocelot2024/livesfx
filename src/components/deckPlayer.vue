@@ -97,7 +97,7 @@ const deckData = computed(() => deck.value[deckIndex.value]);
                         ref="seekbar"></progress>
                     <small>{{ format_time(props.deck_info.current_time) }} / {{ format_time(props.deck_info.duration)
                     }}</small>
-                    <button @click="ProjectManager.loop_bgm(props.deckId)" :style="{backgroundColor:props.deck_info.meta?.loop?'inherit':'transparent'}">
+                    <button  :class="{unloop:!props.deck_info.loop}" @click="ProjectManager.loop_bgm(props.deckId)">
                         <Repeat :size="16" />
                     </button>
                 </div>
@@ -106,6 +106,9 @@ const deckData = computed(() => deck.value[deckIndex.value]);
     </div>
 </template>
 <style scoped>
+.unloop{
+    background-color: transparent;
+}
 .playercard {
     padding: 12px;
     background-color: var(--gray-5);

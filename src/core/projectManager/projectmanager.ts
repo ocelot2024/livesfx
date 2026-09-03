@@ -592,6 +592,8 @@ export class ProjectManager extends InternalProjectManager {
     }
     loop_bgm(id:'deckA'|'deckB'){
         if(this.sidecar.mode == 'visitor')this.sidecar.send_command({cmd:SideCarCommand.ToggleLoop, id:id})
-        return this.commands.loop_bgm(id)
+        this.engine.loop_bgm(id)
+        this.dispatchEvent(new CustomEvent(PlayerEvent.loop, {detail:{deck:id}}))
+    
     }
 }
