@@ -155,10 +155,15 @@ export class SoundLibrary {
         this.musics = {};
         this.ctx = ctx;
     }
-    add(meta: SoundMeta, file: AudioBuffer | Blob) {
+    add(
+        meta: SoundMeta,
+        file: AudioBuffer | Blob,
+        option?: { index?: number },
+    ) {
         if (meta.type === SoundFileType.SFX || meta.type === undefined) {
             const sound = new SFX(meta, file as AudioBuffer);
             this.sounds[meta.id] = sound;
+            if (option && option.index) this.move(meta.id, option.index);
             return meta.id;
         } else {
             const bgm = new BGM(meta, file as Blob);

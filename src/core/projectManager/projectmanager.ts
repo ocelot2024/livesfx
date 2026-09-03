@@ -261,12 +261,13 @@ export class ProjectManager extends InternalProjectManager {
 
             let add_failed = false;
             await Promise.allSettled(
-                audios.value.map(async (audiofile) => {
+                audios.value.map(async (audiofile, index) => {
                     const bin = await audiofile.arrayBuffer();
                     const id = await this.engine.add_sfx({
                         name: audiofile.name,
                         file: bin.slice(0),
                         mime: audiofile.type,
+                        index,
                     });
 
                     if (!id.ok) {

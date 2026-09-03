@@ -280,6 +280,7 @@ export class AudioEngine extends EventTarget {
         group?: string;
         gain?: number;
         mime?: string;
+        index?: number;
     }): Promise<Result<string, string>> {
         const { id, file, group, name, gain, mime } = option;
         const sound_id = id ?? generateUUID();
@@ -295,6 +296,7 @@ export class AudioEngine extends EventTarget {
                     mime: mime,
                 },
                 audiobuffer,
+                { index: option.index },
             );
             const result = this.mixer.create_channel(sound_id, name, groupname);
             if (!result.ok) return Err(AudioEngineError.ChannelCreationFailed);
