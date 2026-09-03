@@ -590,4 +590,8 @@ export class ProjectManager extends InternalProjectManager {
         this.sidecar.reset();
         return;
     }
+    loop_bgm(id:string){
+        if(this.sidecar.mode == 'visitor')this.sidecar.send_command({cmd:SideCarCommand.ToggleLoop, id:id})
+        return this.commands.loop_bgm(id)
+    }
 }

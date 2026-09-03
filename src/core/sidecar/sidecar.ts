@@ -43,6 +43,7 @@ export const SideCarCommand = {
     SeekBgm: "seek_bgm",
     LoadBgmToDeck: "load_bgm_to_deck",
     UnloadBGM: "eject_bgm",
+    ToggleLoop:'toggleloop'
 } as const;
 export type SideCarCommand =
     (typeof SideCarCommand)[keyof typeof SideCarCommand];
@@ -78,7 +79,11 @@ export type SideCarCommandPayload =
     | {
           cmd: typeof SideCarCommand.UnloadBGM;
           deck: "deckA" | "deckB";
-      };
+      }
+    |{
+        cmd:typeof SideCarCommand.ToggleLoop;
+        id:string
+    }
 
 export interface SideCarStateSnapshot {
     sfx_library: Record<string, SoundMeta>;

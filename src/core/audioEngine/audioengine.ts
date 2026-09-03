@@ -517,7 +517,9 @@ export class AudioEngine extends EventTarget {
     rename(id: string, name: string) {
         return this.library.rename(id, name);
     }
-
+    loop_bgm(id:string){
+        return this.library.loop_bgm(id)
+    }
     ducking(): Result<boolean, AudioMixerError> {
         if (this.is_ducking) {
             this.is_ducking = false;

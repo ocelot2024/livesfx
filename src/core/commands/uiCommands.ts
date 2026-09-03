@@ -184,7 +184,10 @@ export class UiCommandsManager extends EventTarget {
     unload_bgm(id: "deckA" | "deckB") {
         this.engine.unload_bgm(id);
     }
-
+    loop_bgm(id:string){
+        this.engine.loop_bgm(id)
+        this.dispatchEvent(new CustomEvent(EngineEvent.LoopToggled, {detail:{id}}))
+    }
     load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
         return this.executeEngineAction(
             () => this.engine.load_bgm_to_deck(id, bgmId),

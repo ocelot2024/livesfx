@@ -17,7 +17,8 @@ export enum EngineEvent {
     DuckingDeactivated = "duckingdeactivated",
     SideCarStarted = "sidecarstarted",
     SideCarEnded = "sidecarended",
-    CrossFaded='crossfaded'
+    CrossFaded='crossfaded',
+    LoopToggled='looptoggled'
 }
 
 export interface lvsf_prj_internal_meta extends lvsf_prj_info {
