@@ -292,17 +292,16 @@ export class ProjectManager extends InternalProjectManager {
         } else {
             this.proc_event(EngineProcState.Loading);
             files = sounds;
-            await Promise.allSettled(
+            const result = await Promise.allSettled(
                 files.map(async (sound) => {
                     const result = await this.engine.add_sfx({
                         name: sound.filename,
-                        file: sound.file.slice(0),
+                        file: sound.file,
                         id: sound.id,
                         group: sound.group,
                         gain: sound.gain,
                         mime: sound.mime,
                     });
-
                     if (!result.ok) {
                         this.error(result.value);
                         return;
@@ -326,7 +325,6 @@ export class ProjectManager extends InternalProjectManager {
                 }),
             );
         }
-
         this.proc_event(EngineProcState.Writing);
         try {
             await this.storageManager.save_sound_cache(files);
@@ -590,10 +588,15 @@ export class ProjectManager extends InternalProjectManager {
         this.sidecar.reset();
         return;
     }
-    loop_bgm(id:'deckA'|'deckB'){
-        if(this.sidecar.mode == 'visitor')this.sidecar.send_command({cmd:SideCarCommand.ToggleLoop, id:id})
-        this.engine.loop_bgm(id)
-        this.dispatchEvent(new CustomEvent(PlayerEvent.loop, {detail:{deck:id}}))
-    
+    loop_bgm(id: "deckA" | "deckB") {
+        if (this.sidecar.mode == "visitor")
+            this.sidecar.send_command({
+                cmd: SideCarCommand.ToggleLoop,
+                id: id,
+            });
+        this.engine.loop_bgm(id);
+        this.dispatchEvent(
+            new CustomEvent(PlayerEvent.loop, { detail: { deck: id } }),
+        );
     }
 }

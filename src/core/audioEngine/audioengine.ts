@@ -24,7 +24,7 @@ export const PlayerEvent = {
     seek: "seek",
     ended: "ended",
     timeupdate: "timeupdate",
-    loop:'loop'
+    loop: "loop",
 };
 export type PlayerEvent = (typeof PlayerEvent)[keyof typeof PlayerEvent];
 
@@ -122,7 +122,7 @@ class Deck extends EventTarget {
             meta: this.info,
             current_time: this.current_time,
             duration: Number.isFinite(this.duration) ? this.duration : 0,
-            loop:this.player.loop
+            loop: this.player.loop,
         };
     }
 }
@@ -152,9 +152,9 @@ class BGMPlayer extends EventTarget {
             });
         }
     }
-loop_bgm(id:"deckA" | "deckB"){
-    this[id].player.loop=!this[id].player.loop
-}
+    loop_bgm(id: "deckA" | "deckB") {
+        this[id].player.loop = !this[id].player.loop;
+    }
     get_info(id: "deckA" | "deckB") {
         return this[id].get_info();
     }
@@ -284,7 +284,7 @@ export class AudioEngine extends EventTarget {
         const sound_id = id ?? generateUUID();
         const groupname = group ?? "SFX";
         try {
-            const audiobuffer = await this.ctx.decodeAudioData(file);
+            const audiobuffer = await this.ctx.decodeAudioData(file.slice(0));
             this.library.add(
                 {
                     filename: name,
@@ -521,8 +521,8 @@ export class AudioEngine extends EventTarget {
     rename(id: string, name: string) {
         return this.library.rename(id, name);
     }
-    loop_bgm(id:'deckA'|'deckB'){
-        return this.player.loop_bgm(id)
+    loop_bgm(id: "deckA" | "deckB") {
+        return this.player.loop_bgm(id);
     }
     ducking(): Result<boolean, AudioMixerError> {
         if (this.is_ducking) {
