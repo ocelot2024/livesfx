@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ProjectManager } from '@/core';
 import { useEngineState, type BGMPlayerInfo } from '@/core/store/enginestore';
-import { Eject, Pause, Play, X } from '@lucide/vue';
+import { Eject, Pause, Play, Repeat, X } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, ref, useTemplateRef } from 'vue';
 
@@ -12,8 +12,7 @@ const seek = useTemplateRef('seekbar');
 const store = useEngineState();
 const { deck } = storeToRefs(store);
 
-// While the user is actively dragging we show the drag position instead of
-// the (slightly lagging) real playback position, then commit the seek on release.
+
 const dragProgress = ref<number | null>(null);
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
@@ -75,13 +74,7 @@ const toggle_play = () => {
 const eject = () => {
     ProjectManager.eject_bgm(props.deckId);
 }
-
-// A single source of truth for "which slot in the deck array is this instance".
 const deckIndex = computed(() => (props.deckId === "deckA" ? 0 : 1));
-// computed, NOT ref: this must re-evaluate whenever the store replaces
-// deck.value[index] with a fresh object (on load/unload/play/pause/seek/...).
-// ref(deck.value[deckIndex]) would only ever capture the object that existed
-// at mount time and never see later replacements.
 const deckData = computed(() => deck.value[deckIndex.value]);
 </script>
 <template>
@@ -104,6 +97,9 @@ const deckData = computed(() => deck.value[deckIndex.value]);
                         ref="seekbar"></progress>
                     <small>{{ format_time(props.deck_info.current_time) }} / {{ format_time(props.deck_info.duration)
                     }}</small>
+                    <button @click="ProjectManager.loop_bgm(props.deckId)" :style="{backgroundColor:props.deck_info.meta?.loop?'inherit':'transparent'}">
+                        <Repeat :size="16" />
+                    </button>
                 </div>
             </div>
         </div>
