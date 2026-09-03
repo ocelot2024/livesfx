@@ -48,7 +48,6 @@ const extractSoundData = async (
                     ...sound_info,
                     file: await blob.value.arrayBuffer(),
                 });
-                console.log(sfx_frag)
             }
         }),
     );
