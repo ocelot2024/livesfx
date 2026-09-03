@@ -18,14 +18,14 @@ export class LVSFFile {
     json_size?: number;
 
     soundMap: Record<string, SoundMeta>;
-    files: Map<string, ArrayBuffer>;
+    files: Map<string, ArrayBuffer | Blob>;
 
     constructor() {
         this.soundMap = {};
         this.files = new Map<string, ArrayBuffer>();
     }
     addFile(
-        files: Record<string, ArrayBuffer>,
+        files: Record<string, ArrayBuffer | Blob>,
         metas: Record<string, SoundMeta>,
     ): boolean {
         let missing = false;
@@ -46,12 +46,15 @@ export class LVSFFile {
         let entries: LVSFSoundFileMeta[] = [];
 
         for (const [id, file] of this.files) {
+            let size;
+            if ("byteLength" in file) size = file.byteLength;
+            else size = file.size;
             entries.push({
                 offset: offset,
-                size: file.byteLength,
+                size,
                 id,
             });
-            offset += file.byteLength;
+            offset += size;
         }
         const body = {
             sounds: Object.values(this.soundMap),
@@ -138,17 +141,20 @@ export class LVSFFile {
             return Err(EngineError.NoProjectFile);
         const data = this.prj_info.files.find((value) => value.id == id);
         const filemime = this.prj_info.sounds.find((v) => v.id == id)?.mime;
-        const filename=this.prj_info.sounds.find(v=>v.id==id)?.filename
-        if (!data || !filemime ||!filename) return Err(EngineError.SoundNotExist);
-        const mimes = Object.entries(AUDIO_MIME_TYPES).filter(v=>v[1]==filemime)[0]
-        if(!mimes) return Err(EngineError.SoundNotExist)
+        const filename = this.prj_info.sounds.find((v) => v.id == id)?.filename;
+        if (!data || !filemime || !filename)
+            return Err(EngineError.SoundNotExist);
+        const mimes = Object.entries(AUDIO_MIME_TYPES).filter(
+            (v) => v[1] == filemime,
+        )[0];
+        if (!mimes) return Err(EngineError.SoundNotExist);
         const mimesupported = SupportedMime[mimes[0]];
-        console.log(mimesupported)
+        console.log(mimesupported);
         if (!mimesupported) return Err(EngineError.UnknownSound);
         const audio = this.lvsf.slice(
             data.offset + this.json_size + HEADER_SIZE,
             data.size + data.offset + this.json_size + HEADER_SIZE,
-            filename
+            filename,
         );
         return Ok(audio);
     }

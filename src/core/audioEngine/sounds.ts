@@ -27,7 +27,7 @@ export interface SoundMeta {
     gain?: number;
     type: SoundFileType;
     mime?: AUDIO_MIME_TYPES;
-    loop?:boolean
+    loop?: boolean;
 }
 
 export interface SFXFile extends SoundMeta {
@@ -137,8 +137,8 @@ class BGM extends BaseSound {
     play() {
         this;
     }
-    loop(){
-        this.update_meta({loop:!this.getInfo().loop})
+    loop() {
+        this.update_meta({ loop: !this.getInfo().loop });
     }
 }
 
@@ -195,12 +195,12 @@ export class SoundLibrary {
             return this.musics[id]?.getPlayInfo();
         }
     }
-    async get_all_bgm_arraybuffer(): Promise<Record<string, ArrayBuffer>> {
-        const result: Record<string, ArrayBuffer> = {};
+    async get_all_bgm_blob() {
+        const result: Record<string, Blob> = {};
         await Promise.all(
             Object.entries(this.musics).map(async ([id, bgm]) => {
                 if (!bgm) return;
-                result[id] = await bgm.getPlayInfo().source.arrayBuffer();
+                result[id] = bgm.getPlayInfo().source;
             }),
         );
         return result;

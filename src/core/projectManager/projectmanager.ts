@@ -359,7 +359,7 @@ export class ProjectManager extends InternalProjectManager {
         const sfx_filesMap: Record<string, ArrayBuffer> = Object.fromEntries(
             files.value.map(({ id, file }) => [id, file]),
         );
-        const bgm_filesMap = await this.engine.get_all_bgm_arraybuffer();
+        const bgm_filesMap = await this.engine.get_all_bgm_blob();
         const fileMap = { ...sfx_filesMap, ...bgm_filesMap };
 
         const missing = lvsffile.addFile(fileMap, library);

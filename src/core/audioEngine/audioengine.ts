@@ -434,8 +434,8 @@ export class AudioEngine extends EventTarget {
     get_bgm_library() {
         return this.library.get_bgm_library();
     }
-    async get_all_bgm_arraybuffer(): Promise<Record<string, ArrayBuffer>> {
-        return this.library.get_all_bgm_arraybuffer();
+    async get_all_bgm_blob() {
+        return this.library.get_all_bgm_blob();
     }
     get_duration(id: string) {
         return this.library.get_duration(id);
