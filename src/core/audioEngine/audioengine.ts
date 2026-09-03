@@ -122,7 +122,7 @@ class Deck extends EventTarget {
             meta: this.info,
             current_time: this.current_time,
             duration: Number.isFinite(this.duration) ? this.duration : 0,
-            loop:this.info?.loop??false
+            loop:this.player.loop
         };
     }
 }
