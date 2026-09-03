@@ -24,6 +24,7 @@ export const PlayerEvent = {
     seek: "seek",
     ended: "ended",
     timeupdate: "timeupdate",
+    loop:'loop'
 };
 export type PlayerEvent = (typeof PlayerEvent)[keyof typeof PlayerEvent];
 

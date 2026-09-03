@@ -1,4 +1,4 @@
-import type { AudioEngine } from "../audioEngine/audioengine";
+import { PlayerEvent, type AudioEngine } from "../audioEngine/audioengine";
 import { SFXPlayMode } from "../audioEngine/sounds";
 import projectStateManager from "../projectManager/projectStateManager";
 import { AudioMixerError } from "../types/err";
@@ -186,7 +186,7 @@ export class UiCommandsManager extends EventTarget {
     }
     loop_bgm(id:string){
         this.engine.loop_bgm(id)
-        this.dispatchEvent(new CustomEvent(EngineEvent.LoopToggled, {detail:{id}}))
+        this.dispatchEvent(new CustomEvent(PlayerEvent.loop, {detail:{id}}))
     }
     load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
         return this.executeEngineAction(

@@ -18,7 +18,6 @@ export enum EngineEvent {
     SideCarStarted = "sidecarstarted",
     SideCarEnded = "sidecarended",
     CrossFaded='crossfaded',
-    LoopToggled='looptoggled'
 }
 
 export interface lvsf_prj_internal_meta extends lvsf_prj_info {
