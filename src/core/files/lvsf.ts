@@ -150,11 +150,11 @@ export class LVSFFile {
         console.log(`[MIME] ${mimes} ${filemime}`);
         if (!mimes) return Err(EngineError.SoundNotExist);
         const mimesupported = SupportedMime[mimes[0]];
-        if (!mimesupported) return Err(EngineError.UnknownSound);
+        if (!mimesupported) return Err(EngineError.UnspportedFile);
         const audio = this.lvsf.slice(
             data.offset + this.json_size + HEADER_SIZE,
             data.size + data.offset + this.json_size + HEADER_SIZE,
-            filename,
+            filemime,
         );
         return Ok(audio);
     }

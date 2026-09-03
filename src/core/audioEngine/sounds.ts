@@ -53,7 +53,11 @@ abstract class BaseSound {
                 throw new Error(EngineError.UnknownSound);
             } else {
                 const ex = this.meta.filename.slice(dotpos + 1).toLowerCase();
-                this.meta.mime = AUDIO_MIME_TYPES[ex];
+                const mmimes = AUDIO_MIME_TYPES[ex];
+                if (!mmimes) {
+                    return;
+                }
+                this.meta.mime = mmimes[0];
             }
         }
     }

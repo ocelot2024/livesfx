@@ -78,6 +78,7 @@ class Deck extends EventTarget {
         this.unload();
 
         this.info = file;
+        console.log("Loaded");
         this.blobURL = URL.createObjectURL(file.file);
         this.player.src = this.blobURL;
 
