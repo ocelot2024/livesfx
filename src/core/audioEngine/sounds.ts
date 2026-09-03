@@ -195,11 +195,6 @@ export class SoundLibrary {
             return this.musics[id]?.getPlayInfo();
         }
     }
-    loop_bgm(id:string){
-        if(id in this.musics){
-            return this.musics[id]?.loop()
-        }
-    }
     async get_all_bgm_arraybuffer(): Promise<Record<string, ArrayBuffer>> {
         const result: Record<string, ArrayBuffer> = {};
         await Promise.all(
