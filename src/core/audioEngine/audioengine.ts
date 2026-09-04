@@ -157,6 +157,9 @@ class BGMPlayer extends EventTarget {
     }
     loop_bgm(id: DeckID) {
         this[id].player.loop = !this[id].player.loop;
+        this.dispatchEvent(
+            new CustomEvent(PlayerEvent.loop, { detail: { deck: id } }),
+        );
     }
     get_info(id: DeckID) {
         return this[id].get_info();

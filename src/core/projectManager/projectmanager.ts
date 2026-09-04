@@ -594,8 +594,5 @@ export class ProjectManager extends InternalProjectManager {
                 id: id,
             });
         this.engine.loop_bgm(id);
-        this.dispatchEvent(
-            new CustomEvent(PlayerEvent.loop, { detail: { deck: id } }),
-        );
     }
 }
