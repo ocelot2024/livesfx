@@ -74,7 +74,7 @@ header {
     padding: 7px;
     border-radius: 12px;
     background-color: var(--gray-5);
-    max-height:clamp(400px, 600px, 100svh);
+    height:clamp(400px, 600px, 100svh);
     width: clamp(600px, 800px, 100vw);
     overflow-y: auto;
     display: flex;
