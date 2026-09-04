@@ -596,6 +596,6 @@ export class ProjectManager extends InternalProjectManager {
                 cmd: SideCarCommand.ToggleLoop,
                 id: id,
             });
-        this.engine.loop_bgm(id);
+        return this.commands.loop_bgm(id);
     }
 }

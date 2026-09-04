@@ -54,7 +54,7 @@ export class SideCarHostRelay {
             case SideCarCommand.UnloadBGM:
                 return this.commands.unload_bgm(payload.deck);
             case SideCarCommand.ToggleLoop:
-                return this.engine.loop_bgm(payload.id);
+                return this.commands.loop_bgm(payload.id);
         }
     }
     send_event(event: EngineEvent, detail?: unknown) {
