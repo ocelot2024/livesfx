@@ -41,6 +41,12 @@ try {
 app.use(pinia);
 app.mount("#app");
 
+if (import.meta.env.MODE == "bin") {
+    window.addEventListener("beforeunload", () => {
+        fetch("/shutdown", { method: "POST" });
+    });
+}
+
 const updateSW = registerSW({
     onNeedRefresh() {
         if (!pinia) return;

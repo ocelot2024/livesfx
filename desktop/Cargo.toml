@@ -1,0 +1,11 @@
+[package]
+name = "livesfx-launcher"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+include_dir = "0.7"
+mime_guess = "2"
+webbrowser = "1"

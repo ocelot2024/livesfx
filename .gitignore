@@ -44,3 +44,5 @@ dev-dist/sw.js
 public/version.json
 localhost-key.pem
 localhost.pem
+
+**/target/**

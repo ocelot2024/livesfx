@@ -7,6 +7,7 @@
     "scripts": {
         "dev": "vite",
         "build": "run-p type-check \"build-only {@}\" --",
+        "build-bin": "vite build --mode bin",
         "preview": "vite preview",
         "build-only": "vite build",
         "type-check": "vue-tsc --build",
