@@ -285,8 +285,8 @@ export class ProjectManager extends InternalProjectManager {
         } else {
             this.proc_event(EngineProcState.Loading);
             files = sounds;
-            const result = await Promise.allSettled(
-                files.map(async (sound, index) => {
+            await Promise.allSettled(
+                files.map(async (sound) => {
                     const result = await this.engine.add_sfx({
                         name: sound.filename,
                         file: sound.file,
@@ -294,7 +294,6 @@ export class ProjectManager extends InternalProjectManager {
                         group: sound.group,
                         gain: sound.gain,
                         mime: sound.mime,
-                        index,
                     });
                     if (!result.ok) {
                         this.error(result.value);
@@ -318,6 +317,7 @@ export class ProjectManager extends InternalProjectManager {
                         );
                 }),
             );
+            this.engine.reorder_sfx(files.map((sound) => sound.id));
         }
         this.proc_event(EngineProcState.Writing);
         try {

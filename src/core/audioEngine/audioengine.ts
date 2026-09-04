@@ -485,6 +485,9 @@ export class AudioEngine extends EventTarget {
     move_sound(id: string, toIndex: number): Result<void, string> {
         return this.library.move(id, toIndex);
     }
+    reorder_sfx(order: string[]): void {
+        this.library.reorder(order);
+    }
 
     load_bgm(id: "deckA" | "deckB", file: BGMFile) {
         this.player.load(id, file);

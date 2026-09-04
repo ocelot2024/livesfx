@@ -8,6 +8,7 @@ import {
     FakeAudioBufferSourceNode,
     FakeAudioElement,
     installBrowserGlobals,
+    makeFakeAudioBuffer,
 } from "./fakeaudio";
 
 /**
@@ -92,6 +93,51 @@ describe("Engine.add_sfx / get_sfx_library", () => {
         expect(
             engine.get_group_children("Ambience").map((c) => c.id),
         ).toContain(result.value);
+    });
+});
+
+describe("Engine.add_sfx concurrency + reorder_sfx", () => {
+    test("reorder_sfx after concurrently decoding sounds restores the intended order, regardless of which one finishes decoding first", async () => {
+        const { engine, ctx } = setupEngine();
+        const delayByMarker: Record<number, number> = {
+            0: 120,
+            1: 80,
+            2: 40,
+            3: 0,
+        };
+        ctx.decodeAudioData = (data: ArrayBuffer) => {
+            ctx.decodeCalls.push(data);
+            const marker = new Uint8Array(data)[0] ?? 0;
+            const delay = delayByMarker[marker] ?? 0;
+            return new Promise((resolve) =>
+                setTimeout(
+                    () =>
+                        resolve(
+                            makeFakeAudioBuffer() as unknown as AudioBuffer,
+                        ),
+                    delay,
+                ),
+            );
+        };
+
+        const sounds = [0, 1, 2, 3].map((marker) => ({
+            id: `s${marker}`,
+            file: new Uint8Array([marker]).buffer,
+        }));
+
+        await Promise.all(
+            sounds.map((s) =>
+                engine.add_sfx({ name: `${s.id}.wav`, file: s.file, id: s.id }),
+            ),
+        );
+        engine.reorder_sfx(sounds.map((s) => s.id));
+
+        expect(Object.keys(engine.get_sfx_library())).toEqual([
+            "s0",
+            "s1",
+            "s2",
+            "s3",
+        ]);
     });
 });
 

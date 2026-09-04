@@ -57,7 +57,7 @@ export const useEngineState = defineStore("engine", () => {
     ProjectManager.addEventListener(EngineEvent.SideCarEnded, () => {
         sidecar_mode.value = undefined;
     });
-    ProjectManager.addEventListener(EngineEvent.ChangedLibrary, () => {
+    const syncLibraryFromEngine = () => {
         const sounds: Record<string, SoundMeta> =
             ProjectManager.get_sfx_library();
         const musics: Record<string, SoundMeta> =
@@ -65,15 +65,15 @@ export const useEngineState = defineStore("engine", () => {
         sfx_library.value = Object.values(sounds);
         bgm_library.value = Object.values(musics);
         groupNames.value = [...ProjectManager.get_group_names(), UNGROUPED];
-    });
-    ProjectManager.addEventListener(EngineEvent.Initialised, () => {
-        const sounds: Record<string, SoundMeta> =
-            ProjectManager.get_sfx_library();
-        const musics: Record<string, SoundMeta> =
-            ProjectManager.get_bgm_library();
-        sfx_library.value = Object.values(sounds);
-        bgm_library.value = Object.values(musics);
-    });
+    };
+    ProjectManager.addEventListener(
+        EngineEvent.ChangedLibrary,
+        syncLibraryFromEngine,
+    );
+    ProjectManager.addEventListener(
+        EngineEvent.Initialised,
+        syncLibraryFromEngine,
+    );
     ProjectManager.addEventListener(EngineEvent.DuckingActivated, () => {
         ducking.value = true;
     });

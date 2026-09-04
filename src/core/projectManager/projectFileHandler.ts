@@ -29,32 +29,39 @@ const extractSoundData = async (
     info: lvsf_prj_info,
 ): Promise<Result<fileExResult, string>> => {
     const start = performance.now();
-    const sfx_frag: SFXFile[] = [];
-    const bgm_frag: BGMFile[] = [];
-
     let load_failed = false;
 
-    await Promise.allSettled(
+    const settled = await Promise.allSettled(
         info.sounds.map(async (sound_info) => {
             const blob = manager.get_sound_data(sound_info.id);
             console.log(
                 `[${sound_info.type} ${sound_info.filename}]${blob.ok}`,
             );
             if (!blob.ok) {
-                load_failed = true;
                 console.log(blob.value);
-                return;
+                throw blob.value;
             }
             if (sound_info.type === SoundFileType.BGM) {
-                bgm_frag.push({ ...sound_info, file: blob.value });
-            } else {
-                sfx_frag.push({
-                    ...sound_info,
-                    file: await blob.value.arrayBuffer(),
-                });
+                return { kind: "bgm" as const, sound: { ...sound_info, file: blob.value } };
             }
+            return {
+                kind: "sfx" as const,
+                sound: { ...sound_info, file: await blob.value.arrayBuffer() },
+            };
         }),
     );
+
+    const sfx_frag: SFXFile[] = [];
+    const bgm_frag: BGMFile[] = [];
+    for (const entry of settled) {
+        if (entry.status === "rejected") {
+            load_failed = true;
+            continue;
+        }
+        if (entry.value.kind === "bgm") bgm_frag.push(entry.value.sound);
+        else sfx_frag.push(entry.value.sound);
+    }
+
     console.log(`extractSoundData took : ${performance.now() - start}`);
     return Ok({ sfx: sfx_frag, bgm: bgm_frag, load_failed });
 };
@@ -78,5 +85,5 @@ export const start_from_file = async (): Promise<
 
     const result = await extractSoundData(lvsf_manager, info.value);
     if (!result.ok) return Err(result.value);
-    return Ok({ ...result.value, filename: file.value.name });
+    return Ok({ ...result.value, filename: info.value.filename });
 };

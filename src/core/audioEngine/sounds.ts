@@ -280,6 +280,19 @@ export class SoundLibrary {
         this.sounds = reordered;
         return Ok();
     }
+    reorder(order: string[]): void {
+        const reordered: Record<string, SFX> = {};
+        for (const id of order) {
+            const sound = this.sounds[id];
+            if (sound) reordered[id] = sound;
+        }
+        for (const id in this.sounds) {
+            if (id in reordered) continue;
+            const sound = this.sounds[id];
+            if (sound) reordered[id] = sound;
+        }
+        this.sounds = reordered;
+    }
     rename(id: string, name: string): Result<void, string> {
         const target = this.musics[id] ?? this.sounds[id];
         if (!target) return Err(EngineError.SoundNotExist);
