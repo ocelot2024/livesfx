@@ -155,7 +155,9 @@ export class SideCar extends EventTarget {
         };
     }
     async createHost() {
-        this.attachChannel(this.peer.createDataChannel("LiveSFX"));
+        this.attachChannel(this.peer.createDataChannel("LiveSFX",{
+            maxRetransmits:0
+        }));
 
         const offer = await this.peer.createOffer();
         await this.peer.setLocalDescription(offer);
