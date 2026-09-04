@@ -23,7 +23,7 @@ const disconnect = () => {
 }
 
 const clickConnect = () => {
-    if (useConfigStore().alertBeforeLeave) {
+    if (useConfigStore().beforeEnterVisitorAlert) {
         const will = confirm('ホストに接続した場合現在の状態は破棄されます。')
         if (!will) return
     }
@@ -50,6 +50,9 @@ const clickConnect = () => {
         <SettingsSection title="その他">
             <SettingsRow label="認証情報の自動選択">
                 <Toggle v-model="config_store.autoSelectCredentials" />
+            </SettingsRow>
+            <SettingsRow label="ビジター接続前の警告">
+                <Toggle v-model="config_store.beforeEnterVisitorAlert" />
             </SettingsRow>
         </SettingsSection>
     </Settinglist>
