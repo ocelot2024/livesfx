@@ -46,6 +46,7 @@ const applyCrossfade = (position: number) => {
 }
 
 ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<number>) => {
+    if(store.sidecar_mode == undefined && e.detail === null)return
     const local_gain = ProjectManager.get_gain('deckA')
     if (!crossfade.value || (e.detail ==undefined && store.sidecar_mode == 'visitor')) return
     if (e.detail !== undefined && e.detail !== null) {
@@ -58,14 +59,22 @@ ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<numb
     thumbColour.value = calcColour(Number(crossfade.value.value))
 })
 
-const update = () => {
-    const position = (crossfade.value?.value as unknown as number) ?? 50
-    thumbColour.value = calcColour(position)
-    applyCrossfade(Number(position))
+const update = (value?:number) => {
+    if(crossfade.value?.value !==undefined){
+        const position =value?? crossfade.value.value;
+        thumbColour.value = calcColour(Number(position))
+        applyCrossfade(Number(position))
+    }
 }
 
 onMounted(() => {
-    if (crossfade.value) crossfade.value.value = "50"
+    if (crossfade.value){
+        console.log(crossfade.value.value)
+        crossfade.value.value = "50"
+        console.log(crossfade.value.value)
+
+        update()
+    }
     applyCrossfade(50)
 })
 
