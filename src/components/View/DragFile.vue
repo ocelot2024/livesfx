@@ -48,7 +48,7 @@ const ondrop = (e: DragEvent) => {
             </p>
 
         </div>
-        <Modal show>
+        <Modal :show="sfx_or_bgm" @close="sfx_or_bgm = false">
             <Sfx_or_bgm />
         </Modal>
     </div>
