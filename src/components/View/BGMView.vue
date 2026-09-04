@@ -13,7 +13,7 @@ import { useUiState } from '@/core/store/ui_state.ts';
 
 const store = useEngineState();
 const ui_store = useUiState();
-
+let dragging = ref(false);
 const BGMEditor = defineAsyncComponent({
     loader: () => import('../View/BGMEditor.vue'),
     loadingComponent: Spinner
@@ -46,9 +46,9 @@ const applyCrossfade = (position: number) => {
 }
 
 ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<number>) => {
-    if(store.sidecar_mode == undefined && e.detail === null)return
+    if (store.sidecar_mode == undefined && e.detail === null) return
     const local_gain = ProjectManager.get_gain('deckA')
-    if (!crossfade.value || (e.detail ==undefined && store.sidecar_mode == 'visitor')) return
+    if (!crossfade.value || (e.detail == undefined && store.sidecar_mode == 'visitor')) return
     if (e.detail !== undefined && e.detail !== null) {
         const theta = Math.acos(e.detail);
         crossfade.value.value = String(theta / (Math.PI / 2) * 100)
@@ -59,16 +59,16 @@ ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<numb
     thumbColour.value = calcColour(Number(crossfade.value.value))
 })
 
-const update = (value?:number) => {
-    if(crossfade.value?.value !==undefined){
-        const position =value?? crossfade.value.value;
+const update = (value?: number) => {
+    if (crossfade.value?.value !== undefined) {
+        const position = value ?? crossfade.value.value;
         thumbColour.value = calcColour(Number(position))
         applyCrossfade(Number(position))
     }
 }
 
 onMounted(() => {
-    if (crossfade.value){
+    if (crossfade.value) {
         console.log(crossfade.value.value)
         crossfade.value.value = "50"
         console.log(crossfade.value.value)
@@ -94,6 +94,36 @@ const show_editor = (id: string) => {
     filename.value = targtet.filename;
     showed_editor.value = true;
 }
+
+const mouse_to_value = (clientX: number) => {
+    const target = crossfade.value;
+    if (!target) return
+    const rect = target.getBoundingClientRect();
+    const width = rect.width;
+    const x = clientX - rect.left
+    const clampedX = Math.min(Math.max(x, 0), width)
+    const value = (clampedX / width) * 100;
+    target.value = String(value)
+    update(value)
+}
+
+const onpointerdown = (e: PointerEvent) => {
+    const targtet = crossfade.value
+    dragging.value = true;
+    if (!targtet) return
+    targtet.setPointerCapture(e.pointerId);
+    mouse_to_value(e.clientX)
+}
+const onmove = (e: PointerEvent) => {
+    if (!dragging.value) return
+    mouse_to_value(e.clientX)
+}
+const onPointerUp = (e: PointerEvent) => {
+    dragging.value = false
+    const targtet = crossfade.value
+    if (!targtet) return
+    targtet.releasePointerCapture(e.pointerId)
+}
 </script>
 <template>
     <div style="padding: 12px;">
@@ -103,8 +133,9 @@ const show_editor = (id: string) => {
                 <DeckPlayer deck-id="deckB" colour="yellow" :deck_info="store.deck[1]" />
             </div>
             <br>
-            <input ref="crossfader" type="range" style="width: 100%;" :style="{ '--thumb-colour': thumbColour }"
-                @input="update()">
+            <input ref="crossfader" type="range" style="width: 100%; height: 2rem; touch-action: none;"
+                :style="{ '--thumb-colour': thumbColour }" :class="{ dragging }" @input="update()"
+                @pointerdown="onpointerdown" @pointermove="onmove" @pointerup="onPointerUp">
         </div>
         <div style="background-color: var(--gray-5);
         padding: 12px 0; margin: 12px; border-radius: 12px;">
@@ -171,16 +202,8 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-thumb {
     appearance: none;
     background-color: var(--thumb-colour);
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-}
-
-input[type="range"]::-moz-range-thumb {
-    background-color: var(--thumb-colour);
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    border: none;
+    aspect-ratio: 2 / 1;
+    height: 2rem;
+    border-radius: 12px;
 }
 </style>
