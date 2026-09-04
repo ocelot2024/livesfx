@@ -13,6 +13,7 @@ import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
 import { useUiState } from './core/store/ui_state.ts';
 import { storeToRefs } from 'pinia';
+import DragFile from './components/View/DragFile.vue';
 
 const footer_height = ref()
 const footer = useTemplateRef('footer')
@@ -36,6 +37,10 @@ const consentView = defineAsyncComponent({
 
 const Footer = defineAsyncComponent({
     loader: () => import('./components/Footer.vue')
+})
+
+const DragAndDropArea = defineAsyncComponent({
+    loader: () => import('./components/View/DragFile.vue')
 })
 const engine_store = useEngineState();
 const ui_store = useUiState();
@@ -160,6 +165,7 @@ onMounted(() => {
             <consentView />
         </Modal>
         <UpdateModal />
+        <DragFile />
     </main>
 </template>
 
