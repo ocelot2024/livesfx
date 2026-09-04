@@ -12,8 +12,8 @@ use mime_guess::from_path;
 use std::sync::{Arc, Mutex};
 use tokio::sync::oneshot;
 type ShutdownTx = Arc<Mutex<Option<oneshot::Sender<()>>>>;
-static DIST: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../dist");
 
+static DIST: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/dist");
 #[tokio::main]
 async fn main() {
     let (shutdown_tx, shutdown_rx) = oneshot::channel::<()>();
