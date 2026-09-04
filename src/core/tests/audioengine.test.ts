@@ -406,7 +406,7 @@ describe("Engine BGM deck control", () => {
         expect(engine.get_bgm_info("deckA").playing).toBe(true);
         expect(playHandler).toHaveBeenCalledTimes(1);
         expect(playHandler.mock.calls[0]?.[0].detail).toEqual({
-            deck: "A",
+            deck: "deckA",
         });
 
         engine.pause_bgm("deckA");
