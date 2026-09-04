@@ -28,6 +28,8 @@ export const PlayerEvent = {
 };
 export type PlayerEvent = (typeof PlayerEvent)[keyof typeof PlayerEvent];
 
+export type DeckID = "deckA" | "deckB";
+
 class Deck extends EventTarget {
     player: HTMLAudioElement;
     info: BGMFile | null;
@@ -138,11 +140,11 @@ class BGMPlayer extends EventTarget {
         this.deckA = new Deck();
         this.deckB = new Deck();
 
-        this.bindDeckEvents(this.deckA, "A");
-        this.bindDeckEvents(this.deckB, "B");
+        this.bindDeckEvents(this.deckA, "deckA");
+        this.bindDeckEvents(this.deckB, "deckB");
     }
 
-    private bindDeckEvents(deck: Deck, id: "A" | "B") {
+    private bindDeckEvents(deck: Deck, id: DeckID) {
         for (const event of Object.values(PlayerEvent)) {
             deck.addEventListener(event, () => {
                 this.dispatchEvent(
@@ -153,38 +155,38 @@ class BGMPlayer extends EventTarget {
             });
         }
     }
-    loop_bgm(id: "deckA" | "deckB") {
+    loop_bgm(id: DeckID) {
         this[id].player.loop = !this[id].player.loop;
     }
-    get_info(id: "deckA" | "deckB") {
+    get_info(id: DeckID) {
         return this[id].get_info();
     }
 
-    load(id: "deckA" | "deckB", file: BGMFile) {
+    load(id: DeckID, file: BGMFile) {
         this[id].load(file);
     }
 
-    play(id: "deckA" | "deckB") {
+    play(id: DeckID) {
         return this[id].play();
     }
 
-    pause(id: "deckA" | "deckB") {
+    pause(id: DeckID) {
         this[id].pause();
     }
 
-    stop(id: "deckA" | "deckB") {
+    stop(id: DeckID) {
         this[id].stop();
     }
 
-    seek(id: "deckA" | "deckB", time: number) {
+    seek(id: DeckID, time: number) {
         this[id].seek(time);
     }
 
-    unload(id: "deckA" | "deckB") {
+    unload(id: DeckID) {
         this[id].unload();
     }
 
-    get_deck_elm(id: "deckA" | "deckB"): HTMLAudioElement {
+    get_deck_elm(id: DeckID): HTMLAudioElement {
         return this[id].player;
     }
 
@@ -489,11 +491,11 @@ export class AudioEngine extends EventTarget {
         this.library.reorder(order);
     }
 
-    load_bgm(id: "deckA" | "deckB", file: BGMFile) {
+    load_bgm(id: DeckID, file: BGMFile) {
         this.player.load(id, file);
     }
     load_bgm_to_deck(
-        id: "deckA" | "deckB",
+        id: DeckID,
         bgmId: string,
     ): Result<void, AudioEngineError> {
         const info = this.library.get_bgm_playinfo(bgmId);
@@ -503,31 +505,31 @@ export class AudioEngine extends EventTarget {
         return Ok();
     }
 
-    play_bgm(id: "deckA" | "deckB") {
+    play_bgm(id: DeckID) {
         this.player.play(id);
     }
 
-    pause_bgm(id: "deckA" | "deckB") {
+    pause_bgm(id: DeckID) {
         this.player.pause(id);
     }
 
-    stop_bgm(id: "deckA" | "deckB") {
+    stop_bgm(id: DeckID) {
         this.player.stop(id);
     }
 
-    seek_bgm(id: "deckA" | "deckB", time: number) {
+    seek_bgm(id: DeckID, time: number) {
         this.player.seek(id, time);
     }
-    unload_bgm(id: "deckA" | "deckB") {
+    unload_bgm(id: DeckID) {
         this.player.unload(id);
     }
-    get_bgm_info(id: "deckA" | "deckB") {
+    get_bgm_info(id: DeckID) {
         return this.player.get_info(id);
     }
     rename(id: string, name: string) {
         return this.library.rename(id, name);
     }
-    loop_bgm(id: "deckA" | "deckB") {
+    loop_bgm(id: DeckID) {
         return this.player.loop_bgm(id);
     }
     ducking(): Result<boolean, AudioMixerError> {

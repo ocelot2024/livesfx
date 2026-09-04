@@ -10,7 +10,7 @@ import {
     SideCarEvent,
 } from "./sidecar";
 import type { BGMPlayerInfo } from "../store/enginestore";
-import { PlayerEvent } from "../audioEngine/audioengine";
+import { PlayerEvent, type DeckID } from "../audioEngine/audioengine";
 
 type SideCarLibraryState = Pick<
     SideCarStateSnapshot,
@@ -94,8 +94,8 @@ export class SideCarVisitorRelay {
             }
         }
         if (Object.values(PlayerEvent).includes(event as PlayerEvent)) {
-            const origin = detail as { deck: "A" | "B"; info: BGMPlayerInfo };
-            this.mirror.deck[origin.deck === "A" ? 0 : 1] = origin.info;
+            const origin = detail as { deck: DeckID; info: BGMPlayerInfo };
+            this.mirror.deck[origin.deck === "deckA" ? 0 : 1] = origin.info;
         }
         this.emitLocally(event, detail);
     }

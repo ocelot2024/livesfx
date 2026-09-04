@@ -1,4 +1,8 @@
-import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
+import {
+    AudioEngine,
+    PlayerEvent,
+    type DeckID,
+} from "../audioEngine/audioengine";
 import {
     EngineEvent,
     Err,
@@ -98,13 +102,13 @@ export class ProjectManager extends InternalProjectManager {
         for (const event of Object.values(PlayerEvent)) {
             this.addEventListener(
                 event,
-                (e: CustomEventInit<{ deck: "A" | "B" }>) => {
+                (e: CustomEventInit<{ deck: DeckID }>) => {
                     if (this.sidecar.mode == "host") {
                         const deck = e.detail?.deck;
                         if (!deck) return;
                         this.hostrelay.send_event(event as EngineEvent, {
                             deck: deck,
-                            info: this.get_bgm_info(`deck${deck}`),
+                            info: this.get_bgm_info(deck),
                         });
                     }
                 },
