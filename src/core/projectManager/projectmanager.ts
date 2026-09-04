@@ -68,7 +68,10 @@ export class ProjectManager extends InternalProjectManager {
                     );
             },
         );
+        this.applyEvent();
+    }
 
+    private applyEvent() {
         for (const event of Object.values(EngineEvent)) {
             this.commands.addEventListener(event, (e) =>
                 this.dispatchEvent(
