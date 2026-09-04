@@ -2,6 +2,7 @@ import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import type { SoundMeta } from "../audioEngine/sounds";
 import type { MixerChannelSnapshot } from "../audioEngine/mixer";
 import type { BGMPlayerInfo } from "../store/enginestore";
+import type { DeckID } from "../audioEngine/audioengine";
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve) => {
         if (pc.iceGatheringState === "complete") {
@@ -43,7 +44,7 @@ export const SideCarCommand = {
     SeekBgm: "seek_bgm",
     LoadBgmToDeck: "load_bgm_to_deck",
     UnloadBGM: "eject_bgm",
-    ToggleLoop:'toggleloop'
+    ToggleLoop: "toggleloop",
 } as const;
 export type SideCarCommand =
     (typeof SideCarCommand)[keyof typeof SideCarCommand];
@@ -63,27 +64,27 @@ export type SideCarCommandPayload =
           gain: number;
           initialising?: boolean;
       }
-    | { cmd: typeof SideCarCommand.PlayBgm; deck: "deckA" | "deckB" }
-    | { cmd: typeof SideCarCommand.PauseBgm; deck: "deckA" | "deckB" }
-    | { cmd: typeof SideCarCommand.StopBgm; deck: "deckA" | "deckB" }
+    | { cmd: typeof SideCarCommand.PlayBgm; deck: DeckID }
+    | { cmd: typeof SideCarCommand.PauseBgm; deck: DeckID }
+    | { cmd: typeof SideCarCommand.StopBgm; deck: DeckID }
     | {
           cmd: typeof SideCarCommand.SeekBgm;
-          deck: "deckA" | "deckB";
+          deck: DeckID;
           time: number;
       }
     | {
           cmd: typeof SideCarCommand.LoadBgmToDeck;
-          deck: "deckA" | "deckB";
+          deck: DeckID;
           bgmId: string;
       }
     | {
           cmd: typeof SideCarCommand.UnloadBGM;
-          deck: "deckA" | "deckB";
+          deck: DeckID;
       }
-    |{
-        cmd:typeof SideCarCommand.ToggleLoop;
-        id:'deckA'|'deckB'
-    }
+    | {
+          cmd: typeof SideCarCommand.ToggleLoop;
+          id: DeckID;
+      };
 
 export interface SideCarStateSnapshot {
     sfx_library: Record<string, SoundMeta>;
@@ -155,9 +156,11 @@ export class SideCar extends EventTarget {
         };
     }
     async createHost() {
-        this.attachChannel(this.peer.createDataChannel("LiveSFX",{
-            maxRetransmits:0
-        }));
+        this.attachChannel(
+            this.peer.createDataChannel("LiveSFX", {
+                maxRetransmits: 0,
+            }),
+        );
 
         const offer = await this.peer.createOffer();
         await this.peer.setLocalDescription(offer);
