@@ -125,7 +125,6 @@ export class ProjectManager extends InternalProjectManager {
         );
         this.sidecar.addEventListener(SideCarEvent.Disconnect, async () => {
             await this.disconnect();
-            this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
         });
         this.sidecar.addEventListener(
             SideCarEvent.Message,
@@ -586,8 +585,9 @@ export class ProjectManager extends InternalProjectManager {
     }
     async disconnect() {
         const mode = this.sidecar.mode;
-        if (mode == "visitor") await this.start_with_blank(true);
         this.sidecar.reset();
+        if (mode == "visitor") await this.start_with_blank(true);
+        this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
         return;
     }
     loop_bgm(id: "deckA" | "deckB") {
