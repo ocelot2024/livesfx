@@ -123,8 +123,8 @@ export class ProjectManager extends InternalProjectManager {
         this.sidecar.addEventListener(SideCarEvent.Connect, () =>
             this.dispatchEvent(new Event(EngineEvent.SideCarStarted)),
         );
-        this.sidecar.addEventListener(SideCarEvent.Disconnect, () => {
-            this.disconnect();
+        this.sidecar.addEventListener(SideCarEvent.Disconnect, async () => {
+            await this.disconnect();
             this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
         });
         this.sidecar.addEventListener(
@@ -584,9 +584,9 @@ export class ProjectManager extends InternalProjectManager {
     get_sidecar_mode(): "host" | "visitor" | undefined {
         return this.sidecar.mode ?? undefined;
     }
-    disconnect() {
+    async disconnect() {
         const mode = this.sidecar.mode;
-        if (mode == "visitor") this.start_with_blank(true);
+        if (mode == "visitor") await this.start_with_blank(true);
         this.sidecar.reset();
         return;
     }

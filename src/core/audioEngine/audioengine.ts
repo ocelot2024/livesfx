@@ -430,7 +430,18 @@ export class AudioEngine extends EventTarget {
     async dispose() {
         this.stop_all_sfx();
         this.player.reset();
-        await this.ctx.close();
+        await Promise.race([
+            (async () => {
+                if (
+                    this.ctx.state == "interrupted" ||
+                    this.ctx.state == "suspended"
+                ) {
+                    await this.ctx.resume();
+                }
+                await this.ctx.close();
+            })(),
+            new Promise((resolve) => setTimeout(resolve, 3000)),
+        ]);
         window.removeEventListener("click", this.resume_ctx);
         window.removeEventListener("touchstart", this.resume_ctx);
         window.removeEventListener("touchend", this.resume_ctx);
