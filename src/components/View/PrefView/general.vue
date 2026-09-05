@@ -34,7 +34,7 @@ function resetSettings() {
     <div>
         <Settinglist>
             <SettingsSection title="動作" footer="iPhoneやiPad等一部の環境では再読み込み時に警告を出すことができません。">
-                <SettingsRow label="編集モード繊維の確認">
+                <SettingsRow label="編集モード繊維の遷移">
                     <Toggle v-model="store.enterEditModeConfirm" />
                 </SettingsRow>
                 <SettingsRow label="プロジェクト未保存時の警告">
