@@ -3,13 +3,29 @@ import { FilePlusCorner } from '@lucide/vue';
 import { onMounted, onUnmounted, ref } from 'vue';
 import Sfx_or_bgm from '../sfx_or_bgm.vue';
 import Modal from '../Modal.vue';
-import { SupportedMime } from '@/core/util/compatibility.ts';
 import { ProjectManager } from '@/core/index.ts';
 
 const dragging = ref(false);
 const sfx_or_bgm = ref(false);
 const type = ref()
 let files: File[] = []
+
+const AUDIO_EXTENSIONS = [
+    '.mp3',
+    '.wav',
+    '.m4a',
+    '.aac',
+    '.caf',
+];
+const isLvsfFile = (file: File) =>
+    file.name.toLowerCase().endsWith('.lvsf');
+
+const isAudioFile = (file: File) => {
+    if (file.type.startsWith('audio/')) return true;
+    const name = file.name.toLowerCase();
+    return AUDIO_EXTENSIONS.some(ext => name.endsWith(ext));
+};
+
 onMounted(() => {
     window.addEventListener("dragover", showFileDropArea)
     window.addEventListener('dragleave', hideFileDropArea)
@@ -35,7 +51,14 @@ const ondrop = (e: DragEvent) => {
     if (!e.dataTransfer) return
     if ([...e.dataTransfer.items].some((item) => item.kind === "file")) {
         files = [...e.dataTransfer.items].map(v => v.getAsFile()).filter(file => !!file)
-        sfx_or_bgm.value = true;
+        const audio = files.filter(isAudioFile)
+        const lvsf = files.filter(isLvsfFile)
+        if (audio.length > 0) {
+            files = audio
+            sfx_or_bgm.value = true;
+        } else if (lvsf.length > 0) {
+            ProjectManager.start_from_file(lvsf[0])
+        }
     }
 }
 const selected = (v: "SFX" | "BGM") => {

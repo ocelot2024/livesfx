@@ -42,7 +42,10 @@ const extractSoundData = async (
                 throw blob.value;
             }
             if (sound_info.type === SoundFileType.BGM) {
-                return { kind: "bgm" as const, sound: { ...sound_info, file: blob.value } };
+                return {
+                    kind: "bgm" as const,
+                    sound: { ...sound_info, file: blob.value },
+                };
             }
             return {
                 kind: "sfx" as const,
@@ -69,14 +72,18 @@ const extractSoundData = async (
 interface ExtractedProjectFileData extends fileExResult {
     filename: string;
 }
-export const start_from_file = async (): Promise<
-    Result<ExtractedProjectFileData | string, string>
-> => {
-    const filelist = await openLvsfFilePicker();
-    if (!filelist.some) return Ok("");
-    const file = checkLVSFFile(filelist);
-    if (!file.ok) return Err(file.value);
-
+export const start_from_file = async (
+    lvsffile?: File,
+): Promise<Result<ExtractedProjectFileData | string, string>> => {
+    let file;
+    if (lvsffile) {
+        file = Ok(lvsffile);
+    } else if (!file) {
+        const filelist = await openLvsfFilePicker();
+        if (!filelist.some) return Ok("");
+        file = checkLVSFFile(filelist);
+        if (!file.ok) return Err(file.value);
+    }
     const lvsf_manager = new (await import("../files/lvsf")).LVSFFile();
     const info = await lvsf_manager.parse(file.value);
     if (!info.ok) {

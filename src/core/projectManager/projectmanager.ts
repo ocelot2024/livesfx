@@ -173,10 +173,10 @@ export class ProjectManager extends InternalProjectManager {
         this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
     }
 
-    async start_from_file(): Promise<Result<void, string>> {
+    async start_from_file(file?: File): Promise<Result<void, string>> {
         if (!this.stateManager.leaveConfirm()) return Ok();
 
-        const result = await start_from_file();
+        const result = await start_from_file(file);
         if (!result.ok) {
             this.error(EngineError.InvalidLVSFFile);
             return Err(result.value);
