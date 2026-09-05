@@ -196,6 +196,190 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.</pre>
         </section>
+        <section>
+            <h2>Rust Dependencies (MIT)</h2>
+            <pre>
+The following Rust crates are licensed under the MIT License:
+
+axum
+axum-core
+bytes
+combine
+http-body
+http-body-util
+hyper
+hyper-util
+include_dir
+include_dir_macros
+mime_guess
+mio
+objc2
+objc2-encode
+objc2-foundation
+redox_syscall
+slab
+synstructure
+tokio
+tokio-macros
+tower
+tower-layer
+tower-service
+tracing
+tracing-core
+zmij
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+    </pre>
+        </section>
+
+        <section>
+            <h2>Rust Dependencies (BSD-3-Clause)</h2>
+            <pre>
+The following Rust crate includes BSD-3-Clause licensed code:
+
+matchit
+
+BSD 3-Clause License
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED "AS IS".
+    </pre>
+        </section>
+
+        <section>
+            <h2>Rust Dependencies (Unicode-3.0)</h2>
+            <pre>
+The following Rust crates use Unicode data licensed under Unicode-3.0:
+
+unicode-ident
+icu_collections
+icu_locale_core
+icu_normalizer
+icu_normalizer_data
+icu_properties
+icu_properties_data
+icu_provider
+litemap
+potential_utf
+tinystr
+writeable
+yoke
+yoke-derive
+zerofrom
+zerofrom-derive
+zerotrie
+zerovec
+zerovec-derive
+
+Unicode License v3
+
+Copyright © Unicode, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of the Unicode Data Files and associated documentation to deal in them
+without restriction.
+
+THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND.
+    </pre>
+        </section>
+
+        <section>
+            <h2>Rust Dependencies (Apache-2.0 OR MIT)</h2>
+            <pre>
+The following Rust crates are dual licensed under Apache License 2.0 or MIT:
+
+atomic-waker
+bitflags
+bumpalo
+cfg-if
+displaydoc
+errno
+form_urlencoded
+futures-channel
+futures-core
+futures-task
+futures-util
+http
+httparse
+httpdate
+idna
+idna_adapter
+itoa
+js-sys
+libc
+lock_api
+log
+mime
+once_cell
+parking_lot
+parking_lot_core
+percent-encoding
+pin-project-lite
+proc-macro2
+quote
+rustversion
+scopeguard
+serde
+serde_core
+serde_derive
+serde_json
+serde_path_to_error
+serde_urlencoded
+signal-hook-registry
+simdutf8
+smallvec
+socket2
+stable_deref_trait
+syn
+thiserror
+thiserror-impl
+unicase
+url
+utf8_iter
+wasm-bindgen
+wasm-bindgen-macro
+wasm-bindgen-macro-support
+wasm-bindgen-shared
+web-sys
+webbrowser
+windows-link
+windows-sys
+and others.
+
+Licensed under either of:
+
+- Apache License, Version 2.0
+- MIT License
+
+at your option.
+    </pre>
+        </section>
     </div>
 </template>
 

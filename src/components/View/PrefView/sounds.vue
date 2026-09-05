@@ -15,7 +15,7 @@ const store = useConfigStore();
         <Settinglist>
             <SettingsSection title="一般">
                 <SettingsRow label="ダッキング時の音量">
-                    <input type="number" max="0" min="-12" v-model="store.ducking_amount">
+                    <input type="number" max="0" min="-20" v-model="store.ducking_amount">
                 </SettingsRow>
             </SettingsSection>
             <SettingsSection title="効果音">

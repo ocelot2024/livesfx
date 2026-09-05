@@ -42,9 +42,6 @@ function resetSettings() {
                 </SettingsRow>
             </SettingsSection>
             <SettingsSection title="アニメーション">
-                <SettingsRow label="編集モードのアニメーション">
-                    <Toggle v-model="store.editModeAnimation" />
-                </SettingsRow>
                 <SettingsRow label="モーダルのアニメーション">
                     <Toggle v-model="store.modalAnimation" />
                 </SettingsRow>
@@ -68,9 +65,6 @@ function resetSettings() {
             <SettingsSection title="その他">
                 <SettingsRow label="最後に開いていたタブの記憶">
                     <Toggle v-model="store.memoryLastTab" />
-                </SettingsRow>
-                <SettingsRow label="開発中の機能を表示" danger>
-                    <Toggle v-model="store.showUnfinishedFeatures" />
                 </SettingsRow>
             </SettingsSection>
             <SettingsSection title="情報">

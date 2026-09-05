@@ -7,7 +7,6 @@ export const useConfigStore = defineStore("config", {
 
         enterEditModeConfirm: true,
         alertBeforeLeave: true,
-        editModeAnimation: true,
         modalAnimation: true,
         defaultPlayMode: SFXPlayMode.OverLap,
         maxPoly: 30,
@@ -28,8 +27,6 @@ export const useConfigStore = defineStore("config", {
         collecting_error_info_consent: false,
 
         ducking_amount: -12,
-
-        showUnfinishedFeatures: false,
 
         autoSelectCredentials: true,
         beforeEnterVisitorAlert: true,
