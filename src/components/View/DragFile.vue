@@ -3,10 +3,12 @@ import { FilePlusCorner } from '@lucide/vue';
 import { onMounted, onUnmounted, ref } from 'vue';
 import Sfx_or_bgm from '../sfx_or_bgm.vue';
 import Modal from '../Modal.vue';
+import { SupportedMime } from '@/core/util/compatibility.ts';
+import { ProjectManager } from '@/core/index.ts';
 
 const dragging = ref(false);
 const sfx_or_bgm = ref(false);
-
+const type = ref()
 let files: File[] = []
 onMounted(() => {
     window.addEventListener("dragover", showFileDropArea)
@@ -33,10 +35,19 @@ const ondrop = (e: DragEvent) => {
     if (!e.dataTransfer) return
     if ([...e.dataTransfer.items].some((item) => item.kind === "file")) {
         files = [...e.dataTransfer.items].map(v => v.getAsFile()).filter(file => !!file)
-        if (files.length > 1) {
-            sfx_or_bgm.value = true;
-        }
+        sfx_or_bgm.value = true;
     }
+}
+const selected = (v: "SFX" | "BGM") => {
+    switch (v) {
+        case "BGM":
+            ProjectManager.add_bgm(undefined, { files })
+            break
+        case 'SFX':
+            ProjectManager.add_sfx(undefined, { files })
+            break
+    }
+    sfx_or_bgm.value = false;
 }
 </script>
 <template>
@@ -49,7 +60,7 @@ const ondrop = (e: DragEvent) => {
 
         </div>
         <Modal :show="sfx_or_bgm" @close="sfx_or_bgm = false">
-            <Sfx_or_bgm />
+            <Sfx_or_bgm v-model="type" @change="selected" />
         </Modal>
     </div>
 </template>

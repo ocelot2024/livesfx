@@ -199,13 +199,18 @@ export class ProjectManager extends InternalProjectManager {
         return Ok();
     }
 
-    async add_bgm(musics?: BGMFile[]) {
+    async add_bgm(musics?: BGMFile[], option?: { files: File[] }) {
         if (!this.checkStorage()) return;
 
         let files: BGMFile[] = [];
 
         if (!musics) {
-            const audiofiles = await openAudioFilePicker();
+            let audiofiles: Option<File[]>;
+            if (option && option.files) {
+                audiofiles = Some(option.files);
+            } else {
+                audiofiles = await openAudioFilePicker();
+            }
             this.proc_event(EngineProcState.Loading);
             if (!audiofiles.some) {
                 this.fin_proc();
@@ -252,19 +257,22 @@ export class ProjectManager extends InternalProjectManager {
         this.stateManager.markAsChanged();
     }
 
-    async add_sfx(sounds?: SFXFile[]) {
+    async add_sfx(sounds?: SFXFile[], option?: { files: File[] }) {
         if (!this.checkStorage()) return;
 
         let files: SFXFile[] = [];
 
         if (!sounds) {
-            const audios = await openAudioFilePicker();
-            this.proc_event(EngineProcState.Loading);
+            let audios: Option<File[]>;
+            if (option && option.files) {
+                audios = Some(option.files);
+            } else {
+                audios = await openAudioFilePicker();
+            }
             if (!audios.some) {
                 this.fin_proc();
                 return;
             }
-
             let add_failed = false;
             await Promise.allSettled(
                 audios.value.map(async (audiofile) => {
