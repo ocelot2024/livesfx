@@ -51,11 +51,7 @@ export class ProjectManager extends InternalProjectManager {
             (e) => this.error(e),
         );
         this.sidecar = new SideCar();
-        this.hostrelay = new SideCarHostRelay(
-            this.commands,
-            this.sidecar,
-            this.engine,
-        );
+        this.hostrelay = new SideCarHostRelay(this.commands, this.sidecar);
 
         this.visitorrelay = new SideCarVisitorRelay(
             this.sidecar,
@@ -599,8 +595,10 @@ export class ProjectManager extends InternalProjectManager {
     }
     async disconnect() {
         const mode = this.sidecar.mode;
-        this.sidecar.reset();
-        if (mode == "visitor") await this.start_with_blank(true);
+        if (mode == "visitor") {
+            this.sidecar.reset();
+            await this.start_with_blank(true);
+        }
         this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
         return;
     }
@@ -611,5 +609,8 @@ export class ProjectManager extends InternalProjectManager {
                 id: id,
             });
         return this.commands.loop_bgm(id);
+    }
+    get_connections() {
+        return this.sidecar.connections;
     }
 }
