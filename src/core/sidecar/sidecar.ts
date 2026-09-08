@@ -127,7 +127,7 @@ export class SideCar extends EventTarget {
         };
         connection.peer.ondatachannel = (e) => {
             connection.channel = e.channel;
-            this.attachChannel(connection.channel);
+            this.attachChannel(id);
         };
         this.connections.push(connection);
         return connection;
@@ -139,7 +139,9 @@ export class SideCar extends EventTarget {
             this.connections[0]?.channel.readyState === "open"
         );
     }
-    private attachChannel(channel: RTCDataChannel) {
+    private attachChannel(id: string) {
+        const channel = this.connections.filter((v) => v.id == id)[0]?.channel;
+        if (!channel) return;
         channel.onopen = () => {
             if (!this.mode) this.mode = "host";
             if (this.mode == "visitor") {
@@ -150,6 +152,7 @@ export class SideCar extends EventTarget {
 
         channel.onclose = () => {
             console.log("closed");
+            this.connections = this.connections.filter((v) => v.id !== id);
             this.dispatchEvent(
                 new CustomEvent(SideCarEvent.Disconnect, {
                     detail: { mode: this.mode },
@@ -174,11 +177,10 @@ export class SideCar extends EventTarget {
     async createHost() {
         const peer_id = generateUUID();
         const target = this.createPeer(peer_id);
-        this.attachChannel(
-            target.peer.createDataChannel("LiveSFX", {
-                maxRetransmits: 0,
-            }),
-        );
+        target.channel = target.peer.createDataChannel("LiveSFX", {
+            maxRetransmits: 0,
+        });
+        this.attachChannel(peer_id);
 
         const offer = await target.peer.createOffer();
         await target.peer.setLocalDescription(offer);
