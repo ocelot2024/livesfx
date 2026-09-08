@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import Settinglist from '../settinglist.vue';
 import SettingsSection from '../settingsSection.vue';
 import Spinner from '../Spinner.vue';
@@ -23,8 +23,10 @@ const offer = ref('')
 const answer = ref('')
 const src = ref();
 
-const id = ref()
+const id = ref();
+const ok = ref(false)
 onMounted(async () => {
+    ok.value = false
     const offer_request = await ProjectManager.create_host();
     if (offer_request.some) {
         id.value = offer_request.value.id;
@@ -58,6 +60,7 @@ const apply = async () => {
     const res = await ProjectManager.apply_answer(id.value, JSON.parse(answer.value))
     if (res.ok) {
         page.value++;
+        ok.value = true
     } else {
         alert('接続できませんでした。デバイスがLAN内に存在するかを確認の上もう一度お試しください。')
     }
@@ -66,6 +69,9 @@ const onClick = (e: PointerEvent) => {
     if (config_store.autoSelectCredentials)
         (e.target as HTMLTextAreaElement).select()
 }
+onBeforeUnmount(() => {
+    if (ok.value == false) ProjectManager.disconnect(id.value)
+})
 </script>
 <template>
     <Settinglist>
