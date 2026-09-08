@@ -25,7 +25,7 @@ const src = ref();
 onMounted(async () => {
     const offer_request = await ProjectManager.create_host();
     if (offer_request.some) {
-        offer.value = JSON.stringify(offer_request.value)
+        offer.value = JSON.stringify(offer_request.value.offer)
         if (offer.value.length > 4200) {
             return
         }

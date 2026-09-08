@@ -565,7 +565,12 @@ export class ProjectManager extends InternalProjectManager {
             });
         return this.commands.load_bgm_to_deck(id, bgmId);
     }
-    async create_host(): Promise<Option<RTCSessionDescription>> {
+    async create_host(): Promise<
+        Option<{
+            offer: RTCSessionDescription | null;
+            id: string;
+        }>
+    > {
         const offer = await this.sidecar.createHost();
         if (!offer) return None();
         return Some(offer);
