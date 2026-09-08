@@ -107,7 +107,7 @@ const onClick = (e: PointerEvent) => {
             <button style="margin: 0 16px; display: block;" :disabled="answer.length == 0 || connecting"
                 @click="apply">接続を確認</button>
         </div>
-        <div v-if="store.sidecar_mode" style="text-align: center;">
+        <div v-if="store.sidecar_mode && page == 2" style="text-align: center;">
             <h2>接続に成功しました</h2>
             <p>ほかのデバイスからこのLiveSFXを操作できるようになりました。</p>
             <br>
