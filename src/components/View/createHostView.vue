@@ -58,6 +58,8 @@ const apply = async () => {
     const res = await ProjectManager.apply_answer(id.value, JSON.parse(answer.value))
     if (res.ok) {
         page.value++;
+    } else {
+        alert('接続できませんでした。デバイスがLAN内に存在するかを確認の上もう一度お試しください。')
     }
 }
 const onClick = (e: PointerEvent) => {
