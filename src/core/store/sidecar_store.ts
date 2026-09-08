@@ -12,6 +12,9 @@ export const useSideCarStore = defineStore("sidecarStore", () => {
     ProjectManager.addEventListener(EngineEvent.SideCarEnded, () => {
         connections.value = [...ProjectManager.get_connections()];
     });
+    ProjectManager.addEventListener(EngineEvent.SideCarUpdated, () => {
+        connections.value = [...ProjectManager.get_connections()];
+    });
 
     return { connections };
 });

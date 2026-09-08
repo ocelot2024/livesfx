@@ -30,6 +30,7 @@ export const SideCarEvent = {
     Connect: "connect",
     Disconnect: "disconnect",
     Message: "message",
+    Update: "update",
 } as const;
 
 export type SideCarEvent = (typeof SideCarEvent)[keyof typeof SideCarEvent];
@@ -102,21 +103,30 @@ export type SideCarMessage =
     | { kind: "event"; event: EngineEvent; detail: unknown }
     | { kind: "msg"; value: string }
     | { kind: "command"; payload: SideCarCommandPayload }
+    | { kind: "visitor_device_info"; payload: DeviceInfo }
     | { kind: "requestsnapshot" };
+
+export interface DeviceInfo {
+    name: string;
+    id: string;
+}
 
 export interface Connections {
     id: string;
     peer: RTCPeerConnection;
     channel?: RTCDataChannel;
+    device_info?: DeviceInfo;
 }
 
 export class SideCar extends EventTarget {
     connections: Connections[];
     mode?: "host" | "visitor";
     device_id: string;
+    name: string;
     constructor() {
         super();
         const id = generateUUID();
+        this.name = (navigator.platform ?? "Unknown") + "上のLiveSFX";
         this.connections = [];
         this.device_id = id;
     }
@@ -146,6 +156,13 @@ export class SideCar extends EventTarget {
             if (!this.mode) this.mode = "host";
             if (this.mode == "visitor") {
                 this.send({ kind: "requestsnapshot" });
+                this.send({
+                    kind: "visitor_device_info",
+                    payload: {
+                        name: this.name,
+                        id: this.device_id,
+                    },
+                });
             }
             this.dispatchEvent(new Event(SideCarEvent.Connect));
         };
@@ -163,7 +180,12 @@ export class SideCar extends EventTarget {
         channel.onmessage = (e) => {
             try {
                 const data = JSON.parse(e.data) as SideCarMessage;
-
+                if (data.kind == "visitor_device_info") {
+                    const target = this.connections.find((v) => v.id == id);
+                    if (!target) return;
+                    target.device_info = data.payload;
+                    this.dispatchEvent(new Event(SideCarEvent.Update));
+                }
                 this.dispatchEvent(
                     new CustomEvent(SideCarEvent.Message, {
                         detail: data,
@@ -175,6 +197,7 @@ export class SideCar extends EventTarget {
         };
     }
     async createHost() {
+        if (this.mode !== "host") this.reset();
         const peer_id = generateUUID();
         const target = this.createPeer(peer_id);
         target.channel = target.peer.createDataChannel("LiveSFX", {

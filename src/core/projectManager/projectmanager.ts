@@ -122,6 +122,9 @@ export class ProjectManager extends InternalProjectManager {
         this.sidecar.addEventListener(SideCarEvent.Disconnect, async () => {
             await this.disconnect();
         });
+        this.sidecar.addEventListener(SideCarEvent.Update, () =>
+            this.dispatchEvent(new Event(EngineEvent.SideCarUpdated)),
+        );
         this.sidecar.addEventListener(
             SideCarEvent.Message,
             (e: CustomEventInit<SideCarMessage>) => {
