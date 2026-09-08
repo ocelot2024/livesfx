@@ -288,4 +288,12 @@ export class SideCar extends EventTarget {
         }
         return Err(SideCarError.ImHostNotVisitor);
     }
+    disconnect_peer(id: string) {
+        const target = this.connections.filter((v) => v.id == id)[0];
+        if (!target) return;
+        target.channel?.close();
+        target.peer.close();
+        this.connections = this.connections.filter((v) => v.id !== id);
+        this.dispatchEvent(new Event(SideCarEvent.Disconnect));
+    }
 }
