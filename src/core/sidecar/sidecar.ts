@@ -277,14 +277,18 @@ export class SideCar extends EventTarget {
     }
 
     send(message: SideCarMessage): Result<void, SideCarError> {
-        try {
-            for (const target of this.connections) {
+        let fails_channel = [];
+        for (const target of this.connections) {
+            try {
                 target.channel?.send(JSON.stringify(message));
+            } catch {
+                fails_channel.push(target);
             }
-            return Ok();
-        } catch {
-            return Err(SideCarError.NotConnected);
+            if (fails_channel.length > 1) {
+                return Err(SideCarError.NotConnected);
+            }
         }
+        return Ok();
     }
     reset() {
         try {
