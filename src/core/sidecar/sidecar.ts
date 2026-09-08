@@ -3,6 +3,7 @@ import type { SoundMeta } from "../audioEngine/sounds";
 import type { MixerChannelSnapshot } from "../audioEngine/mixer";
 import type { BGMPlayerInfo } from "../store/enginestore";
 import type { DeckID } from "../audioEngine/audioengine";
+import { generateUUID } from "../util/util";
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve) => {
         if (pc.iceGatheringState === "complete") {
@@ -103,27 +104,42 @@ export type SideCarMessage =
     | { kind: "command"; payload: SideCarCommandPayload }
     | { kind: "requestsnapshot" };
 
-export class SideCar extends EventTarget {
-    peer!: RTCPeerConnection;
+export interface Connections {
+    id: string;
+    peer: RTCPeerConnection;
     channel?: RTCDataChannel;
+}
+
+export class SideCar extends EventTarget {
+    connections: Connections[];
     mode?: "host" | "visitor";
+    device_id: string;
     constructor() {
         super();
-        this.createPeer();
+        const id = generateUUID();
+        this.connections = [];
+        this.device_id = id;
     }
-    private createPeer() {
-        this.peer = new RTCPeerConnection();
-        this.peer.ondatachannel = (e) => this.attachChannel(e.channel);
+    private createPeer(id: string) {
+        const connection: Connections = {
+            id: id,
+            peer: new RTCPeerConnection(),
+        };
+        connection.peer.ondatachannel = (e) => {
+            connection.channel = e.channel;
+            this.attachChannel(connection.channel);
+        };
+        this.connections.push(connection);
+        return connection;
     }
-    get connected() {
+    get connected_to_host() {
         return (
-            this.peer.connectionState === "connected" &&
-            this.channel?.readyState === "open"
+            this.connections[0]?.peer.connectionState === "connected" &&
+            this.connections[0].channel &&
+            this.connections[0]?.channel.readyState === "open"
         );
     }
     private attachChannel(channel: RTCDataChannel) {
-        this.channel = channel;
-
         channel.onopen = () => {
             if (!this.mode) this.mode = "host";
             if (this.mode == "visitor") {
@@ -156,46 +172,55 @@ export class SideCar extends EventTarget {
         };
     }
     async createHost() {
+        const peer_id = generateUUID();
+        const target = this.createPeer(peer_id);
         this.attachChannel(
-            this.peer.createDataChannel("LiveSFX", {
+            target.peer.createDataChannel("LiveSFX", {
                 maxRetransmits: 0,
             }),
         );
 
-        const offer = await this.peer.createOffer();
-        await this.peer.setLocalDescription(offer);
-        await waitIceComplete(this.peer);
+        const offer = await target.peer.createOffer();
+        await target.peer.setLocalDescription(offer);
+        await waitIceComplete(target.peer);
 
-        return this.peer.localDescription;
+        return { offer: target.peer.localDescription, id: peer_id };
     }
 
     async joinHost(
         offer: RTCSessionDescriptionInit,
     ): Promise<Result<RTCSessionDescription, unknown>> {
+        const connection = this.createPeer(this.device_id);
         try {
-            await this.peer.setRemoteDescription(offer);
-            const answer = await this.peer.createAnswer();
-            await this.peer.setLocalDescription(answer);
-            await waitIceComplete(this.peer);
-            if (!this.peer.localDescription) return Err("");
+            await connection.peer.setRemoteDescription(offer);
+            const answer = await connection.peer.createAnswer();
+            await connection.peer.setLocalDescription(answer);
+            await waitIceComplete(connection.peer);
+            if (!connection.peer.localDescription) return Err("");
             this.mode = "visitor";
-            return Ok(this.peer.localDescription);
+            this.connections = this.connections.filter(
+                (v) => v.id === this.device_id,
+            );
+            return Ok(connection.peer.localDescription);
         } catch (e) {
             return Err(e);
         }
     }
 
     async applyAnswer(
+        id: string,
         answer: RTCSessionDescriptionInit,
     ): Promise<Result<void, string>> {
-        await this.peer.setRemoteDescription(answer);
-        if (this.peer.connectionState === "connected") {
+        const target_peer = this.connections.filter((v) => v.id == id)[0];
+        if (!target_peer) return Err("Peer Not Found");
+        await target_peer.peer.setRemoteDescription(answer);
+        if (target_peer.peer.connectionState === "connected") {
             this.mode = "host";
             return Ok();
         }
         return new Promise<Result<void, string>>((resolve) => {
             const handler = () => {
-                switch (this.peer.connectionState) {
+                switch (target_peer.peer.connectionState) {
                     case "connected":
                         this.mode = "host";
                         cleanup();
@@ -211,36 +236,44 @@ export class SideCar extends EventTarget {
             };
             const cleanup = () => {
                 clearTimeout(time);
-                this.peer.removeEventListener("connectionstatechange", handler);
+                target_peer.peer.removeEventListener(
+                    "connectionstatechange",
+                    handler,
+                );
             };
             const time = setTimeout(() => {
                 cleanup();
                 resolve(Err("timeout"));
             }, 10000);
-            this.peer.addEventListener("connectionstatechange", handler);
+            target_peer.peer.addEventListener("connectionstatechange", handler);
         });
     }
 
     send(message: SideCarMessage): Result<void, SideCarError> {
         try {
-            this.channel?.send(JSON.stringify(message));
+            for (const target of this.connections) {
+                target.channel?.send(JSON.stringify(message));
+            }
             return Ok();
         } catch {
             return Err(SideCarError.NotConnected);
         }
     }
     reset() {
-        this.channel?.close();
-        this.peer.close();
-        this.createPeer();
-        this.channel = undefined;
+        try {
+            for (const target of this.connections) {
+                target.channel?.close();
+                target.peer.close();
+            }
+            this.connections = [];
+        } catch {}
         this.mode = undefined;
     }
 
     send_command(
         command_and_payload: SideCarCommandPayload,
     ): Result<void, SideCarError> {
-        if (!this.connected) return Err(SideCarError.NotConnected);
+        if (!this.connected_to_host) return Err(SideCarError.NotConnected);
         if (this.mode === "visitor") {
             const request: SideCarMessage = {
                 kind: "command",
