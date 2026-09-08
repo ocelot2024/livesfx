@@ -3,7 +3,7 @@ import { ref } from "vue";
 import type { Connections } from "../sidecar/sidecar";
 import { ProjectManager } from "..";
 import { EngineEvent } from "../types/types";
-const useSideCarStore = defineStore("sidecarStore", () => {
+export const useSideCarStore = defineStore("sidecarStore", () => {
     const connections = ref<Connections[]>([]);
 
     ProjectManager.addEventListener(EngineEvent.SideCarStarted, () => {
