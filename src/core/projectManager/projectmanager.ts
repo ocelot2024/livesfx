@@ -598,6 +598,7 @@ export class ProjectManager extends InternalProjectManager {
             return this.sidecar.disconnect_peer(id);
         }
         const mode = this.sidecar.mode;
+        if (mode == "host") return;
         if (mode == "visitor") {
             this.sidecar.reset();
             await this.start_with_blank(true);
