@@ -285,7 +285,7 @@ export class SideCar extends EventTarget {
                 fails_channel.push(target);
             }
         }
-        if (fails_channel.length > 1) {
+        if (fails_channel.length > 0) {
             this.connections = this.connections.filter(
                 (v) => !fails_channel.includes(v),
             );

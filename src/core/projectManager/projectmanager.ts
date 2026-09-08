@@ -120,6 +120,10 @@ export class ProjectManager extends InternalProjectManager {
             this.dispatchEvent(new Event(EngineEvent.SideCarStarted)),
         );
         this.sidecar.addEventListener(SideCarEvent.Disconnect, async () => {
+            if(this.sidecar.mode =='host'&& this.sidecar.connections.length>0){
+                this.dispatchEvent(new Event(EngineEvent.SideCarEnded))
+                return
+            }
             await this.disconnect();
         });
         this.sidecar.addEventListener(SideCarEvent.Update, () =>
