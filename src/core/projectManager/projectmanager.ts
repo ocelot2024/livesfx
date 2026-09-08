@@ -593,7 +593,10 @@ export class ProjectManager extends InternalProjectManager {
     get_sidecar_mode(): "host" | "visitor" | undefined {
         return this.sidecar.mode ?? undefined;
     }
-    async disconnect() {
+    async disconnect(id?: string) {
+        if (id) {
+            return this.sidecar.disconnect_peer(id);
+        }
         const mode = this.sidecar.mode;
         if (mode == "visitor") {
             this.sidecar.reset();
