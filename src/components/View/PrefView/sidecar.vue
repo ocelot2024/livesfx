@@ -55,8 +55,8 @@ const close = (id: string) => {
             <SettingsRow label="SideCarを切断" danger chevron @click="disconnect()" />
         </SettingsSection>
         <SettingsSection v-if="store.sidecar_mode == 'host'" title="接続中のデバイス">
-            <SettingsRow v-for="value in sidecar_store.connections" :label="value.id" chevron
-                @click="close(value.id)" />
+            <SettingsRow v-for="value in sidecar_store.connections" :label="value.id" chevron @click="close(value.id)"
+                :key="value.id" />
         </SettingsSection>
         <SettingsSection title="その他">
             <SettingsRow label="認証情報の自動選択">
