@@ -48,8 +48,8 @@ const close = (id: string) => {
             </div>
         </SettingsSection>
         <SettingsSection title="SideCar" v-if="store.sidecar_mode !== 'visitor'">
-            <SettingsRow label="ホストの作成" chevron @click="mode = 'host'" />
-            <SettingsRow label="ホストに接続" chevron @click="clickConnect" />
+            <SettingsRow :label="!store.sidecar_mode ? 'ホストの作成' : 'ビジターを追加'" chevron @click="mode = 'host'" />
+            <SettingsRow label="ホストに接続" chevron @click="clickConnect" v-if="store.sidecar_mode !== 'host'" />
         </SettingsSection>
         <SettingsSection v-if="!!store.sidecar_mode">
             <SettingsRow label="SideCarを切断" danger chevron @click="disconnect()" />
