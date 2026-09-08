@@ -22,9 +22,12 @@ const page = ref(0)
 const offer = ref('')
 const answer = ref('')
 const src = ref();
+
+const id = ref()
 onMounted(async () => {
     const offer_request = await ProjectManager.create_host();
     if (offer_request.some) {
+        id.value = offer_request.value.id;
         offer.value = JSON.stringify(offer_request.value.offer)
         if (offer.value.length > 4200) {
             return
@@ -52,7 +55,7 @@ const err_cam = ref(false);
 const connecting = ref(false)
 const apply = async () => {
     connecting.value = true
-    const res = await ProjectManager.apply_answer(JSON.parse(answer.value))
+    const res = await ProjectManager.apply_answer(id.value, JSON.parse(answer.value))
     if (res.ok) {
         page.value++;
     }

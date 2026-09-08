@@ -585,9 +585,10 @@ export class ProjectManager extends InternalProjectManager {
         return Ok(answer.value);
     }
     async apply_answer(
+        id: string,
         answer: RTCSessionDescription,
     ): Promise<Result<void, string>> {
-        const res = await this.sidecar.applyAnswer(answer);
+        const res = await this.sidecar.applyAnswer(id, answer);
         if (res.ok) {
             return Ok(res);
         }
