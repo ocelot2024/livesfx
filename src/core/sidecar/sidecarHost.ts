@@ -12,15 +12,9 @@ import {
 export class SideCarHostRelay {
     private commands: UiCommandsManager;
     private sidecar: SideCar;
-    private engine: AudioEngine;
-    constructor(
-        commands: UiCommandsManager,
-        sidecar: SideCar,
-        engine: AudioEngine,
-    ) {
+    constructor(commands: UiCommandsManager, sidecar: SideCar) {
         this.commands = commands;
         this.sidecar = sidecar;
-        this.engine = engine;
     }
     excec(payload: SideCarCommandPayload) {
         switch (payload.cmd) {
