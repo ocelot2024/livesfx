@@ -55,9 +55,10 @@ export const useEngineState = defineStore("engine", () => {
         sidecar_mode.value = ProjectManager.get_sidecar_mode();
     });
     ProjectManager.addEventListener(EngineEvent.SideCarEnded, () => {
-        sidecar_mode.value = !!ProjectManager.sidecar.connections
-            ? sidecar_mode.value
-            : undefined;
+        sidecar_mode.value =
+            ProjectManager.sidecar.connections.length > 0
+                ? sidecar_mode.value
+                : undefined;
     });
     const syncLibraryFromEngine = () => {
         const sounds: Record<string, SoundMeta> =

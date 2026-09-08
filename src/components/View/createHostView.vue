@@ -62,6 +62,7 @@ const apply = async () => {
         page.value++;
         ok.value = true
     } else {
+        connecting.value = false;
         alert('接続できませんでした。デバイスがLAN内に存在するかを確認の上もう一度お試しください。')
     }
 }

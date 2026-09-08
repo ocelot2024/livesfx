@@ -284,9 +284,12 @@ export class SideCar extends EventTarget {
             } catch {
                 fails_channel.push(target);
             }
-            if (fails_channel.length > 1) {
-                return Err(SideCarError.NotConnected);
-            }
+        }
+        if (fails_channel.length > 1) {
+            this.connections = this.connections.filter(
+                (v) => !fails_channel.includes(v),
+            );
+            return Err(SideCarError.NotConnected);
         }
         return Ok();
     }
