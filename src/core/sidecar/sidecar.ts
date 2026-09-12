@@ -152,7 +152,7 @@ export class SideCar extends EventTarget {
     private attachChannel(id: string) {
         const channel = this.connections.filter((v) => v.id == id)[0]?.channel;
         if (!channel) return;
-        channel.onopen = () => {
+        const handleOpen = () => {
             if (!this.mode) this.mode = "host";
             if (this.mode == "visitor") {
                 this.send({ kind: "requestsnapshot" });
@@ -166,6 +166,8 @@ export class SideCar extends EventTarget {
             }
             this.dispatchEvent(new Event(SideCarEvent.Connect));
         };
+        if (channel.readyState == "open") handleOpen();
+        channel.onopen = handleOpen;
 
         channel.onclose = () => {
             console.log("closed");
