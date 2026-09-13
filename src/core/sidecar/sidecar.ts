@@ -269,6 +269,10 @@ export class SideCar extends EventTarget {
                     "connectionstatechange",
                     handler,
                 );
+                target_peer.peer.addEventListener(
+                    "connectionstatechange",
+                    this.apply_watchdog(target_peer.id),
+                );
             };
             const time = setTimeout(() => {
                 cleanup();
@@ -277,7 +281,19 @@ export class SideCar extends EventTarget {
             target_peer.peer.addEventListener("connectionstatechange", handler);
         });
     }
-
+    apply_watchdog(id: string) {
+        const target = this.connections.find((v) => v.id == id);
+        const disconnect = this.disconnect_peer.bind(this);
+        return function watchdog() {
+            if (!target) return;
+            switch (target.peer.connectionState) {
+                case "disconnected":
+                case "closed":
+                    disconnect(target.id);
+                    break;
+            }
+        };
+    }
     send(message: SideCarMessage): Result<void, SideCarError> {
         let fails_channel = [];
         for (const target of this.connections) {
