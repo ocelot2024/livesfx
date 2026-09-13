@@ -217,11 +217,11 @@ export class SideCar extends EventTarget {
     async joinHost(
         offer: RTCSessionDescriptionInit,
     ): Promise<Result<RTCSessionDescription, unknown>> {
+        if (this.connections.find((v) => v.id == this.device_id))
+            this.disconnect_peer(this.device_id);
         const connection = this.createPeer(this.device_id);
-        console.log(connection);
         try {
             await connection.peer.setRemoteDescription(offer);
-            console.log("aa");
             const answer = await connection.peer.createAnswer();
             await connection.peer.setLocalDescription(answer);
             await waitIceComplete(connection.peer);
