@@ -282,7 +282,8 @@ export class SideCar extends EventTarget {
         let fails_channel = [];
         for (const target of this.connections) {
             try {
-                target.channel?.send(JSON.stringify(message));
+                if (target.channel && target.channel.readyState == "open")
+                    target.channel?.send(JSON.stringify(message));
             } catch {
                 fails_channel.push(target);
             }
