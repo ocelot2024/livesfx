@@ -433,7 +433,9 @@ export class ProjectManager extends InternalProjectManager {
     }
     stop_all_sfx() {
         if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({ cmd: "stop_all_sfx" });
+            return this.sidecar.send_command({
+                cmd: SideCarCommand.StopAllSfx,
+            });
         return this.commands.stop_all_sfx();
     }
     get_group_children(parent: string) {
