@@ -306,9 +306,9 @@ export class SideCar extends EventTarget {
             }
         }
         if (fails_channel.length > 0) {
-            this.connections = this.connections.filter(
-                (v) => !fails_channel.includes(v),
-            );
+            fails_channel.forEach((v) => {
+                this.disconnect_peer(v.id);
+            });
             return Err(SideCarError.NotConnected);
         }
         return Ok();
