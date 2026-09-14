@@ -30,7 +30,6 @@ defineProps<{
 }
 
 .container {
-    --size: 64px;
     width: var(--size);
     height: var(--size);
     position: relative;
