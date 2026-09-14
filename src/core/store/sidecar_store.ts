@@ -4,7 +4,7 @@ import type { Connections } from "../sidecar/sidecar";
 import { ProjectManager } from "..";
 import { EngineEvent } from "../types/types";
 export const useSideCarStore = defineStore("sidecarStore", () => {
-    const connections = ref<Connections[]>([]);
+    const connections = ref<Omit<Connections, "peer" | "channel">[]>([]);
 
     ProjectManager.addEventListener(EngineEvent.SideCarStarted, () => {
         connections.value = [...ProjectManager.get_connections()];

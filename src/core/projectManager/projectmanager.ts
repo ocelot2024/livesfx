@@ -120,9 +120,12 @@ export class ProjectManager extends InternalProjectManager {
             this.dispatchEvent(new Event(EngineEvent.SideCarStarted)),
         );
         this.sidecar.addEventListener(SideCarEvent.Disconnect, async () => {
-            if(this.sidecar.mode =='host'&& this.sidecar.connections.length>0){
-                this.dispatchEvent(new Event(EngineEvent.SideCarEnded))
-                return
+            if (
+                this.sidecar.mode == "host" &&
+                this.sidecar.connections.length > 0
+            ) {
+                this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
+                return;
             }
             await this.disconnect();
         });
@@ -621,6 +624,11 @@ export class ProjectManager extends InternalProjectManager {
         return this.commands.loop_bgm(id);
     }
     get_connections() {
-        return this.sidecar.connections;
+        return this.sidecar.connections.map((v) => {
+            return {
+                device_info: v.device_info,
+                id: v.id,
+            };
+        });
     }
 }
