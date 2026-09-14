@@ -71,7 +71,7 @@ const onClick = (e: PointerEvent) => {
         (e.target as HTMLTextAreaElement).select()
 }
 onBeforeUnmount(() => {
-    if (ok.value == false) ProjectManager.disconnect(id.value)
+    if (ok.value == false && id.value) ProjectManager.disconnect(id.value)
 })
 </script>
 <template>
