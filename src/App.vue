@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppBar, { type MenuItem, type MenuList } from './components/AppBar.vue';
+import AppBar, { type MenuList } from './components/AppBar.vue';
 import { ProjectManager, } from './core/index.ts';
 import { useEngineState } from './core/store/enginestore.ts';
 import NotifCentre from "./components/View/NotifCentre.vue";
@@ -13,26 +13,26 @@ import UpdateModal from './components/View/UpdateModal.vue';
 import { useConfigStore } from './core/store/configstore.ts';
 import { useUiState } from './core/store/ui_state.ts';
 import { storeToRefs } from 'pinia';
-import DragFile from './components/View/DragFile.vue';
+import Loading from './components/loading.vue';
 
 const footer_height = ref()
 const footer = useTemplateRef('footer')
 const MixerView = defineAsyncComponent({
     loader: () => import('./components/View/MixerView.vue'),
-    loadingComponent: Spinner
+    loadingComponent: Loading
 })
 const BGMView = defineAsyncComponent({
     loader: () => import('./components/View/BGMView.vue'),
-    loadingComponent: Spinner
+    loadingComponent: Loading
 })
 const prefView = defineAsyncComponent({
     loader: () => import('./components/View/PreferencesView.vue'),
-    loadingComponent: Spinner
+    loadingComponent: Loading
 })
 
 const consentView = defineAsyncComponent({
     loader: () => import('./components/View/consent.vue'),
-    loadingComponent: Spinner
+    loadingComponent: Loading
 })
 
 const Footer = defineAsyncComponent({
@@ -165,7 +165,7 @@ onMounted(() => {
             <consentView />
         </Modal>
         <UpdateModal />
-        <DragFile />
+        <DragAndDropArea />
     </main>
 </template>
 
