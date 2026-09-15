@@ -124,8 +124,12 @@ export class LVSFFile {
         if (!prj_info.ok) return Err(EngineError.InvalidLVSFFile);
         this.prj_info = prj_info.value;
 
+        const map = new Map();
+        prj_info.value.sounds.forEach((v) => {
+            map.set(v.id, v);
+        });
         return Ok({
-            sounds: prj_info.value.sounds,
+            sounds: map,
             filename: LVSFFile.strip_lvsf_extension(lvsf.name),
         });
     }
