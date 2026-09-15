@@ -285,7 +285,7 @@ export class ProjectManager extends InternalProjectManager {
                     const bin = await audiofile.arrayBuffer();
                     const id = await this.engine.add_sfx({
                         name: audiofile.name,
-                        file: bin.slice(0),
+                        file: bin,
                         mime: audiofile.type,
                     });
 

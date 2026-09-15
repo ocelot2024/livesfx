@@ -34,11 +34,7 @@ const extractSoundData = async (
     const settled = await Promise.allSettled(
         info.sounds.map(async (sound_info) => {
             const blob = manager.get_sound_data(sound_info.id);
-            console.log(
-                `[${sound_info.type} ${sound_info.filename}]${blob.ok}`,
-            );
             if (!blob.ok) {
-                console.log(blob.value);
                 throw blob.value;
             }
             if (sound_info.type === SoundFileType.BGM) {

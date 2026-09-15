@@ -27,7 +27,7 @@ export interface lvsf_prj_internal_meta extends lvsf_prj_info {
 
 export interface lvsf_prj_info {
     filename: string;
-    sounds: Map<string, SoundMeta>;
+    sounds: SoundMeta[];
 }
 
 export type Ok<T = void> = [T] extends [void]

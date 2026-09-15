@@ -20,6 +20,9 @@ export class LVSFFile {
     soundMap: Record<string, SoundMeta>;
     files: Map<string, ArrayBuffer | Blob>;
 
+    private fileEntryById?: Map<string, LVSFSoundFileMeta>;
+    private soundMetaById?: Map<string, SoundMeta>;
+
     constructor() {
         this.soundMap = {};
         this.files = new Map<string, ArrayBuffer>();
@@ -123,13 +126,15 @@ export class LVSFFile {
         const prj_info = await this.get_prj_meta();
         if (!prj_info.ok) return Err(EngineError.InvalidLVSFFile);
         this.prj_info = prj_info.value;
+        this.fileEntryById = new Map(
+            prj_info.value.files.map((entry) => [entry.id, entry]),
+        );
+        this.soundMetaById = new Map(
+            prj_info.value.sounds.map((entry) => [entry.id, entry]),
+        );
 
-        const map = new Map();
-        prj_info.value.sounds.forEach((v) => {
-            map.set(v.id, v);
-        });
         return Ok({
-            sounds: map,
+            sounds: prj_info.value.sounds,
             filename: LVSFFile.strip_lvsf_extension(lvsf.name),
         });
     }
@@ -141,17 +146,22 @@ export class LVSFFile {
     }
 
     get_sound_data(id: string): Result<Blob, string> {
-        if (!this.json_size || !this.lvsf || !this.prj_info)
+        if (
+            !this.json_size ||
+            !this.lvsf ||
+            !this.prj_info ||
+            !this.fileEntryById ||
+            !this.soundMetaById
+        )
             return Err(EngineError.NoProjectFile);
-        const data = this.prj_info.files.find((value) => value.id == id);
-        const filemime = this.prj_info.sounds.find((v) => v.id == id)?.mime;
-        const filename = this.prj_info.sounds.find((v) => v.id == id)?.filename;
+        const data = this.fileEntryById.get(id);
+        const filemime = this.soundMetaById.get(id)?.mime;
+        const filename = this.soundMetaById.get(id)?.filename;
         if (!data || !filemime || !filename)
             return Err(EngineError.SoundNotExist);
         const mimes = Object.entries(AUDIO_MIME_TYPES).filter((v) =>
             v[1].includes(filemime),
         )[0];
-        console.log(`[MIME] ${mimes} ${filemime}`);
         if (!mimes) return Err(EngineError.SoundNotExist);
         const mimesupported = SupportedMime[mimes[0]];
         if (!mimesupported) return Err(EngineError.UnspportedFile);
